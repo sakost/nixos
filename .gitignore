@@ -1,0 +1,22 @@
+# Build outputs
+result
+result-*
+
+# Secrets - NEVER commit private keys
+secrets/keys/
+*.age
+
+# Local environment
+.direnv/
+.envrc.local
+
+# Editor files
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
