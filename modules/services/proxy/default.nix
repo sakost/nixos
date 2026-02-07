@@ -41,6 +41,8 @@ in {
         ProtectSystem = "strict";
         ProtectHome = true;
         PrivateTmp = true;
+        StateDirectory = "sing-box";
+        WorkingDirectory = "/var/lib/sing-box";
       };
     };
 
