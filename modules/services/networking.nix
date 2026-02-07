@@ -11,7 +11,5 @@ in {
   config = lib.mkIf cfg.enable {
     networking.networkmanager.enable = true;
     networking.networkmanager.dns = "none";
-    networking.search = lib.mkForce [];
-    networking.resolvconf.extraOptions = [ "ndots:0" "timeout:1" ];
   };
 }
