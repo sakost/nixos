@@ -94,18 +94,16 @@
       };
     };
 
-    # Colorscheme
-    tokyonight = {
-      enable = true;
-      settings = {
-        style = "night";
-        transparent = true;
-      };
-    };
   };
 
-  # Set colorscheme
-  programs.nixvim.colorscheme = "tokyonight";
+  # Colorscheme
+  programs.nixvim.colorschemes.tokyonight = {
+    enable = true;
+    settings = {
+      style = "night";
+      transparent = true;
+    };
+  };
 
   # Keymaps for UI plugins
   programs.nixvim.keymaps = [
