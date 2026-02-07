@@ -124,7 +124,7 @@
       # Input
       input = {
         kb_layout = "us,ru";
-        kb_options = "grp:ralt_toggle";
+        kb_options = "";
         follow_mouse = 1;
         sensitivity = 0;
 
@@ -188,6 +188,11 @@
 
         # Screenshot
         ", Print, exec, grim -g \"$(slurp)\" - | wl-copy -t image/png"
+      ];
+
+      # Layout switching (Right Alt)
+      bindr = [
+        "ALT, Alt_R, exec, hyprctl switchxkblayout all next"
       ];
 
       # Mouse bindings
