@@ -213,7 +213,7 @@
 
       # Window rules
       windowrule = [
-        "suppressevent maximize, class:.*"
+        "suppress_event maximize, match:class .*"
       ];
     };
   };
