@@ -39,9 +39,8 @@
       "$fileManager" = "nautilus";
       "$menu" = "rofi -show drun";
 
-      # Autostart
+      # Autostart (waybar is managed by home-manager systemd service)
       exec-once = [
-        "waybar"
         "swww-daemon"
         "wl-paste --watch cliphist store"
       ];
@@ -136,7 +135,34 @@
       # Variables
       "$mainMod" = "SUPER";
 
-      # Keybindings
+      # ── Keybindings ──────────────────────────────────────────────
+      #
+      # Windows:
+      #   SUPER + Q            — open terminal
+      #   SUPER + C            — close window
+      #   SUPER + M            — exit Hyprland
+      #   SUPER + E            — file manager
+      #   SUPER + V            — toggle floating
+      #   SUPER + R            — app launcher (rofi)
+      #   SUPER + P            — pseudo-tile
+      #   SUPER + J            — toggle split direction
+      #   SUPER + arrows       — move focus (left/right/up/down)
+      #   SUPER + left-click   — drag to move window
+      #   SUPER + right-click  — drag to resize window
+      #
+      # Workspaces:
+      #   SUPER + 1-9,0        — switch to workspace 1-10
+      #   SUPER + SHIFT + 1-9,0 — move window to workspace 1-10
+      #   SUPER + S            — toggle scratchpad workspace
+      #   SUPER + SHIFT + S    — move window to scratchpad
+      #   SUPER + mouse scroll — cycle workspaces
+      #
+      # Media / misc:
+      #   Print                — screenshot (region → clipboard)
+      #   Right Alt            — switch keyboard layout
+      #   Volume/media keys    — audio & player control
+      # ─────────────────────────────────────────────────────────────
+
       bind = [
         # Apps
         "$mainMod, Q, exec, $terminal"

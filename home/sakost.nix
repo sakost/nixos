@@ -9,6 +9,8 @@
     ./programs/alacritty.nix
     ./programs/rofi.nix
     ./programs/gui-apps.nix
+    ./programs/waybar.nix
+    ./programs/git.nix
     ./programs/nixvim
     ./desktop/hyprland.nix
   ];
