@@ -35,9 +35,21 @@
       };
 
       clock = {
-        format = "{:%H:%M}";
-        format-alt = "{:%A, %B %d, %Y  %H:%M}";
-        tooltip-format = "<tt>{calendar}</tt>";
+        format = " {:%H:%M}";
+        format-alt = " {:%A, %B %d, %Y   %H:%M:%S}";
+        tooltip-format = "<tt><small>{calendar}</small></tt>";
+        calendar = {
+          mode = "month";
+          weeks-pos = "right";
+          format = {
+            months = "<span color='#c0caf5'><b>{}</b></span>";
+            days = "<span color='#565f89'>{}</span>";
+            weekdays = "<span color='#7aa2f7'><b>{}</b></span>";
+            weeks = "<span color='#33ccff'><b>W{}</b></span>";
+            today = "<span color='#00ff99'><b><u>{}</u></b></span>";
+          };
+        };
+        interval = 1;
       };
 
       "hyprland/language" = {
