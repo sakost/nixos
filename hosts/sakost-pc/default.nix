@@ -61,6 +61,7 @@
     intel-cpu.enable = true;
     audio.enable = true;
     bluetooth.enable = true;
+    mouse.enable = true;
     tpm.enable = true;
   };
 

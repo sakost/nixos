@@ -26,6 +26,18 @@ in {
       };
     };
 
+    # Auto-default Focusrite Scarlett Solo 3rd Gen as input source
+    services.pipewire.wireplumber.extraConfig."51-scarlett-default-source" = {
+      "monitor.alsa.rules" = [{
+        matches = [{ "node.name" = "~alsa_input.*Scarlett_Solo.*Mic1.*"; }];
+        actions.update-props = {
+          "node.description" = "Focusrite Scarlett Solo";
+          "priority.session" = 2500;
+          "priority.driver" = 2500;
+        };
+      }];
+    };
+
     # Audio control
     environment.systemPackages = [ pkgs.pavucontrol ];
   };

@@ -8,6 +8,7 @@
     ./amd-cpu.nix
     ./audio.nix
     ./bluetooth.nix
+    ./mouse.nix
     ./tpm.nix
   ];
 }
