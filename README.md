@@ -4,24 +4,25 @@ Multi-host NixOS flake configuration with Hyprland, Nvidia, and sing-box proxy.
 
 ## Hosts
 
-- **sakost-pc-portable**: Current portable/temp disk setup
-- **sakost-pc**: Future main PC with 2x NVMe (placeholder)
+- **sakost-pc**: Main PC with 2x NVMe, LUKS encryption, TPM auto-unlock, Secure Boot
+- **sakost-pc-portable**: Portable/temp disk setup
 
 ## Structure
 
 ```
 ├── flake.nix                 # Flake entry point
 ├── hosts/                    # Per-host configurations
-│   ├── sakost-pc-portable/   # Portable host
-│   └── sakost-pc/            # Main PC (template)
+│   ├── sakost-pc/            # Main PC (LUKS + TPM + Secure Boot)
+│   └── sakost-pc-portable/   # Portable host
 ├── modules/                  # Shared NixOS modules
-│   ├── hardware/             # GPU, CPU, audio, bluetooth
+│   ├── hardware/             # GPU, CPU, audio, bluetooth, TPM
 │   ├── desktop/              # Hyprland, greetd, XDG portals
-│   ├── programs/             # zsh, fonts, git
+│   ├── programs/             # zsh, fonts, git, nix-ld
 │   └── services/             # SSH, networking, proxy
 ├── home/                     # Home-manager configuration
 │   ├── sakost.nix            # User entry point
-│   ├── programs/             # User programs (nixvim, zsh, etc.)
+│   ├── xdg.nix              # XDG dirs, env vars, cache paths
+│   ├── programs/             # User programs (nixvim, zsh, waybar, etc.)
 │   └── desktop/              # Hyprland user config
 └── secrets/                  # SOPS-encrypted secrets
 ```
@@ -31,7 +32,6 @@ Multi-host NixOS flake configuration with Hyprland, Nvidia, and sing-box proxy.
 ### 1. Clone and Setup
 
 ```bash
-# Clone to home directory
 cd ~
 git clone <repo-url> nixos-config
 cd nixos-config
@@ -39,102 +39,95 @@ cd nixos-config
 
 ### 2. Setup SOPS Secrets
 
+**sakost-pc** uses the SSH host key for age decryption (available before `/home` mounts):
 ```bash
-# Install age and sops
-nix-shell -p age sops
+# The age key is derived from /etc/ssh/ssh_host_ed25519_key
+# Add the host's age public key to .sops.yaml
+```
 
-# Generate age key (if not exists)
+**sakost-pc-portable** uses a user age key:
+```bash
 mkdir -p ~/.config/sops/age
 age-keygen -o ~/.config/sops/age/keys.txt
 
-# Get your public key
-age-keygen -y ~/.config/sops/age/keys.txt
-# Add this public key to .sops.yaml
+# Add your public key to .sops.yaml
+```
 
-# Create sing-box config from template
+Then create and encrypt the sing-box config:
+```bash
 cp secrets/sing-box-template.json secrets/sing-box.json
-# Edit with your actual credentials
-nvim secrets/sing-box.json
-
-# Encrypt the config
+nvim secrets/sing-box.json   # Edit with your credentials
 sops -e -i secrets/sing-box.json
 ```
 
 ### 3. Build and Switch
 
 ```bash
-# Build without switching (test)
-sudo nixos-rebuild build --flake .#sakost-pc-portable
-
-# Switch to new configuration
-sudo nixos-rebuild switch --flake .#sakost-pc-portable
+sudo nixos-rebuild switch --flake .#sakost-pc
 ```
 
 ## Features
 
 ### Hardware
 - Nvidia GPU with proprietary drivers
-- Intel CPU microcode updates
+- Intel/AMD CPU microcode updates
 - PipeWire audio (low-latency)
 - Bluetooth support
+- TPM 2.0 with systemd-initrd auto-unlock (sakost-pc)
 
 ### Desktop
-- Hyprland Wayland compositor
-- HDR support (4K@144Hz)
+- Hyprland Wayland compositor with HDR (4K@144Hz)
+- Waybar status bar with calendar tooltip
 - greetd display manager with tuigreet
 - XDG desktop portals
+- swww wallpaper daemon
+- cliphist clipboard manager
+- Telegram Desktop (autostart minimized to tray)
 
 ### Programs
-- Nixvim with full IDE setup:
-  - LSPs: Python, Rust, TypeScript, Nix, Lua, Go, Bash, JSON, YAML
-  - Completion: nvim-cmp with snippets
-  - UI: nvim-tree, lualine, bufferline, telescope
-  - Git: gitsigns, lazygit
-  - Extras: treesitter, autopairs, todo-comments, trouble
-- Zsh with oh-my-zsh
-- Alacritty terminal
-- Rofi launcher
+- **Editors**: Nixvim with full IDE setup (LSPs, completion, telescope, git integration)
+- **Shells**: Zsh with oh-my-zsh, autosuggestions, syntax highlighting
+- **Terminal**: Alacritty
+- **Launcher**: Rofi
+- **Browsers**: Google Chrome
+- **Dev tools**: rustup (stable), Go, Node.js, npm, Yarn, uv, ripgrep, direnv + nix-direnv
+- **CLI tools**: Claude Code, fastfetch, zoxide
+- **GUI apps**: Telegram Desktop, Google Chrome
+- **Compatibility**: nix-ld for running unpatched binaries
 
 ### Services
 - OpenSSH (key-only auth)
 - sing-box proxy with VLESS Reality (TUN mode)
 - NetworkManager
 
+### XDG & Cache
+- Full XDG Base Directory compliance
+- Package manager caches centralized to `~/dev/cache/<name>` (npm, yarn, uv, pip, cargo, go, cuda)
+
 ## Secrets Management
 
-This repo uses SOPS with age encryption for secrets.
+Uses SOPS with age encryption. Keys are derived from SSH host keys (sakost-pc) or user age keys (portable).
 
 **Files:**
 - `.sops.yaml` - SOPS configuration with public keys
 - `secrets/sing-box.json` - Encrypted sing-box config
 - `secrets/sing-box-template.json` - Template (not encrypted)
 
-**Never commit:**
-- `secrets/keys/` - Private age keys
-- Unencrypted secret files
-
-### Decrypting Secrets (for editing)
+### Editing Secrets
 
 ```bash
-# Edit encrypted file (auto-decrypt/encrypt)
-sops secrets/sing-box.json
-
-# Or decrypt to view
-sops -d secrets/sing-box.json
+sops secrets/sing-box.json        # Auto-decrypt/encrypt
+sops -d secrets/sing-box.json     # Decrypt to view
 ```
 
 ## Adding a New Host
 
-1. Create `hosts/<hostname>/` directory
-2. Copy from existing host or create:
-   - `default.nix` - Host configuration
-   - `hardware.nix` - Run `nixos-generate-config` and copy
-   - `disk-config.nix` - LUKS/filesystem setup
-3. Add host to `flake.nix`:
+1. Create `hosts/<hostname>/` with `default.nix`, `hardware.nix`, `disk-config.nix`
+2. Add to `flake.nix`:
    ```nix
    nixosConfigurations.<hostname> = mkHost "<hostname>";
    ```
-4. Update `.sops.yaml` with new host's age public key
+3. Update `.sops.yaml` with the host's age public key
 
 ## Useful Commands
 
@@ -147,10 +140,8 @@ nrt   # nixos-rebuild test --flake ~/nixos-config
 # Edit config
 ne    # nvim ~/nixos-config
 
-# Check flake
+# Flake operations
 nix flake check
-
-# Update flake inputs
 nix flake update
 
 # Garbage collection
