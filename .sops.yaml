@@ -1,9 +1,8 @@
 # SOPS configuration for NixOS secrets
-# Generate age keys with: age-keygen -o secrets/keys/sakost-pc-portable.txt
-# Then add the public key here
+# Age keys derived from SSH host keys via ssh-to-age
 
 keys:
-  - &sakost-pc age1t9c3pfj4t4haq7267h9grj20lg5fcnfnsd9eavau40ptx5j9ffmsq250ex
+  - &sakost-pc age1hctl9v9qq7fcp3qltmxlndhk24d60calvn962ykm4fwkw8d7j4pqushe0g
 
 creation_rules:
   # sing-box proxy configuration (stored as binary for simplicity)

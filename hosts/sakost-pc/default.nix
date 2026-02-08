@@ -22,14 +22,8 @@
   # Host identity
   networking.hostName = hostname;
 
-  # SOPS age key configuration
-  sops.age.keyFile = "/home/sakost/.config/sops/age/keys.txt";
-
-  # Ensure correct ownership for sops config
-  systemd.tmpfiles.rules = [
-    "d /home/sakost/.config/sops/age 0700 sakost users - -"
-    "f /home/sakost/.config/sops/age/keys.txt 0600 sakost users - -"
-  ];
+  # SOPS - use SSH host key for age decryption (available before /home mounts)
+  sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
 
   # Fix ownership of subvolume mount points during system activation
   system.activationScripts.fixSubvolumeOwnership = ''
