@@ -23,7 +23,6 @@
       inputs.claude-code.packages.x86_64-linux.default
       rustup
       ripgrep
-      zoxide
       uv
       nodejs
       yarn
