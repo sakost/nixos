@@ -49,6 +49,9 @@
       # HTML/CSS
       html.enable = true;
       cssls.enable = true;
+
+      # Protobuf
+      buf_ls.enable = true;
     };
 
     keymaps = {

@@ -32,6 +32,7 @@
           "typescript"
           "vim"
           "vimdoc"
+          "proto"
           "yaml"
         ];
       };
