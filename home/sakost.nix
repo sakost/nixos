@@ -29,6 +29,11 @@
       yarn
       fastfetch
       go
+      glab
+      kubectl
+      kubeseal
+      kubie
+      helm
     ];
   };
 
