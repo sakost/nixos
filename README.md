@@ -55,8 +55,7 @@ age-keygen -o ~/.config/sops/age/keys.txt
 
 Then create and encrypt the sing-box config:
 ```bash
-cp secrets/sing-box-template.json secrets/sing-box.json
-nvim secrets/sing-box.json   # Edit with your credentials
+nvim secrets/sing-box.json   # Create with your credentials
 sops -e -i secrets/sing-box.json
 ```
 
@@ -111,7 +110,6 @@ Uses SOPS with age encryption. Keys are derived from SSH host keys (sakost-pc) o
 **Files:**
 - `.sops.yaml` - SOPS configuration with public keys
 - `secrets/sing-box.json` - Encrypted sing-box config
-- `secrets/sing-box-template.json` - Template (not encrypted)
 
 ### Editing Secrets
 
