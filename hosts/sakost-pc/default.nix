@@ -61,6 +61,7 @@
     intel-cpu.enable = true;
     audio.enable = true;
     bluetooth.enable = true;
+    tpm.enable = true;
   };
 
   # Enable desktop features
@@ -94,6 +95,7 @@
     sops
     age
     parted
+    sbctl
   ];
 
   # State version - set this when first installing

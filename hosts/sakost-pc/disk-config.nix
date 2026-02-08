@@ -3,10 +3,12 @@
 {
   boot.initrd.luks.devices."cryptroot" = {
     device = "/dev/disk/by-uuid/442f8c91-0b7a-45bb-b479-3dfda29fc07e";
+    crypttabExtraOpts = [ "tpm2-device=auto" ];
   };
 
   boot.initrd.luks.devices."cryptdata" = {
     device = "/dev/disk/by-uuid/77ae29f0-8458-449a-bae0-932ba4f4a844";
+    crypttabExtraOpts = [ "tpm2-device=auto" ];
   };
 
   fileSystems."/" = {
@@ -70,7 +72,7 @@
   };
 
   fileSystems."/boot" = {
-    device = "/dev/disk/by-uuid/A2CB-38C0";
+    device = "/dev/disk/by-uuid/3FB9-2AE0";
     fsType = "vfat";
     options = [
       "fmask=0077"

@@ -15,8 +15,15 @@
 
   boot.kernelParams = [ "nvidia-drm.modeset=1" ];
 
-  boot.loader.systemd-boot.enable = true;
+  boot.loader.systemd-boot.enable = lib.mkForce false;
   boot.loader.efi.canTouchEfiVariables = true;
+
+  boot.lanzaboote = {
+    enable = true;
+    pkiBundle = "/var/lib/sbctl";
+  };
+
+  boot.initrd.systemd.enable = true;
 
   zramSwap = {
     enable = true;
