@@ -37,7 +37,7 @@
       clock = {
         format = " {:%H:%M}";
         format-alt = " {:%A, %B %d, %Y   %H:%M:%S}";
-        tooltip-format = "<tt><small>{calendar}</small></tt>";
+        tooltip-format = "<tt><big>{calendar}</big></tt>";
         calendar = {
           mode = "month";
           weeks-pos = "right";
