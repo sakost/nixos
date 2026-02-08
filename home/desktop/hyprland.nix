@@ -43,6 +43,7 @@
       exec-once = [
         "swww-daemon"
         "wl-paste --watch cliphist store"
+        "telegram-desktop -startintray"
       ];
 
       # General
