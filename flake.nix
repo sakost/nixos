@@ -24,13 +24,18 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    yandex-browser = {
+      url = "github:sakost/nix-yandex-browser";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     lanzaboote = {
       url = "github:nix-community/lanzaboote/v1.0.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, nixvim, sops-nix, claude-code, lanzaboote, ... }@inputs:
+  outputs = { self, nixpkgs, home-manager, nixvim, sops-nix, claude-code, lanzaboote, yandex-browser, ... }@inputs:
   let
     system = "x86_64-linux";
 

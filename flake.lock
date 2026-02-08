@@ -225,7 +225,8 @@
         "lanzaboote": "lanzaboote",
         "nixpkgs": "nixpkgs",
         "nixvim": "nixvim",
-        "sops-nix": "sops-nix"
+        "sops-nix": "sops-nix",
+        "yandex-browser": "yandex-browser"
       }
     },
     "rust-overlay": {
@@ -296,6 +297,26 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
+        "type": "github"
+      }
+    },
+    "yandex-browser": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1770577744,
+        "narHash": "sha256-WW8jb4RZqxc6TEn9gubdhEh8bAoNM/D591DTmjqNsR8=",
+        "owner": "sakost",
+        "repo": "nix-yandex-browser",
+        "rev": "3d6788d06369b928f89e96cd0398155b34d6a238",
+        "type": "github"
+      },
+      "original": {
+        "owner": "sakost",
+        "repo": "nix-yandex-browser",
         "type": "github"
       }
     }
