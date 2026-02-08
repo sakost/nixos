@@ -25,6 +25,8 @@
       ripgrep
       zoxide
       uv
+      nodejs
+      yarn
     ];
   };
 
