@@ -27,8 +27,17 @@
       uv
       nodejs
       yarn
+      fastfetch
+      go
     ];
   };
+
+  # Install stable Rust toolchain via rustup on activation
+  home.activation.rustup = config.lib.dag.entryAfter [ "writeBoundary" ] ''
+    export RUSTUP_HOME="${config.xdg.dataHome}/rustup"
+    export CARGO_HOME="${config.home.homeDirectory}/dev/cache/cargo"
+    run ${pkgs.rustup}/bin/rustup default stable
+  '';
 
   # Let home-manager manage itself
   programs.home-manager.enable = true;

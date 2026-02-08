@@ -1,17 +1,28 @@
 # XDG Base Directory configuration
 { config, ... }:
 
+let
+  cacheBase = "${config.home.homeDirectory}/dev/cache";
+in
 {
   # Environment variables for XDG compliance
   home.sessionVariables = {
-    CARGO_HOME = "${config.xdg.dataHome}/cargo";
     RUSTUP_HOME = "${config.xdg.dataHome}/rustup";
     GOPATH = "${config.xdg.dataHome}/go";
+    GOMODCACHE = "${cacheBase}/go/mod";
+    GOCACHE = "${cacheBase}/go/build";
     NPM_CONFIG_USERCONFIG = "${config.xdg.configHome}/npm/npmrc";
     PYTHON_HISTORY = "${config.xdg.stateHome}/python/history";
     PYTHONSTARTUP = "${config.xdg.configHome}/python/pythonstartup.py";
-    CUDA_CACHE_PATH = "${config.xdg.cacheHome}/nv";
+    CUDA_CACHE_PATH = "${cacheBase}/cuda";
     DOCKER_CONFIG = "${config.xdg.configHome}/docker";
+
+    # Package manager cache directories
+    npm_config_cache = "${cacheBase}/npm";
+    YARN_CACHE_FOLDER = "${cacheBase}/yarn";
+    UV_CACHE_DIR = "${cacheBase}/uv";
+    PIP_CACHE_DIR = "${cacheBase}/pip";
+    CARGO_HOME = "${cacheBase}/cargo";
   };
 
   xdg = {
@@ -30,10 +41,13 @@
       publicShare = "${config.home.homeDirectory}/Public";
     };
 
+    # Python startup file for XDG compliance
+    configFile."python/pythonstartup.py".text = "";
+
     # NPM configuration for XDG compliance
     configFile."npm/npmrc".text = ''
       prefix=${config.xdg.dataHome}/npm
-      cache=${config.xdg.cacheHome}/npm
+      cache=${cacheBase}/npm
     '';
   };
 }
