@@ -25,6 +25,22 @@
   # SOPS age key configuration
   sops.age.keyFile = "/home/sakost/.config/sops/age/keys.txt";
 
+  # Ensure correct ownership for sops config
+  systemd.tmpfiles.rules = [
+    "d /home/sakost/.config/sops/age 0700 sakost users - -"
+    "f /home/sakost/.config/sops/age/keys.txt 0600 sakost users - -"
+  ];
+
+  # Fix ownership of subvolume mount points during system activation
+  system.activationScripts.fixSubvolumeOwnership = ''
+    ${pkgs.coreutils}/bin/chown sakost:users \
+      /home/sakost/games \
+      /home/sakost/dev \
+      /home/sakost/dev/models \
+      /home/sakost/dev/data \
+      /home/sakost/dev/cache
+  '';
+
   # Timezone and locale
   time.timeZone = "Europe/Moscow";
 

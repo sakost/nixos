@@ -17,6 +17,12 @@
   # SOPS age key configuration
   sops.age.keyFile = "/home/sakost/.config/sops/age/keys.txt";
 
+  # Ensure sops age key directory and file have correct ownership
+  systemd.tmpfiles.rules = [
+    "d /home/sakost/.config/sops/age 0700 sakost users - -"
+    "f /home/sakost/.config/sops/age/keys.txt 0600 sakost users - -"
+  ];
+
   # Timezone and locale
   time.timeZone = "Europe/Moscow";
 
