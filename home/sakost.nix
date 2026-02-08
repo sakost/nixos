@@ -30,6 +30,7 @@
       uv
       nodejs
       yarn
+      btop
       fastfetch
       go
       glab
