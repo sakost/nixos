@@ -16,7 +16,7 @@
   networking.hostName = hostname;
 
   # SOPS age key configuration
-  sops.age.keyFile = "/home/sakost/.config/sops/age/keys.txt";
+  #sops.age.keyFile = "/home/sakost/.config/sops/age/keys.txt";
 
   # Timezone and locale
   time.timeZone = "Europe/Moscow";
@@ -28,7 +28,7 @@
   # Enable hardware features
   custom.hardware = {
     nvidia.enable = true;
-    intel-cpu.enable = true;  # Change to amd-cpu if applicable
+    intel-cpu.enable = true;
     audio.enable = true;
     bluetooth.enable = true;
   };
