@@ -6,5 +6,6 @@
     ./ssh.nix
     ./networking.nix
     ./proxy
+    ./podman.nix
   ];
 }

@@ -44,6 +44,18 @@ in
     # Python startup file for XDG compliance
     configFile."python/pythonstartup.py".text = "";
 
+    # Podman rootless storage in cache drive
+    configFile."containers/storage.conf".text = ''
+      [storage]
+      driver = "overlay"
+      graphroot = "${cacheBase}/podman/storage"
+      runroot = "/run/user/1000/containers"
+
+      [storage.options.overlay]
+      mount_program = "/run/current-system/sw/bin/fuse-overlayfs"
+    '';
+
+
     # NPM configuration for XDG compliance
     configFile."npm/npmrc".text = ''
       prefix=${config.xdg.dataHome}/npm
