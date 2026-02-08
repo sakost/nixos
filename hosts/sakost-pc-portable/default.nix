@@ -29,6 +29,7 @@
   # Nix settings
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.android_sdk.accept_license = true;
 
   # Automatic garbage collection
   nix.gc = {
@@ -64,7 +65,7 @@
   # User configuration
   users.users.sakost = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "networkmanager" ];
+    extraGroups = [ "wheel" "networkmanager" "adbusers" ];
     shell = pkgs.zsh;
   };
 

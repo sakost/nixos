@@ -7,5 +7,6 @@
     ./fonts.nix
     ./git.nix
     ./nix-ld.nix
+    ./android.nix
   ];
 }

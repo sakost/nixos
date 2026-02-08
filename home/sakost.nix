@@ -13,6 +13,7 @@
     ./programs/wlogout.nix
     ./programs/git.nix
     ./programs/nixvim
+    ./programs/flutter.nix
     ./desktop/hyprland.nix
   ];
 
@@ -23,6 +24,8 @@
     packages = with pkgs; [
       inputs.claude-code.packages.x86_64-linux.default
       rustup
+      gcc
+      pkg-config
       ripgrep
       uv
       nodejs

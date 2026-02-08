@@ -44,6 +44,7 @@
     "flakes"
   ];
   nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.android_sdk.accept_license = true;
 
   # Automatic garbage collection
   nix.gc = {
@@ -84,6 +85,7 @@
     extraGroups = [
       "wheel"
       "networkmanager"
+      "adbusers"
     ];
     shell = pkgs.zsh;
   };
