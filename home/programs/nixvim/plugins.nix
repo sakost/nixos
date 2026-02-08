@@ -1,5 +1,5 @@
 # Nixvim additional plugins
-{ ... }:
+{ pkgs, ... }:
 
 {
   programs.nixvim.plugins = {
@@ -93,6 +93,11 @@
       enable = true;
     };
 
+    # Snacks.nvim (required by claudecode.nvim)
+    snacks = {
+      enable = true;
+    };
+
     # Markdown preview
     markdown-preview = {
       enable = true;
@@ -102,6 +107,23 @@
       };
     };
   };
+
+  # claudecode.nvim - Claude Code integration
+  programs.nixvim.extraPlugins = [
+    (pkgs.vimUtils.buildVimPlugin {
+      name = "claudecode-nvim";
+      src = pkgs.fetchFromGitHub {
+        owner = "coder";
+        repo = "claudecode.nvim";
+        rev = "aa9a5cebebdbfa449c1c5ff229ba5d98e66bafed";
+        hash = "sha256-B6BA+3h7RLmk+zk6O365DmY06ALdbbkFBmOaRH9muog=";
+      };
+    })
+  ];
+
+  programs.nixvim.extraConfigLua = ''
+    require("claudecode").setup()
+  '';
 
   # Plugin keymaps
   programs.nixvim.keymaps = [

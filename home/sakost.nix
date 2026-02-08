@@ -37,6 +37,7 @@
       kubeseal
       kubie
       helm
+      protobuf
     ];
   };
 
