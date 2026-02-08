@@ -29,6 +29,7 @@ in
   home.packages = with pkgs; [
     flutter
     jdk17
+    mesa-demos
   ];
 
   home.sessionVariables = {
