@@ -141,7 +141,7 @@
       # Windows:
       #   SUPER + Q            — open terminal
       #   SUPER + C            — close window
-      #   SUPER + M            — exit Hyprland
+      #   SUPER + Escape       — power menu (wlogout)
       #   SUPER + E            — file manager
       #   SUPER + V            — toggle floating
       #   SUPER + R            — app launcher (rofi)
@@ -168,7 +168,7 @@
         # Apps
         "$mainMod, Q, exec, $terminal"
         "$mainMod, C, killactive"
-        "$mainMod, M, exit"
+        "$mainMod, escape, exec, wlogout"
         "$mainMod, E, exec, $fileManager"
         "$mainMod, V, togglefloating"
         "$mainMod, R, exec, $menu"
