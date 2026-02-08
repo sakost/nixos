@@ -123,7 +123,7 @@
       # Input
       input = {
         kb_layout = "us,ru";
-        kb_options = "";
+        kb_options = "grp:toggle";
         follow_mouse = 1;
         sensitivity = 0;
 
@@ -159,7 +159,7 @@
       #
       # Media / misc:
       #   Print                — screenshot (region → clipboard)
-      #   Right Alt            — switch keyboard layout
+      #   Right Alt            — switch keyboard layout (via XKB)
       #   Volume/media keys    — audio & player control
       # ─────────────────────────────────────────────────────────────
 
@@ -214,11 +214,6 @@
 
         # Screenshot
         ", Print, exec, grim -g \"$(slurp)\" - | wl-copy -t image/png"
-      ];
-
-      # Layout switching (Right Alt)
-      bindr = [
-        "ALT, Alt_R, exec, hyprctl switchxkblayout all next"
       ];
 
       # Mouse bindings
