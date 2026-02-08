@@ -3,8 +3,6 @@
 # Then add the public key here
 
 keys:
-  # Host keys - add your age public keys here
-  - &sakost-pc-portable age1px63222yx6q9jym4qtey6f29qqr6rdzk6m79azc5d5uk4ltsa5xsmruvdz
   - &sakost-pc age1t9c3pfj4t4haq7267h9grj20lg5fcnfnsd9eavau40ptx5j9ffmsq250ex
 
 creation_rules:
@@ -12,5 +10,4 @@ creation_rules:
   - path_regex: secrets/sing-box\.json$
     key_groups:
       - age:
-          - *sakost-pc-portable
           - *sakost-pc
