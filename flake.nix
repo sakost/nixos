@@ -40,7 +40,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, nixvim, sops-nix, claude-code, lanzaboote, yandex-browser, ... }@inputs:
+  outputs = { self, nixpkgs, home-manager, nixvim, sops-nix, claude-code, lanzaboote, yandex-browser, android-nixpkgs, ... }@inputs:
   let
     system = "x86_64-linux";
 
@@ -53,6 +53,7 @@
         sops-nix.nixosModules.sops
         lanzaboote.nixosModules.lanzaboote
         home-manager.nixosModules.home-manager
+        { nixpkgs.overlays = [ android-nixpkgs.overlays.default ]; }
         {
           home-manager = {
             useGlobalPkgs = true;

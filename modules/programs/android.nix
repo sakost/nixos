@@ -1,7 +1,6 @@
-# Android device debugging support (ADB udev rules)
+# Android device debugging support
 { pkgs, ... }:
 
 {
-  services.udev.packages = [ pkgs.android-udev-rules ];
   environment.systemPackages = [ pkgs.android-tools ];
 }
