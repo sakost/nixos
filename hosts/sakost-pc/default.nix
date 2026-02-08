@@ -71,6 +71,9 @@
     git
     wget
     tree
+    sops
+    age
+    parted
   ];
 
   # State version - set this when first installing

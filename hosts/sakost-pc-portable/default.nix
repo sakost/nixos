@@ -57,6 +57,9 @@
     git
     wget
     tree
+    sops
+    age
+    parted
   ];
 
   # State version - DO NOT CHANGE after initial install
