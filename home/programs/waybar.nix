@@ -38,6 +38,7 @@
         format = " {:%H:%M}";
         format-alt = " {:%A, %B %d, %Y   %H:%M:%S}";
         tooltip-format = "<tt><big>{calendar}</big></tt>";
+        locale = "ru_RU.UTF-8";
         calendar = {
           mode = "month";
           weeks-pos = "right";
