@@ -19,6 +19,9 @@ in {
     services.dbus.enable = true;
     security.polkit.enable = true;
 
+    # GVFS for trash and virtual filesystems in Nautilus
+    services.gvfs.enable = true;
+
     # Wayland packages
     environment.systemPackages = with pkgs; [
       hyprland
@@ -38,6 +41,7 @@ in {
 
       # Desktop utilities
       nautilus
+      gvfs # Virtual filesystem (trash, mtp, network shares, etc.)
       dunst
       libnotify
       networkmanagerapplet

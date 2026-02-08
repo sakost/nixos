@@ -5,6 +5,10 @@
     device = "/dev/disk/by-uuid/442f8c91-0b7a-45bb-b479-3dfda29fc07e";
   };
 
+  boot.initrd.luks.devices."cryptdata" = {
+    device = "/dev/disk/by-uuid/77ae29f0-8458-449a-bae0-932ba4f4a844";
+  };
+
   fileSystems."/" = {
     device = "/dev/mapper/cryptroot";
     fsType = "btrfs";

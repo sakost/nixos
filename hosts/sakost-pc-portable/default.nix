@@ -30,6 +30,16 @@
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nixpkgs.config.allowUnfree = true;
 
+  # Automatic garbage collection
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 3d";
+  };
+
+  # Limit number of generations in boot menu
+  boot.loader.systemd-boot.configurationLimit = 5;
+
   # Enable hardware features
   custom.hardware = {
     nvidia.enable = true;
