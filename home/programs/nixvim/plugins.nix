@@ -116,14 +116,25 @@
       src = pkgs.fetchFromGitHub {
         owner = "coder";
         repo = "claudecode.nvim";
-        rev = "aa9a5cebebdbfa449c1c5ff229ba5d98e66bafed";
-        hash = "sha256-B6BA+3h7RLmk+zk6O365DmY06ALdbbkFBmOaRH9muog=";
+        rev = "v0.3.0";
+        hash = "sha256-sOBY2y/buInf+SxLwz6uYlUouDULwebY/nmDlbFbGa8=";
       };
     })
   ];
 
   programs.nixvim.extraConfigLua = ''
-    require("claudecode").setup()
+    require("claudecode").setup({
+      auto_start = true,
+      terminal = {
+        split_side = "right",
+        split_width_percentage = 0.30,
+        provider = "snacks",
+      },
+      diff_opts = {
+        auto_close_on_accept = true,
+        vertical_split = true,
+      },
+    })
   '';
 
   # Plugin keymaps
@@ -131,5 +142,16 @@
     { mode = "n"; key = "<leader>xx"; action = ":Trouble diagnostics toggle<CR>"; options.desc = "Toggle Trouble"; }
     { mode = "n"; key = "<leader>xd"; action = ":Trouble diagnostics toggle filter.buf=0<CR>"; options.desc = "Buffer diagnostics"; }
     { mode = "n"; key = "<leader>mp"; action = ":MarkdownPreview<CR>"; options.desc = "Markdown preview"; }
+
+    # Claude Code
+    { mode = "n"; key = "<leader>ac"; action = "<cmd>ClaudeCode<CR>"; options.desc = "Toggle Claude"; }
+    { mode = "n"; key = "<leader>af"; action = "<cmd>ClaudeCodeFocus<CR>"; options.desc = "Focus Claude"; }
+    { mode = "n"; key = "<leader>ar"; action = "<cmd>ClaudeCode --resume<CR>"; options.desc = "Resume Claude"; }
+    { mode = "n"; key = "<leader>aC"; action = "<cmd>ClaudeCode --continue<CR>"; options.desc = "Continue Claude"; }
+    { mode = "n"; key = "<leader>am"; action = "<cmd>ClaudeCodeSelectModel<CR>"; options.desc = "Select model"; }
+    { mode = "n"; key = "<leader>ab"; action = "<cmd>ClaudeCodeAdd %<CR>"; options.desc = "Add current buffer"; }
+    { mode = "v"; key = "<leader>as"; action = "<cmd>ClaudeCodeSend<CR>"; options.desc = "Send selection to Claude"; }
+    { mode = "n"; key = "<leader>aa"; action = "<cmd>ClaudeCodeDiffAccept<CR>"; options.desc = "Accept diff"; }
+    { mode = "n"; key = "<leader>ad"; action = "<cmd>ClaudeCodeDiffDeny<CR>"; options.desc = "Deny diff"; }
   ];
 }

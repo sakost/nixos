@@ -175,6 +175,22 @@ Inline blame is shown at end of lines by default.
 | `Space xx` | n | Toggle Trouble |
 | `Space xd` | n | Buffer diagnostics only |
 
+## Claude Code (claudecode.nvim)
+
+Terminal opens in a right split (30% width) via snacks.nvim.
+
+| Key | Mode | Action |
+|-----|------|--------|
+| `Space ac` | n | Toggle Claude terminal |
+| `Space af` | n | Focus Claude terminal |
+| `Space ar` | n | Resume Claude session |
+| `Space aC` | n | Continue Claude session |
+| `Space am` | n | Select model |
+| `Space ab` | n | Add current buffer as context |
+| `Space as` | v | Send selection to Claude |
+| `Space aa` | n | Accept diff |
+| `Space ad` | n | Deny diff |
+
 ## Markdown
 
 | Key | Mode | Action |
