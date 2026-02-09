@@ -26,6 +26,7 @@
       rustup
       gcc
       pkg-config
+      jq
       ripgrep
       uv
       nodejs
