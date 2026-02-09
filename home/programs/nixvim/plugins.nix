@@ -75,6 +75,16 @@
           defer_save = [ "InsertLeave" "TextChanged" ];
         };
         debounce_delay = 1000;
+        condition = ''
+          function(buf)
+            local ft = vim.bo[buf].filetype
+            local bt = vim.bo[buf].buftype
+            if ft == "dbui" or ft == "dbout" or bt == "terminal" or bt == "nofile" and ft == "sql" then
+              return false
+            end
+            return true
+          end
+        '';
       };
     };
 
@@ -123,6 +133,16 @@
   ];
 
   programs.nixvim.extraConfigLua = ''
+    -- Fix auto-save.nvim cancel_timer double-close crash
+    do
+      local as = require("auto-save")
+      local orig = as.cancel_timer
+      as.cancel_timer = function(...)
+        if as._timer and as._timer:is_closing() then return end
+        return orig(...)
+      end
+    end
+
     require("claudecode").setup({
       auto_start = true,
       terminal = {
