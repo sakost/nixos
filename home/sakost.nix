@@ -44,6 +44,7 @@
       kubeseal
       kubie
       helm
+      python3
       protobuf
       zip
       unzip

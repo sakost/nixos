@@ -31,6 +31,9 @@
       ne = "nvim ~/nixos-config";
       svim = "sudo nvim";
 
+      # Python
+      python = "python3";
+
       # Common shortcuts
       ll = "ls -la";
       la = "ls -A";
