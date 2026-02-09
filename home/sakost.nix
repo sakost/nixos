@@ -33,7 +33,9 @@
       yarn
       btop
       fastfetch
+      gnumake
       go
+      go-task
       glab
       postgresql
       google-cloud-sdk
@@ -43,6 +45,8 @@
       kubie
       helm
       protobuf
+      zip
+      unzip
     ];
   };
 
