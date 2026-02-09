@@ -1,0 +1,7 @@
+{
+  "hooks": {
+    "postEdit": {
+      "command": "for f in \"$CLAUDE_EDITED_FILES\"; do if [[ \"$f\" == *.nix ]]; then nix-instantiate --parse \"$f\" > /dev/null 2>&1 || echo \"WARNING: Nix syntax error in $f\"; fi; done"
+    }
+  }
+}

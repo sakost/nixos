@@ -70,6 +70,11 @@ Scopes match the area of change: `home`, `waybar`, `locale`, `flutter`, `hardwar
 - `/add-module <name>` — create a new system module under `modules/` with the `custom.*` option pattern
 - `/add-program <name>` — create a new home-manager program config under `home/programs/`
 - `/search-option <query>` — search NixOS/home-manager options and check if already used
+- `/find-option <name>` — find where an option is set in this repo
+- `/rebuild` — validate and apply config with `nixos-rebuild switch`
+- `/check` — build-test the config without applying
+- `/diff-generation` — compare current vs previous NixOS generation
+- `/cleanup` — run nix garbage collection and store optimization
 
 ## Important notes
 
