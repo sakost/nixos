@@ -191,6 +191,47 @@ Terminal opens in a right split (30% width) via snacks.nvim.
 | `Space aa` | n | Accept diff |
 | `Space ad` | n | Deny diff |
 
+## Database (vim-dadbod)
+
+Built-in database client with UI sidebar. Supports PostgreSQL, MySQL, SQLite, and more.
+
+### Keymaps
+
+| Key | Mode | Action |
+|-----|------|--------|
+| `Space db` | n | Toggle DB UI sidebar |
+| `Space df` | n | Find DB UI buffer |
+| `Space dl` | n | Last query info |
+
+### DB UI Sidebar
+
+| Key | Context | Action |
+|-----|---------|--------|
+| `A` | sidebar | Add new connection |
+| `d` | sidebar | Delete connection |
+| `R` | sidebar | Rename connection |
+| `<CR>` | sidebar | Expand/collapse or open table |
+| `S` | table | Generate `SELECT *` query |
+| `o` | sidebar | Open query buffer |
+
+### Query Buffer
+
+| Key | Context | Action |
+|-----|---------|--------|
+| `<leader>S` | sql buffer | Execute query (dadbod-ui default) |
+
+SQL buffers get autocompletion for table/column names via nvim-cmp.
+
+### Connection URLs
+
+```
+postgresql://user:pass@host:5432/dbname
+mysql://user:pass@host:3306/dbname
+sqlite:path/to/db.sqlite
+```
+
+For Cloud SQL via proxy: start `cloud-sql-proxy` first, then connect to `postgresql://user:pass@127.0.0.1:5432/dbname`.
+
 ## Markdown
 
 | Key | Mode | Action |

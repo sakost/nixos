@@ -76,6 +76,27 @@ Scopes match the area of change: `home`, `waybar`, `locale`, `flutter`, `hardwar
 - `/diff-generation` — compare current vs previous NixOS generation
 - `/cleanup` — run nix garbage collection and store optimization
 
+## Database access (vim-dadbod)
+
+Neovim has a built-in database client via vim-dadbod + dadbod-ui. Config: `home/programs/nixvim/dadbod.nix`.
+
+**Keymaps:**
+- `<leader>db` — Toggle DB UI sidebar
+- `<leader>df` — Find DB UI buffer
+- `<leader>dl` — Last query info
+
+**Adding a connection:**
+1. Open DB UI with `<leader>db`
+2. Press `A` to add a new connection
+3. Enter a name and connection URL: `postgresql://user:pass@host:5432/dbname`
+4. For Cloud SQL via proxy: `postgresql://user:pass@127.0.0.1:5432/dbname` (start `cloud-sql-proxy` first)
+
+**Usage:**
+- Navigate databases/tables in the sidebar, press `<CR>` to expand
+- Press `S` on a table to get a `SELECT *` query
+- Write SQL in the query buffer, execute with `<leader>S` (dadbod-ui default)
+- SQL buffers get autocompletion for tables/columns via nvim-cmp
+
 ## Important notes
 
 - Timezone is `Europe/Moscow`, locale is `en_US.UTF-8` with Russian (`ru_RU.UTF-8`) for `LC_TIME`

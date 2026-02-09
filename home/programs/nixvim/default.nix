@@ -11,6 +11,7 @@
     ./telescope.nix
     ./git.nix
     ./plugins.nix
+    ./dadbod.nix
   ];
 
   programs.nixvim = {
