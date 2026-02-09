@@ -75,6 +75,7 @@
           defer_save = [ "InsertLeave" "TextChanged" ];
         };
         debounce_delay = 1000;
+        noautocmd = true;
         condition = ''
           function(buf)
             local ft = vim.bo[buf].filetype
@@ -133,16 +134,6 @@
   ];
 
   programs.nixvim.extraConfigLua = ''
-    -- Fix auto-save.nvim cancel_timer double-close crash
-    do
-      local as = require("auto-save")
-      local orig = as.cancel_timer
-      as.cancel_timer = function(...)
-        if as._timer and as._timer:is_closing() then return end
-        return orig(...)
-      end
-    end
-
     require("claudecode").setup({
       auto_start = true,
       terminal = {
