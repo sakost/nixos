@@ -35,6 +35,7 @@
       fastfetch
       go
       glab
+      postgresql
       google-cloud-sdk
       google-cloud-sql-proxy
       kubectl
