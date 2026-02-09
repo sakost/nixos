@@ -35,6 +35,8 @@
       fastfetch
       go
       glab
+      google-cloud-sdk
+      google-cloud-sql-proxy
       kubectl
       kubeseal
       kubie
