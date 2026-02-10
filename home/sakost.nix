@@ -27,6 +27,7 @@
       gcc
       pkg-config
       jq
+      just
       ripgrep
       uv
       nodejs
