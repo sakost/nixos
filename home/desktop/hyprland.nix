@@ -48,6 +48,7 @@
         "swww-daemon"
         "wl-paste --watch cliphist store"
         "telegram-desktop -startintray"
+        "spotify"
       ];
 
       # General
