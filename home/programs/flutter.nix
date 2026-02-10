@@ -27,6 +27,7 @@ in
   };
 
   home.packages = with pkgs; [
+    android-studio
     flutter
     jdk17
     mesa-demos
