@@ -26,6 +26,7 @@
       inputs.claude-code.packages.x86_64-linux.default
       rustup
       gcc
+      pkgsCross.musl64.stdenv.cc
       pkg-config
       jq
       just
