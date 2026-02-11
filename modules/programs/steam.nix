@@ -13,6 +13,7 @@ in {
       enable = true;
       remotePlay.openFirewall = true;
       dedicatedServer.openFirewall = true;
+      gamescopeSession.enable = true;
     };
 
     # Steam controller and other Steam hardware support
