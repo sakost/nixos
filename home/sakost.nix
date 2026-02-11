@@ -32,6 +32,7 @@
       uv
       nodejs
       yarn
+      cargo-deny
       btop
       fastfetch
       gnumake
