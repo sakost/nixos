@@ -50,6 +50,7 @@
       kubectl
       kubeseal
       kubie
+      helmfile
       kubernetes-helm
       kustomize
       velero
