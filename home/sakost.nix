@@ -14,6 +14,7 @@
     ./programs/git.nix
     ./programs/nixvim
     ./programs/flutter.nix
+    ./programs/steam.nix
     ./desktop/hyprland.nix
   ];
 

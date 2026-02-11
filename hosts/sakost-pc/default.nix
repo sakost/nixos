@@ -80,6 +80,9 @@
     greetd.enable = true;
   };
 
+  # Enable programs
+  custom.programs.steam.enable = true;
+
   # Enable services
   custom.services = {
     ssh.enable = true;

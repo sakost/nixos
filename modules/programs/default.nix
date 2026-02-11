@@ -8,5 +8,6 @@
     ./git.nix
     ./nix-ld.nix
     ./android.nix
+    ./steam.nix
   ];
 }
