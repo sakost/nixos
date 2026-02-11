@@ -44,10 +44,14 @@
         google-cloud-sdk.components.gke-gcloud-auth-plugin
       ])
       google-cloud-sql-proxy
+      argocd
+      fluxcd
       kubectl
       kubeseal
       kubie
-      helm
+      kubernetes-helm
+      kustomize
+      velero
       python3
       protobuf
       zip
