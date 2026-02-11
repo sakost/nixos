@@ -69,6 +69,9 @@
   # Let home-manager manage itself
   programs.home-manager.enable = true;
 
+  # playerctld — manages MPRIS players for media key control
+  services.playerctld.enable = true;
+
   # direnv + nix-direnv for auto-activating dev shells
   programs.direnv = {
     enable = true;
