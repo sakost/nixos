@@ -7,8 +7,8 @@
     [format]
     dedup = true
     delim = " "
-    workspace = "{id} {clients}"
-    workspace_empty = "{id}"
+    workspace = "{clients}"
+    workspace_empty = ""
     client = "{icon}"
     client_active = "{icon}"
 
@@ -239,8 +239,8 @@
         "$mainMod SHIFT, 9, split:movetoworkspace, 9"
         "$mainMod SHIFT, 0, split:movetoworkspace, 10"
 
-        # Rename workspace
-        ''$mainMod, N, exec, hyprctl activeworkspace -j | jq -r .id | xargs -I{} sh -c 'NAME=$(rofi -dmenu -p "Rename workspace:" -theme-str "listview {enabled: false;}"); hyprctl dispatch renameworkspace {} "$NAME"' ''
+        # Rename workspace (keeps number prefix, mod 10 for per-monitor display)
+        ''$mainMod, N, exec, ID=$(hyprctl activeworkspace -j | jq -r .id); DN=$(( (ID - 1) % 10 + 1 )); NAME=$(rofi -dmenu -p "Rename workspace $DN:" -theme-str "listview {enabled: false;}"); if [ -n "$NAME" ]; then hyprctl dispatch renameworkspace "$ID" "$DN $NAME"; else hyprctl dispatch renameworkspace "$ID" "$DN"; fi''
 
         # Special workspace
         "$mainMod, S, togglespecialworkspace, magic"
