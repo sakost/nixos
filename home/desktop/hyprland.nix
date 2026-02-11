@@ -2,6 +2,33 @@
 { pkgs, ... }:
 
 {
+  # Auto-rename workspaces based on open applications
+  xdg.configFile."hyprland-autoname-workspaces/config.toml".text = ''
+    [format]
+    dedup = true
+    delim = " "
+    workspace = "{id} {clients}"
+    workspace_empty = "{id}"
+    client = "{icon}"
+    client_active = "{icon}"
+
+    [class]
+    DEFAULT = ""
+    alacritty = ""
+    google-chrome = ""
+    firefox = ""
+    telegram = ""
+    spotify = ""
+    nautilus = ""
+    code = ""
+    neovide = ""
+    discord = ""
+    zoom = ""
+    obsidian = ""
+    android-studio = ""
+    claude = ""
+  '';
+
   wayland.windowManager.hyprland = {
     enable = true;
     xwayland.enable = true;
@@ -47,6 +74,7 @@
       exec-once = [
         "swww-daemon"
         "wl-paste --watch cliphist store"
+        "hyprland-autoname-workspaces"
         "telegram-desktop -startintray"
         "spotify"
       ];
@@ -159,6 +187,7 @@
       # Workspaces:
       #   SUPER + 1-9,0        — switch to workspace 1-10 (per-monitor via hyprsplit)
       #   SUPER + SHIFT + 1-9,0 — move window to workspace 1-10 (per-monitor)
+      #   SUPER + N            — rename current workspace (rofi prompt)
       #   SUPER + S            — toggle scratchpad workspace
       #   SUPER + SHIFT + S    — move window to scratchpad
       #   SUPER + mouse scroll — cycle workspaces
@@ -209,6 +238,9 @@
         "$mainMod SHIFT, 8, split:movetoworkspace, 8"
         "$mainMod SHIFT, 9, split:movetoworkspace, 9"
         "$mainMod SHIFT, 0, split:movetoworkspace, 10"
+
+        # Rename workspace
+        ''$mainMod, N, exec, hyprctl activeworkspace -j | jq -r .id | xargs -I{} sh -c 'NAME=$(rofi -dmenu -p "Rename workspace:" -theme-str "listview {enabled: false;}"); hyprctl dispatch renameworkspace {} "$NAME"' ''
 
         # Special workspace
         "$mainMod, S, togglespecialworkspace, magic"
