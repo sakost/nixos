@@ -5,7 +5,7 @@
   # GPG agent with SSH support
   programs.gnupg.agent = {
     enable = true;
-    enableSSHSupport = true;
+    enableSSHSupport = false;
   };
 
   # MTR network diagnostic tool

@@ -61,6 +61,7 @@
       protobuf
       zip
       unzip
+      libsecret
     ];
   };
 
@@ -76,6 +77,12 @@
 
   # playerctld — manages MPRIS players for media key control
   services.playerctld.enable = true;
+
+  # GNOME Keyring — secret-service, SSH agent, PKCS#11
+  services.gnome-keyring = {
+    enable = true;
+    components = [ "pkcs11" "secrets" "ssh" ];
+  };
 
   # direnv + nix-direnv for auto-activating dev shells
   programs.direnv = {

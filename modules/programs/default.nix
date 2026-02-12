@@ -9,5 +9,6 @@
     ./nix-ld.nix
     ./android.nix
     ./steam.nix
+    ./gnome-keyring.nix
   ];
 }

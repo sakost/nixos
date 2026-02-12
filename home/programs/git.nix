@@ -4,6 +4,7 @@
 {
   programs.git = {
     enable = true;
+    package = pkgs.gitFull;
 
     settings = {
       user = {
@@ -17,6 +18,7 @@
       diff.algorithm = "histogram";
       rebase.autoStash = true;
       rerere.enabled = true;
+      credential.helper = "libsecret";
       column.ui = "auto";
       branch.sort = "-committerdate";
       fetch.prune = true;

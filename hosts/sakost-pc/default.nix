@@ -82,6 +82,7 @@
 
   # Enable programs
   custom.programs.steam.enable = true;
+  custom.programs.gnome-keyring.enable = true;
 
   # Enable services
   custom.services = {
