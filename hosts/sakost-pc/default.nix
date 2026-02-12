@@ -96,7 +96,6 @@
     extraGroups = [
       "wheel"
       "networkmanager"
-      "adbusers"
       "kvm"
     ];
     shell = pkgs.zsh;

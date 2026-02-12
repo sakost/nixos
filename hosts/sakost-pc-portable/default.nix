@@ -65,7 +65,7 @@
   # User configuration
   users.users.sakost = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "networkmanager" "adbusers" ];
+    extraGroups = [ "wheel" "networkmanager" ];
     shell = pkgs.zsh;
   };
 
