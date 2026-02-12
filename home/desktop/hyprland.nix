@@ -1,33 +1,121 @@
 # Hyprland user configuration
 { pkgs, ... }:
 
-{
-  # Auto-rename workspaces based on open applications
-  xdg.configFile."hyprland-autoname-workspaces/config.toml".text = ''
-    [format]
-    dedup = true
-    delim = " "
-    workspace = "{clients}"
-    workspace_empty = ""
-    client = "{icon}"
-    client_active = "{icon}"
+let
+  overrideFile = "/tmp/hypr-workspace-overrides";
 
-    [class]
-    DEFAULT = ""
-    alacritty = ""
-    google-chrome = ""
-    firefox = ""
-    telegram = ""
-    spotify = ""
-    nautilus = ""
-    code = ""
-    neovide = ""
-    discord = ""
-    zoom = ""
-    obsidian = ""
-    android-studio = ""
-    claude = ""
+  # Custom workspace auto-namer: per-monitor display numbers + client icons
+  # Respects manual renames stored in the override file
+  hypr-autoname = pkgs.writeShellScriptBin "hyprland-autoname-workspaces" ''
+    OVERRIDE_FILE="${overrideFile}"
+    touch "$OVERRIDE_FILE"
+
+    shopt -s nocasematch
+
+    get_icon() {
+      case "$1" in
+        alacritty) echo $'\ue795' ;;
+        google-chrome) echo $'\uf268' ;;
+        firefox) echo $'\uf269' ;;
+        org.telegram.desktop|telegram*) echo $'\uf2c6' ;;
+        spotify) echo $'\uf1bc' ;;
+        nautilus) echo $'\uf413' ;;
+        code|code-*) echo $'\ue70c' ;;
+        neovide) echo $'\ue7c5' ;;
+        discord) echo $'\uf392' ;;
+        zoom) echo $'\uf03d' ;;
+        obsidian) echo $'\uf5d2' ;;
+        android-studio|jetbrains-*) echo $'\ue70e' ;;
+        claude) echo $'\uf544' ;;
+        yandex*) echo $'\uf268' ;;
+        *) echo $'\uf4ae' ;;
+      esac
+    }
+
+    display_num() {
+      echo $(( ($1 - 1) % 10 + 1 ))
+    }
+
+    rename_workspace() {
+      local ws_id=$1
+      [[ $ws_id -lt 1 ]] && return 0
+      local dn
+      dn=$(display_num "$ws_id")
+
+      # Check for manual override
+      local override=""
+      override=$(${pkgs.gnugrep}/bin/grep "^''${ws_id}=" "$OVERRIDE_FILE" 2>/dev/null | tail -1 | cut -d= -f2-) || true
+      if [[ -n "$override" ]]; then
+        hyprctl dispatch renameworkspace "$ws_id" "$override"
+        return
+      fi
+
+      # Build icon string from client classes (deduplicated)
+      local icons=""
+      local seen=""
+      while IFS= read -r class; do
+        [[ -z "$class" ]] && continue
+        local icon
+        icon=$(get_icon "$class")
+        if [[ -n "$icon" && ! " $seen " == *" $icon "* ]]; then
+          icons="''${icons:+$icons }$icon"
+          seen="$seen $icon"
+        fi
+      done < <(hyprctl clients -j | ${pkgs.jq}/bin/jq -r ".[] | select(.workspace.id == $ws_id) | .class" | sort -u)
+
+      if [[ -n "$icons" ]]; then
+        hyprctl dispatch renameworkspace "$ws_id" "$dn $icons"
+      else
+        hyprctl dispatch renameworkspace "$ws_id" "$dn"
+      fi
+    }
+
+    rename_all() {
+      local ws_ids
+      ws_ids=$(hyprctl workspaces -j | ${pkgs.jq}/bin/jq -r '.[].id')
+      while IFS= read -r ws_id; do
+        [[ -z "$ws_id" ]] && continue
+        rename_workspace "$ws_id"
+      done <<< "$ws_ids"
+    }
+
+    sleep 1
+    rename_all
+
+    ${pkgs.socat}/bin/socat -u "UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock" - | while IFS= read -r event; do
+      case "$event" in
+        openwindow*|closewindow*|movewindow*|workspace*)
+          sleep 0.15
+          rename_all
+          ;;
+      esac
+    done
   '';
+
+  # Workspace rename command (writes to override file so autoname respects it)
+  hypr-rename = pkgs.writeShellScriptBin "hypr-rename-workspace" ''
+    OVERRIDE_FILE="${overrideFile}"
+    touch "$OVERRIDE_FILE"
+
+    ID=$(hyprctl activeworkspace -j | ${pkgs.jq}/bin/jq -r .id)
+    DN=$(( (ID - 1) % 10 + 1 ))
+
+    NAME=$(rofi -dmenu -p "Rename workspace $DN:" -theme-str "listview {enabled: false;}") || true
+
+    # Remove old override for this workspace
+    ${pkgs.gnused}/bin/sed -i "/^''${ID}=/d" "$OVERRIDE_FILE"
+
+    if [[ -n "$NAME" ]]; then
+      echo "''${ID}=''${DN} ''${NAME}" >> "$OVERRIDE_FILE"
+      hyprctl dispatch renameworkspace "$ID" "$DN $NAME"
+    else
+      # Clear override, let autoname handle it
+      hyprctl dispatch renameworkspace "$ID" "$DN"
+    fi
+  '';
+in
+{
+  home.packages = [ hypr-autoname hypr-rename ];
 
   wayland.windowManager.hyprland = {
     enable = true;
@@ -239,8 +327,8 @@
         "$mainMod SHIFT, 9, split:movetoworkspace, 9"
         "$mainMod SHIFT, 0, split:movetoworkspace, 10"
 
-        # Rename workspace (keeps number prefix, mod 10 for per-monitor display)
-        ''$mainMod, N, exec, ID=$(hyprctl activeworkspace -j | jq -r .id); DN=$(( (ID - 1) % 10 + 1 )); NAME=$(rofi -dmenu -p "Rename workspace $DN:" -theme-str "listview {enabled: false;}"); if [ -n "$NAME" ]; then hyprctl dispatch renameworkspace "$ID" "$DN $NAME"; else hyprctl dispatch renameworkspace "$ID" "$DN"; fi''
+        # Rename workspace (writes to override file, respected by autoname daemon)
+        "$mainMod, N, exec, hypr-rename-workspace"
 
         # Special workspace
         "$mainMod, S, togglespecialworkspace, magic"

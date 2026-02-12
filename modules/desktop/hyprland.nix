@@ -29,7 +29,6 @@ in {
       xwayland
 
       # Wayland utilities
-      hyprland-autoname-workspaces
       kitty
       swww
       rofi
