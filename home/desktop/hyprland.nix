@@ -340,6 +340,8 @@ in
 
         # Screenshot
         ", Print, exec, grim -g \"$(slurp)\" - | wl-copy -t image/png"
+        "SHIFT, Print, exec, grim -g \"$(slurp)\" - | swappy -f -"
+        "$mainMod, Print, exec, grim -g \"$(slurp)\" ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png"
       ];
 
       # Mouse bindings
