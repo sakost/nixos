@@ -151,6 +151,8 @@ in
         "__GLX_VENDOR_LIBRARY_NAME,nvidia"
         "WLR_NO_HARDWARE_CURSORS,1"
         "__GL_VRR_ALLOWED,1"
+        # Java/Swing apps (Android Studio, JetBrains IDEs)
+        "_JAVA_AWT_WM_NONREPARENTING,1"
       ];
 
       # Programs
@@ -372,6 +374,10 @@ in
       windowrule = [
         "suppress_event maximize, match:class .*"
         "float on, match:class com.gabm.satty"
+        # JetBrains IDEs / Android Studio — float popups & dialogs
+        "float on, match:class jetbrains-.*, match:title (win.*|splash)"
+        "center 1, match:class jetbrains-.*, match:title (win.*|splash)"
+        "suppress_event focus, match:class jetbrains-.*, match:title win.*"
       ];
     };
   };
