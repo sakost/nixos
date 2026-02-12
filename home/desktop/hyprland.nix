@@ -376,7 +376,7 @@ in
         "float on, match:class com.gabm.satty"
         # JetBrains IDEs / Android Studio — float popups & dialogs
         "float on, match:class jetbrains-.*, match:title (win.*|splash)"
-        "center 1, match:class jetbrains-.*, match:title (win.*|splash)"
+        "center 1, match:class jetbrains-.*, match:title splash"
         "suppress_event focus, match:class jetbrains-.*, match:title win.*"
       ];
     };
