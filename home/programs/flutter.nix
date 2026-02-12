@@ -18,6 +18,7 @@ in
       build-tools-35-0-0
       build-tools-36-1-0
       cmdline-tools-latest
+      ndk-28-2-13676358
       platform-tools
       platforms-android-34
       platforms-android-35
