@@ -17,6 +17,7 @@ in
       build-tools-34-0-0
       build-tools-35-0-0
       build-tools-36-1-0
+      cmake-3-22-1
       cmdline-tools-latest
       ndk-28-2-13676358
       platform-tools
