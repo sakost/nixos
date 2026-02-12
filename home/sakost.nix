@@ -32,6 +32,7 @@
       jq
       just
       ripgrep
+      sqlite
       uv
       nodejs
       yarn
