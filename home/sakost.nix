@@ -13,6 +13,7 @@
     ./programs/wlogout.nix
     ./programs/git.nix
     ./programs/nixvim
+    ./programs/cargo-cross.nix
     ./programs/flutter.nix
     ./programs/steam.nix
     ./desktop/hyprland.nix
