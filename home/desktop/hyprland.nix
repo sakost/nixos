@@ -340,7 +340,7 @@ in
 
         # Screenshot
         ", Print, exec, grim -g \"$(slurp)\" - | wl-copy -t image/png"
-        "SHIFT, Print, exec, grim -g \"$(slurp)\" - | swappy -f -"
+        "SHIFT, Print, exec, grim -g \"$(slurp)\" - | satty -f -"
         "$mainMod, Print, exec, grim -g \"$(slurp)\" ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png"
       ];
 
@@ -371,6 +371,7 @@ in
       # Window rules
       windowrule = [
         "suppress_event maximize, match:class .*"
+        "float on, match:class com.gabm.satty"
       ];
     };
   };

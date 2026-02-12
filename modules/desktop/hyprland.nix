@@ -33,7 +33,7 @@ in {
       swww
       rofi
       waybar
-      swappy
+      satty
       slurp
       grim
       wl-clipboard
