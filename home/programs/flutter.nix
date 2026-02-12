@@ -29,7 +29,7 @@ in
   };
 
   home.packages = with pkgs; [
-    android-studio
+    androidStudioPackages.canary
     flutter
     jdk17
     mesa-demos
