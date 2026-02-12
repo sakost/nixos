@@ -6,8 +6,34 @@
     enable = true;
 
     servers = {
-      # Python
-      pyright.enable = true;
+      # Python — detect venv via uv or VIRTUAL_ENV
+      pyright = {
+        enable = true;
+        extraOptions.before_init = {
+          __raw = ''
+            function(_, config)
+              local root = config.root_dir or vim.fn.getcwd()
+              -- Detect Python from uv project
+              if vim.fn.filereadable(root .. '/pyproject.toml') == 1 then
+                local py = vim.fn.trim(vim.fn.system({
+                  'uv', 'run', '--no-sync', '--project', root, 'which', 'python'
+                }))
+                if vim.v.shell_error == 0 and py ~= "" and vim.fn.filereadable(py) == 1 then
+                  config.settings.python = config.settings.python or {}
+                  config.settings.python.pythonPath = py
+                  return
+                end
+              end
+              -- Fallback: active virtualenv
+              local venv = os.getenv('VIRTUAL_ENV')
+              if venv and vim.fn.isdirectory(venv) == 1 then
+                config.settings.python = config.settings.python or {}
+                config.settings.python.pythonPath = venv .. '/bin/python'
+              end
+            end
+          '';
+        };
+      };
 
       # Rust
       rust_analyzer = {
