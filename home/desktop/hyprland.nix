@@ -377,6 +377,8 @@ in
         # JetBrains IDEs / Android Studio — float popups & dialogs
         "float on, match:class jetbrains-.*, match:title (win.*|splash)"
         "center 1, match:class jetbrains-.*, match:title splash"
+        "no_initial_focus on, match:class jetbrains-.*, match:title win.*"
+        "no_focus on, match:class jetbrains-.*, match:title win.*"
         "suppress_event focus, match:class jetbrains-.*, match:title win.*"
       ];
     };
