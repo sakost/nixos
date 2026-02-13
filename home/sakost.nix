@@ -12,6 +12,7 @@
     ./programs/waybar.nix
     ./programs/wlogout.nix
     ./programs/git.nix
+    ./programs/gh.nix
     ./programs/nixvim
     ./programs/cargo-cross.nix
     ./programs/flutter.nix
