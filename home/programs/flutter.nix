@@ -39,5 +39,6 @@ in
     JAVA_HOME = "${pkgs.jdk17.home}";
     GRADLE_USER_HOME = "${cacheBase}/gradle";
     CHROME_EXECUTABLE = "${pkgs.google-chrome}/bin/google-chrome-stable";
+    PUB_CACHE = "${cacheBase}/pub";
   };
 }
