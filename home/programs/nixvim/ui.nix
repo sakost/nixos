@@ -29,6 +29,7 @@
 
         filters = {
           dotfiles = false;
+          git_ignored = false;
           custom = [ ".git" "node_modules" ".cache" "__pycache__" ];
         };
       };
