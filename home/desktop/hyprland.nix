@@ -340,6 +340,9 @@ in
         "$mainMod, mouse_down, workspace, e+1"
         "$mainMod, mouse_up, workspace, e-1"
 
+        # Clipboard history
+        "$mainMod, V, exec, cliphist list | rofi -dmenu | cliphist decode | wl-copy"
+
         # Screenshot
         ", Print, exec, grim -g \"$(slurp)\" - | wl-copy -t image/png"
         "SHIFT, Print, exec, grim -g \"$(slurp)\" - | satty -f -"
