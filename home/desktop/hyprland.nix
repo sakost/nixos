@@ -1,15 +1,9 @@
 # Hyprland user configuration
-{ pkgs, ... }:
+{ pkgs, inputs, ... }:
 
 let
-  overrideFile = "/tmp/hypr-workspace-overrides";
-
-  # Custom workspace auto-namer: per-monitor display numbers + client icons
-  # Respects manual renames stored in the override file
+  # Custom workspace auto-namer: adds app icons next to workspace numbers
   hypr-autoname = pkgs.writeShellScriptBin "hyprland-autoname-workspaces" ''
-    OVERRIDE_FILE="${overrideFile}"
-    touch "$OVERRIDE_FILE"
-
     shopt -s nocasematch
 
     get_icon() {
@@ -32,23 +26,9 @@ let
       esac
     }
 
-    display_num() {
-      echo $(( ($1 - 1) % 10 + 1 ))
-    }
-
     rename_workspace() {
       local ws_id=$1
       [[ $ws_id -lt 1 ]] && return 0
-      local dn
-      dn=$(display_num "$ws_id")
-
-      # Check for manual override
-      local override=""
-      override=$(${pkgs.gnugrep}/bin/grep "^''${ws_id}=" "$OVERRIDE_FILE" 2>/dev/null | tail -1 | cut -d= -f2-) || true
-      if [[ -n "$override" ]]; then
-        hyprctl dispatch renameworkspace "$ws_id" "$override"
-        return
-      fi
 
       # Build icon string from client classes (deduplicated)
       local icons=""
@@ -64,9 +44,9 @@ let
       done < <(hyprctl clients -j | ${pkgs.jq}/bin/jq -r ".[] | select(.workspace.id == $ws_id) | .class" | sort -u)
 
       if [[ -n "$icons" ]]; then
-        hyprctl dispatch renameworkspace "$ws_id" "$dn $icons"
+        hyprctl dispatch renameworkspace "$ws_id" "$ws_id $icons"
       else
-        hyprctl dispatch renameworkspace "$ws_id" "$dn"
+        hyprctl dispatch renameworkspace "$ws_id" "$ws_id"
       fi
     }
 
@@ -91,38 +71,20 @@ let
       esac
     done
   '';
-
-  # Workspace rename command (writes to override file so autoname respects it)
-  hypr-rename = pkgs.writeShellScriptBin "hypr-rename-workspace" ''
-    OVERRIDE_FILE="${overrideFile}"
-    touch "$OVERRIDE_FILE"
-
-    ID=$(hyprctl activeworkspace -j | ${pkgs.jq}/bin/jq -r .id)
-    DN=$(( (ID - 1) % 10 + 1 ))
-
-    NAME=$(rofi -dmenu -p "Rename workspace $DN:" -theme-str "listview {enabled: false;}") || true
-
-    # Remove old override for this workspace
-    ${pkgs.gnused}/bin/sed -i "/^''${ID}=/d" "$OVERRIDE_FILE"
-
-    if [[ -n "$NAME" ]]; then
-      echo "''${ID}=''${DN} ''${NAME}" >> "$OVERRIDE_FILE"
-      hyprctl dispatch renameworkspace "$ID" "$DN $NAME"
-    else
-      # Clear override, let autoname handle it
-      hyprctl dispatch renameworkspace "$ID" "$DN"
-    fi
-  '';
 in
 {
-  home.packages = [ hypr-autoname hypr-rename ];
+  home.packages = [ hypr-autoname ];
 
   wayland.windowManager.hyprland = {
     enable = true;
     xwayland.enable = true;
 
     plugins = [
-      pkgs.hyprlandPlugins.hyprsplit
+      inputs.hyprland-virtual-desktops.packages.${pkgs.system}.virtual-desktops
+      # hyprspace is broken with Hyprland 0.53.3 (LOG -> Log rename)
+      # TODO: re-enable once nixpkgs updates hyprspace
+      # pkgs.hyprlandPlugins.hyprspace
+      pkgs.hyprlandPlugins.hyprwinwrap
     ];
 
     settings = {
@@ -266,7 +228,7 @@ in
       #   SUPER + C            — close window
       #   SUPER + Escape       — power menu (wlogout)
       #   SUPER + E            — file manager
-      #   SUPER + V            — get the history of clipboard
+      #   SUPER + V            — clipboard history (rofi)
       #   SUPER + F            — toggle floating
       #   SUPER + R            — app launcher (rofi)
       #   SUPER + P            — pseudo-tile
@@ -276,12 +238,18 @@ in
       #   SUPER + right-click  — drag to resize window
       #
       # Workspaces:
-      #   SUPER + 1-9,0        — switch to workspace 1-10 (per-monitor via hyprsplit)
-      #   SUPER + SHIFT + 1-9,0 — move window to workspace 1-10 (per-monitor)
-      #   SUPER + N            — rename current workspace (rofi prompt)
+      #   SUPER + 1-9,0        — switch to workspace 1-10
+      #   SUPER + SHIFT + 1-9,0 — move window to workspace 1-10
       #   SUPER + S            — toggle scratchpad workspace
       #   SUPER + SHIFT + S    — move window to scratchpad
       #   SUPER + mouse scroll — cycle workspaces
+      #
+      # Virtual desktops:
+      #   SUPER + CTRL + Right — next virtual desktop
+      #   SUPER + CTRL + Left  — previous virtual desktop
+      #
+      # Overview:
+      #   SUPER + TAB          — Hyprspace overview panel
       #
       # Media / misc:
       #   Print                — screenshot (region → clipboard)
@@ -306,32 +274,36 @@ in
         "$mainMod, up, movefocus, u"
         "$mainMod, down, movefocus, d"
 
-        # Workspaces (hyprsplit — per-monitor independent workspaces)
-        "$mainMod, 1, split:workspace, 1"
-        "$mainMod, 2, split:workspace, 2"
-        "$mainMod, 3, split:workspace, 3"
-        "$mainMod, 4, split:workspace, 4"
-        "$mainMod, 5, split:workspace, 5"
-        "$mainMod, 6, split:workspace, 6"
-        "$mainMod, 7, split:workspace, 7"
-        "$mainMod, 8, split:workspace, 8"
-        "$mainMod, 9, split:workspace, 9"
-        "$mainMod, 0, split:workspace, 10"
+        # Workspaces
+        "$mainMod, 1, workspace, 1"
+        "$mainMod, 2, workspace, 2"
+        "$mainMod, 3, workspace, 3"
+        "$mainMod, 4, workspace, 4"
+        "$mainMod, 5, workspace, 5"
+        "$mainMod, 6, workspace, 6"
+        "$mainMod, 7, workspace, 7"
+        "$mainMod, 8, workspace, 8"
+        "$mainMod, 9, workspace, 9"
+        "$mainMod, 0, workspace, 10"
 
         # Move to workspace
-        "$mainMod SHIFT, 1, split:movetoworkspace, 1"
-        "$mainMod SHIFT, 2, split:movetoworkspace, 2"
-        "$mainMod SHIFT, 3, split:movetoworkspace, 3"
-        "$mainMod SHIFT, 4, split:movetoworkspace, 4"
-        "$mainMod SHIFT, 5, split:movetoworkspace, 5"
-        "$mainMod SHIFT, 6, split:movetoworkspace, 6"
-        "$mainMod SHIFT, 7, split:movetoworkspace, 7"
-        "$mainMod SHIFT, 8, split:movetoworkspace, 8"
-        "$mainMod SHIFT, 9, split:movetoworkspace, 9"
-        "$mainMod SHIFT, 0, split:movetoworkspace, 10"
+        "$mainMod SHIFT, 1, movetoworkspace, 1"
+        "$mainMod SHIFT, 2, movetoworkspace, 2"
+        "$mainMod SHIFT, 3, movetoworkspace, 3"
+        "$mainMod SHIFT, 4, movetoworkspace, 4"
+        "$mainMod SHIFT, 5, movetoworkspace, 5"
+        "$mainMod SHIFT, 6, movetoworkspace, 6"
+        "$mainMod SHIFT, 7, movetoworkspace, 7"
+        "$mainMod SHIFT, 8, movetoworkspace, 8"
+        "$mainMod SHIFT, 9, movetoworkspace, 9"
+        "$mainMod SHIFT, 0, movetoworkspace, 10"
 
-        # Rename workspace (writes to override file, respected by autoname daemon)
-        "$mainMod, N, exec, hypr-rename-workspace"
+        # Virtual desktops (all monitors switch together)
+        "$mainMod CTRL, right, nextdesk"
+        "$mainMod CTRL, left, prevdesk"
+
+        # Hyprspace overview (disabled — plugin broken with Hyprland 0.53.3)
+        # "$mainMod, TAB, overview:toggle"
 
         # Special workspace
         "$mainMod, S, togglespecialworkspace, magic"
@@ -371,8 +343,20 @@ in
         ", XF86AudioPrev, exec, playerctl previous"
       ];
 
-      # hyprsplit: 10 independent workspaces per monitor
-      plugin.hyprsplit.num_workspaces = 10;
+      # Plugin configuration
+      "plugin:virtual-desktops" = {
+        cycleworkspaces = 1;
+        rememberlayout = "size";
+        notifyinit = 0;
+        verbose_logging = 0;
+      };
+
+      # Hyprspace overview (disabled — plugin broken with Hyprland 0.53.3)
+      # "plugin:overview" = {
+      #   autoDrag = true;
+      #   exitOnClick = true;
+      #   showNewWorkspace = true;
+      # };
 
       # Window rules
       windowrule = [

@@ -16,7 +16,8 @@ Mod key: **Super** (Windows key)
 | Key | Action |
 |-----|--------|
 | `Super + C` | Close active window |
-| `Super + V` | Toggle floating mode |
+| `Super + F` | Toggle floating mode |
+| `Super + V` | Clipboard history (Rofi) |
 | `Super + P` | Toggle pseudo-tiling |
 | `Super + J` | Toggle split direction (dwindle) |
 
@@ -44,6 +45,21 @@ Mod key: **Super** (Windows key)
 | `Super + Shift + 1-9, 0` | Move window to workspace 1-10 |
 | `Super + Mouse Scroll` | Cycle through workspaces |
 
+## Virtual Desktops
+
+| Key | Action |
+|-----|--------|
+| `Super + Ctrl + Right` | Next virtual desktop |
+| `Super + Ctrl + Left` | Previous virtual desktop |
+
+All monitors switch together when changing virtual desktops.
+
+## Overview
+
+| Key | Action |
+|-----|--------|
+| `Super + TAB` | Toggle Hyprspace overview panel |
+
 ## Special Workspace (Scratchpad)
 
 | Key | Action |
@@ -56,6 +72,8 @@ Mod key: **Super** (Windows key)
 | Key | Action |
 |-----|--------|
 | `Print` | Select region, copy to clipboard |
+| `Shift + Print` | Select region, edit in Satty |
+| `Super + Print` | Select region, save to ~/Pictures |
 
 ## Keyboard Layout
 
@@ -88,6 +106,12 @@ Mod key: **Super** (Windows key)
 | `U` | Suspend |
 | `R` | Reboot |
 | `S` | Shutdown |
+
+## Plugins
+
+- **virtual-desktops**: All monitors switch as one unified desktop
+- **Hyprspace**: Workspace overview panel with thumbnails
+- **hyprwinwrap**: Use any window as desktop wallpaper
 
 ## Layout Info
 
