@@ -58,7 +58,11 @@
         sops-nix.nixosModules.sops
         lanzaboote.nixosModules.lanzaboote
         home-manager.nixosModules.home-manager
-        { nixpkgs.overlays = [ android-nixpkgs.overlays.default ]; }
+        { nixpkgs.overlays = [
+            android-nixpkgs.overlays.default
+            (import ./overlays/argocd-fix.nix)
+          ];
+        }
         {
           home-manager = {
             useGlobalPkgs = true;
