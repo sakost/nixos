@@ -23,14 +23,14 @@ let
       TARGET=$ARG
     fi
 
-    # Disable cursor warping during focus switches, then re-enable at the end
-    BATCH="keyword cursor:no_warps 1 ; "
+    # Switch non-focused monitors first, then focused last to preserve focus
+    BATCH=""
     for MON in $(hyprctl -j monitors | ${pkgs.jq}/bin/jq -r '.[].name'); do
       if [[ "$MON" != "$FOCUSED_MON" ]]; then
         BATCH+="dispatch focusmonitor $MON ; dispatch split:workspace $TARGET ; "
       fi
     done
-    BATCH+="dispatch focusmonitor $FOCUSED_MON ; dispatch split:workspace $TARGET ; keyword cursor:no_warps 0"
+    BATCH+="dispatch focusmonitor $FOCUSED_MON ; dispatch split:workspace $TARGET"
 
     hyprctl --batch "$BATCH"
 
@@ -151,14 +151,13 @@ let
       if $needs_sync; then
         touch "$LOCK"
 
-        # Disable cursor warping during focus switches, then re-enable
-        local batch="keyword cursor:no_warps 1 ; "
+        local batch=""
         for mon in $(echo "$monitors" | ${pkgs.jq}/bin/jq -r '.[].name'); do
           if [[ "$mon" != "$focused_mon" ]]; then
             batch+="dispatch focusmonitor $mon ; dispatch split:workspace $target ; "
           fi
         done
-        batch+="dispatch focusmonitor $focused_mon ; keyword cursor:no_warps 0"
+        batch+="dispatch focusmonitor $focused_mon"
         hyprctl --batch "$batch"
 
         # Cooldown to absorb events from our own sync
@@ -304,6 +303,11 @@ in
 
       master = {
         new_status = "master";
+      };
+
+      # Cursor — disable warping on focus/workspace changes (prevents teleporting on multi-monitor)
+      cursor = {
+        no_warps = true;
       };
 
       # Misc
