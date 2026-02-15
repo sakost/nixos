@@ -17,6 +17,8 @@
     ./programs/cargo-cross.nix
     ./programs/flutter.nix
     ./programs/steam.nix
+    ./programs/wallpaper-engine.nix
+    ./programs/eww.nix
     ./desktop/hyprland.nix
   ];
 

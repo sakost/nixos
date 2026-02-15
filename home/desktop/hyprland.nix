@@ -170,9 +170,9 @@ in
 
       # Autostart (waybar is managed by home-manager systemd service)
       exec-once = [
-        "swww-daemon"
         "wl-paste --watch cliphist store"
         "hyprland-autoname-workspaces"
+        "eww open dashboard"
         "telegram-desktop -startintray"
         "spotify"
       ];
