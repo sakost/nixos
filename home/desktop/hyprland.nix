@@ -266,7 +266,8 @@ in
       #   SUPER + C            — close window
       #   SUPER + Escape       — power menu (wlogout)
       #   SUPER + E            — file manager
-      #   SUPER + V            — toggle floating
+      #   SUPER + V            — get the history of clipboard
+      #   SUPER + F            — toggle floating
       #   SUPER + R            — app launcher (rofi)
       #   SUPER + P            — pseudo-tile
       #   SUPER + J            — toggle split direction
@@ -294,7 +295,7 @@ in
         "$mainMod, C, killactive"
         "$mainMod, escape, exec, wlogout"
         "$mainMod, E, exec, $fileManager"
-        "$mainMod, V, togglefloating"
+        "$mainMod, F, togglefloating"
         "$mainMod, R, exec, $menu"
         "$mainMod, P, pseudo"
         "$mainMod, J, togglesplit"
