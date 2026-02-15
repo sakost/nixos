@@ -33,6 +33,14 @@ let
     BATCH+="dispatch focusmonitor $FOCUSED_MON ; dispatch split:workspace $TARGET"
 
     hyprctl --batch "$BATCH"
+
+    # Immediately rename active workspaces to prevent brief display of internal IDs (e.g. 11 instead of 1)
+    RENAME_BATCH=""
+    for WS_ID in $(hyprctl -j monitors | ${pkgs.jq}/bin/jq -r '.[].activeWorkspace.id'); do
+      LOGICAL=$(( ((WS_ID - 1) % NUM_WS) + 1 ))
+      RENAME_BATCH+="dispatch renameworkspace $WS_ID $LOGICAL ; "
+    done
+    [ -n "$RENAME_BATCH" ] && hyprctl --batch "$RENAME_BATCH"
   '';
 
   # Custom workspace auto-namer: adds app icons next to workspace numbers
