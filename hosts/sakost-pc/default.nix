@@ -32,7 +32,8 @@
       /home/sakost/dev \
       /home/sakost/dev/models \
       /home/sakost/dev/data \
-      /home/sakost/dev/cache
+      /home/sakost/dev/cache \
+      /home/sakost/.snapshots
   '';
 
   # Timezone and locale
@@ -89,6 +90,7 @@
     ssh.enable = true;
     networking.enable = true;
     proxy.enable = true;
+    snapshots.enable = true;
   };
 
   # User configuration

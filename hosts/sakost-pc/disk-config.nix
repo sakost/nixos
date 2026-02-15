@@ -126,4 +126,27 @@
     ];
   };
 
+  # Top-level BTRFS mounts for btrbk snapshot management
+  fileSystems."/mnt/btrfs-roots/system" = {
+    device = "/dev/mapper/cryptroot";
+    fsType = "btrfs";
+    options = [ "subvolid=5" "noatime" ];
+  };
+
+  fileSystems."/mnt/btrfs-roots/data" = {
+    device = "/dev/mapper/cryptdata";
+    fsType = "btrfs";
+    options = [ "subvolid=5" "noatime" ];
+  };
+
+  fileSystems."/home/sakost/.snapshots" = {
+    device = "/dev/mapper/cryptdata";
+    fsType = "btrfs";
+    options = [
+      "subvol=@data-snapshots"
+      "compress=zstd:1"
+      "noatime"
+    ];
+  };
+
 }

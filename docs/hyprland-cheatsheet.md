@@ -39,26 +39,16 @@ Mod key: **Super** (Windows key)
 
 ## Workspaces
 
-| Key | Action |
-|-----|--------|
-| `Super + 1-9, 0` | Switch to workspace 1-10 |
-| `Super + Shift + 1-9, 0` | Move window to workspace 1-10 |
-| `Super + Mouse Scroll` | Cycle through workspaces |
-
-## Virtual Desktops
+Each monitor has its own independent set of workspaces (1-10) via hyprsplit.
+Switching workspaces syncs all monitors to the same workspace number.
 
 | Key | Action |
 |-----|--------|
-| `Super + Ctrl + Right` | Next virtual desktop |
-| `Super + Ctrl + Left` | Previous virtual desktop |
-
-All monitors switch together when changing virtual desktops.
-
-## Overview
-
-| Key | Action |
-|-----|--------|
-| `Super + TAB` | Toggle Hyprspace overview panel |
+| `Super + 1-9, 0` | Switch all monitors to workspace 1-10 |
+| `Super + Shift + 1-9, 0` | Move window to workspace 1-10 (focused monitor) |
+| `Super + Ctrl + Right` | Next workspace (synced across monitors) |
+| `Super + Ctrl + Left` | Previous workspace (synced across monitors) |
+| `Super + Mouse Scroll` | Cycle workspaces (focused monitor only) |
 
 ## Special Workspace (Scratchpad)
 
@@ -66,6 +56,12 @@ All monitors switch together when changing virtual desktops.
 |-----|--------|
 | `Super + S` | Toggle scratchpad |
 | `Super + Shift + S` | Move window to scratchpad |
+
+## Overview
+
+| Key | Action |
+|-----|--------|
+| `Super + TAB` | Toggle Hyprspace overview panel |
 
 ## Screenshot
 
@@ -109,8 +105,8 @@ All monitors switch together when changing virtual desktops.
 
 ## Plugins
 
-- **virtual-desktops**: All monitors switch as one unified desktop
-- **Hyprspace**: Workspace overview panel with thumbnails
+- **hyprsplit**: Per-monitor workspace sets with synchronized switching
+- **Hyprspace**: Workspace overview panel with thumbnails (currently disabled)
 - **hyprwinwrap**: Use any window as desktop wallpaper
 
 ## Layout Info

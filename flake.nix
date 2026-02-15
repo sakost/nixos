@@ -44,10 +44,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    hyprland-virtual-desktops = {
-      url = "github:levnikmyskin/hyprland-virtual-desktops";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs = { self, nixpkgs, home-manager, nixvim, sops-nix, claude-code, claude-desktop, lanzaboote, yandex-browser, android-nixpkgs, ... }@inputs:

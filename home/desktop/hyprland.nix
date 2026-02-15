@@ -1,10 +1,45 @@
 # Hyprland user configuration
-{ pkgs, inputs, ... }:
+{ pkgs, ... }:
 
 let
+  numWorkspaces = 10;
+
+  # Synchronized workspace switching: switches all monitors to the same workspace number
+  hypr-sync-ws = pkgs.writeShellScriptBin "hypr-sync-ws" ''
+    NUM_WS=${toString numWorkspaces}
+    ARG=$1
+
+    FOCUSED_MON=$(hyprctl -j monitors | ${pkgs.jq}/bin/jq -r '.[] | select(.focused == true) | .name')
+
+    if [[ "$ARG" == "next" || "$ARG" == "prev" ]]; then
+      CURRENT_ID=$(hyprctl -j monitors | ${pkgs.jq}/bin/jq -r '.[] | select(.focused == true) | .activeWorkspace.id')
+      LOGICAL=$(( ((CURRENT_ID - 1) % NUM_WS) + 1 ))
+      if [[ "$ARG" == "next" ]]; then
+        TARGET=$(( LOGICAL % NUM_WS + 1 ))
+      else
+        TARGET=$(( (LOGICAL - 2 + NUM_WS) % NUM_WS + 1 ))
+      fi
+    else
+      TARGET=$ARG
+    fi
+
+    # Switch non-focused monitors first, then focused last to preserve focus
+    BATCH=""
+    for MON in $(hyprctl -j monitors | ${pkgs.jq}/bin/jq -r '.[].name'); do
+      if [[ "$MON" != "$FOCUSED_MON" ]]; then
+        BATCH+="dispatch focusmonitor $MON ; dispatch split:workspace $TARGET ; "
+      fi
+    done
+    BATCH+="dispatch focusmonitor $FOCUSED_MON ; dispatch split:workspace $TARGET"
+
+    hyprctl --batch "$BATCH"
+  '';
+
   # Custom workspace auto-namer: adds app icons next to workspace numbers
   hypr-autoname = pkgs.writeShellScriptBin "hyprland-autoname-workspaces" ''
     shopt -s nocasematch
+
+    NUM_WS=${toString numWorkspaces}
 
     get_icon() {
       case "$1" in
@@ -30,6 +65,9 @@ let
       local ws_id=$1
       [[ $ws_id -lt 1 ]] && return 0
 
+      # Display logical workspace number (1-N) instead of internal ID
+      local logical_num=$(( ((ws_id - 1) % NUM_WS) + 1 ))
+
       # Build icon string from client classes (deduplicated)
       local icons=""
       local seen=""
@@ -44,9 +82,9 @@ let
       done < <(hyprctl clients -j | ${pkgs.jq}/bin/jq -r ".[] | select(.workspace.id == $ws_id) | .class" | sort -u)
 
       if [[ -n "$icons" ]]; then
-        hyprctl dispatch renameworkspace "$ws_id" "$ws_id $icons"
+        hyprctl dispatch renameworkspace "$ws_id" "$logical_num $icons"
       else
-        hyprctl dispatch renameworkspace "$ws_id" "$ws_id"
+        hyprctl dispatch renameworkspace "$ws_id" "$logical_num"
       fi
     }
 
@@ -73,14 +111,14 @@ let
   '';
 in
 {
-  home.packages = [ hypr-autoname ];
+  home.packages = [ hypr-autoname hypr-sync-ws ];
 
   wayland.windowManager.hyprland = {
     enable = true;
     xwayland.enable = true;
 
     plugins = [
-      inputs.hyprland-virtual-desktops.packages.${pkgs.system}.virtual-desktops
+      pkgs.hyprlandPlugins.hyprsplit
       # hyprspace is broken with Hyprland 0.53.3 (LOG -> Log rename)
       # TODO: re-enable once nixpkgs updates hyprspace
       # pkgs.hyprlandPlugins.hyprspace
@@ -237,16 +275,14 @@ in
       #   SUPER + left-click   — drag to move window
       #   SUPER + right-click  — drag to resize window
       #
-      # Workspaces:
-      #   SUPER + 1-9,0        — switch to workspace 1-10
-      #   SUPER + SHIFT + 1-9,0 — move window to workspace 1-10
+      # Workspaces (synced across all monitors via hyprsplit):
+      #   SUPER + 1-9,0        — switch all monitors to workspace 1-10
+      #   SUPER + SHIFT + 1-9,0 — move window to workspace 1-10 (focused monitor)
+      #   SUPER + CTRL + Right — next workspace (synced)
+      #   SUPER + CTRL + Left  — previous workspace (synced)
       #   SUPER + S            — toggle scratchpad workspace
       #   SUPER + SHIFT + S    — move window to scratchpad
-      #   SUPER + mouse scroll — cycle workspaces
-      #
-      # Virtual desktops:
-      #   SUPER + CTRL + Right — next virtual desktop
-      #   SUPER + CTRL + Left  — previous virtual desktop
+      #   SUPER + mouse scroll — cycle workspaces (focused monitor only)
       #
       # Overview:
       #   SUPER + TAB          — Hyprspace overview panel
@@ -274,44 +310,44 @@ in
         "$mainMod, up, movefocus, u"
         "$mainMod, down, movefocus, d"
 
-        # Workspaces
-        "$mainMod, 1, workspace, 1"
-        "$mainMod, 2, workspace, 2"
-        "$mainMod, 3, workspace, 3"
-        "$mainMod, 4, workspace, 4"
-        "$mainMod, 5, workspace, 5"
-        "$mainMod, 6, workspace, 6"
-        "$mainMod, 7, workspace, 7"
-        "$mainMod, 8, workspace, 8"
-        "$mainMod, 9, workspace, 9"
-        "$mainMod, 0, workspace, 10"
+        # Workspaces — synced across all monitors
+        "$mainMod, 1, exec, hypr-sync-ws 1"
+        "$mainMod, 2, exec, hypr-sync-ws 2"
+        "$mainMod, 3, exec, hypr-sync-ws 3"
+        "$mainMod, 4, exec, hypr-sync-ws 4"
+        "$mainMod, 5, exec, hypr-sync-ws 5"
+        "$mainMod, 6, exec, hypr-sync-ws 6"
+        "$mainMod, 7, exec, hypr-sync-ws 7"
+        "$mainMod, 8, exec, hypr-sync-ws 8"
+        "$mainMod, 9, exec, hypr-sync-ws 9"
+        "$mainMod, 0, exec, hypr-sync-ws 10"
 
-        # Move to workspace
-        "$mainMod SHIFT, 1, movetoworkspace, 1"
-        "$mainMod SHIFT, 2, movetoworkspace, 2"
-        "$mainMod SHIFT, 3, movetoworkspace, 3"
-        "$mainMod SHIFT, 4, movetoworkspace, 4"
-        "$mainMod SHIFT, 5, movetoworkspace, 5"
-        "$mainMod SHIFT, 6, movetoworkspace, 6"
-        "$mainMod SHIFT, 7, movetoworkspace, 7"
-        "$mainMod SHIFT, 8, movetoworkspace, 8"
-        "$mainMod SHIFT, 9, movetoworkspace, 9"
-        "$mainMod SHIFT, 0, movetoworkspace, 10"
+        # Move window to workspace (focused monitor only)
+        "$mainMod SHIFT, 1, split:movetoworkspace, 1"
+        "$mainMod SHIFT, 2, split:movetoworkspace, 2"
+        "$mainMod SHIFT, 3, split:movetoworkspace, 3"
+        "$mainMod SHIFT, 4, split:movetoworkspace, 4"
+        "$mainMod SHIFT, 5, split:movetoworkspace, 5"
+        "$mainMod SHIFT, 6, split:movetoworkspace, 6"
+        "$mainMod SHIFT, 7, split:movetoworkspace, 7"
+        "$mainMod SHIFT, 8, split:movetoworkspace, 8"
+        "$mainMod SHIFT, 9, split:movetoworkspace, 9"
+        "$mainMod SHIFT, 0, split:movetoworkspace, 10"
 
-        # Virtual desktops (all monitors switch together)
-        "$mainMod CTRL, right, nextdesk"
-        "$mainMod CTRL, left, prevdesk"
+        # Cycle workspaces synced across all monitors
+        "$mainMod CTRL, right, exec, hypr-sync-ws next"
+        "$mainMod CTRL, left, exec, hypr-sync-ws prev"
 
         # Hyprspace overview (disabled — plugin broken with Hyprland 0.53.3)
         # "$mainMod, TAB, overview:toggle"
 
-        # Special workspace
+        # Special workspace (scratchpad — not synced)
         "$mainMod, S, togglespecialworkspace, magic"
         "$mainMod SHIFT, S, movetoworkspace, special:magic"
 
-        # Scroll workspaces
-        "$mainMod, mouse_down, workspace, e+1"
-        "$mainMod, mouse_up, workspace, e-1"
+        # Scroll workspaces (focused monitor only)
+        "$mainMod, mouse_down, split:workspace, e+1"
+        "$mainMod, mouse_up, split:workspace, e-1"
 
         # Clipboard history
         "$mainMod, V, exec, cliphist list | rofi -dmenu | cliphist decode | wl-copy"
@@ -344,11 +380,8 @@ in
       ];
 
       # Plugin configuration
-      "plugin:virtual-desktops" = {
-        cycleworkspaces = 1;
-        rememberlayout = "size";
-        notifyinit = 0;
-        verbose_logging = 0;
+      "plugin:hyprsplit" = {
+        num_workspaces = numWorkspaces;
       };
 
       # Hyprspace overview (disabled — plugin broken with Hyprland 0.53.3)

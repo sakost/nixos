@@ -7,5 +7,6 @@
     ./networking.nix
     ./proxy
     ./podman.nix
+    ./snapshots.nix
   ];
 }
