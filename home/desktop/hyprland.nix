@@ -23,14 +23,14 @@ let
       TARGET=$ARG
     fi
 
-    # Switch non-focused monitors first, then focused last to preserve focus
-    BATCH=""
+    # Disable cursor warping during focus switches, then re-enable at the end
+    BATCH="keyword cursor:no_warps 1 ; "
     for MON in $(hyprctl -j monitors | ${pkgs.jq}/bin/jq -r '.[].name'); do
       if [[ "$MON" != "$FOCUSED_MON" ]]; then
         BATCH+="dispatch focusmonitor $MON ; dispatch split:workspace $TARGET ; "
       fi
     done
-    BATCH+="dispatch focusmonitor $FOCUSED_MON ; dispatch split:workspace $TARGET"
+    BATCH+="dispatch focusmonitor $FOCUSED_MON ; dispatch split:workspace $TARGET ; keyword cursor:no_warps 0"
 
     hyprctl --batch "$BATCH"
 
@@ -117,9 +117,68 @@ let
       esac
     done
   '';
+  # Daemon that keeps all monitors on the same logical workspace
+  # Catches desync from Waybar clicks or any other non-synced source
+  hypr-ws-sync-daemon = pkgs.writeShellScriptBin "hypr-ws-sync-daemon" ''
+    NUM_WS=${toString numWorkspaces}
+    LOCK="/tmp/hypr-ws-sync-$$.lock"
+    trap "rm -f $LOCK" EXIT
+
+    sync_if_needed() {
+      # Cooldown: skip if we just synced (prevents loops from our own events)
+      if [[ -f "$LOCK" ]]; then return; fi
+
+      local monitors
+      monitors=$(hyprctl -j monitors)
+
+      local focused_mon focused_ws_id target
+      focused_mon=$(echo "$monitors" | ${pkgs.jq}/bin/jq -r '.[] | select(.focused == true) | .name')
+      focused_ws_id=$(echo "$monitors" | ${pkgs.jq}/bin/jq -r '.[] | select(.focused == true) | .activeWorkspace.id')
+      target=$(( ((focused_ws_id - 1) % NUM_WS) + 1 ))
+
+      # Check if any monitor is out of sync
+      local needs_sync=false
+      while IFS=: read -r mon ws_id; do
+        if [[ "$mon" != "$focused_mon" ]]; then
+          local logical=$(( ((ws_id - 1) % NUM_WS) + 1 ))
+          if [[ "$logical" != "$target" ]]; then
+            needs_sync=true
+            break
+          fi
+        fi
+      done < <(echo "$monitors" | ${pkgs.jq}/bin/jq -r '.[] | "\(.name):\(.activeWorkspace.id)"')
+
+      if $needs_sync; then
+        touch "$LOCK"
+
+        # Disable cursor warping during focus switches, then re-enable
+        local batch="keyword cursor:no_warps 1 ; "
+        for mon in $(echo "$monitors" | ${pkgs.jq}/bin/jq -r '.[].name'); do
+          if [[ "$mon" != "$focused_mon" ]]; then
+            batch+="dispatch focusmonitor $mon ; dispatch split:workspace $target ; "
+          fi
+        done
+        batch+="dispatch focusmonitor $focused_mon ; keyword cursor:no_warps 0"
+        hyprctl --batch "$batch"
+
+        # Cooldown to absorb events from our own sync
+        (sleep 0.5; rm -f "$LOCK") &
+      fi
+    }
+
+    sleep 2
+    ${pkgs.socat}/bin/socat -u "UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock" - | while IFS= read -r event; do
+      case "$event" in
+        workspace*)
+          sleep 0.1
+          sync_if_needed
+          ;;
+      esac
+    done
+  '';
 in
 {
-  home.packages = [ hypr-autoname hypr-sync-ws ];
+  home.packages = [ hypr-autoname hypr-sync-ws hypr-ws-sync-daemon ];
 
   wayland.windowManager.hyprland = {
     enable = true;
@@ -150,8 +209,8 @@ in
 
       # Environment variables
       env = [
-        "XCURSOR_SIZE,24"
-        "HYPRCURSOR_SIZE,24"
+        "XCURSOR_SIZE,32"
+        "HYPRCURSOR_SIZE,32"
         # Nvidia specific
         "LIBVA_DRIVER_NAME,nvidia"
         "XDG_SESSION_TYPE,wayland"
@@ -172,6 +231,7 @@ in
       exec-once = [
         "wl-paste --watch cliphist store"
         "hyprland-autoname-workspaces"
+        "hypr-ws-sync-daemon"
         "eww open dashboard"
         "telegram-desktop -startintray"
         "spotify"
@@ -353,9 +413,9 @@ in
         "$mainMod, S, togglespecialworkspace, magic"
         "$mainMod SHIFT, S, movetoworkspace, special:magic"
 
-        # Scroll workspaces (focused monitor only)
-        "$mainMod, mouse_down, split:workspace, e+1"
-        "$mainMod, mouse_up, split:workspace, e-1"
+        # Scroll workspaces (synced across all monitors)
+        "$mainMod, mouse_down, exec, hypr-sync-ws next"
+        "$mainMod, mouse_up, exec, hypr-sync-ws prev"
 
         # Clipboard history
         "$mainMod, V, exec, cliphist list | rofi -dmenu | cliphist decode | wl-copy"

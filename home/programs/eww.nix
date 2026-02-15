@@ -4,7 +4,37 @@
 
 let
   weather-script = pkgs.writeShellScriptBin "eww-weather" ''
-    ${pkgs.curl}/bin/curl -s 'wttr.in/?format=%l\n%c+%C,+%t\nFeels+like+%f\nHumidity:+%h\nWind:+%w' 2>/dev/null || echo "Weather unavailable"
+    DATA=$(${pkgs.curl}/bin/curl -s --max-time 10 \
+      'https://api.open-meteo.com/v1/forecast?latitude=55.75&longitude=37.62&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=Europe/Moscow' 2>/dev/null)
+    [[ -z "$DATA" ]] && echo "Weather unavailable" && exit 0
+
+    TEMP=$(echo "$DATA" | ${pkgs.jq}/bin/jq -r '.current.temperature_2m')
+    FEELS=$(echo "$DATA" | ${pkgs.jq}/bin/jq -r '.current.apparent_temperature')
+    HUMIDITY=$(echo "$DATA" | ${pkgs.jq}/bin/jq -r '.current.relative_humidity_2m')
+    WIND=$(echo "$DATA" | ${pkgs.jq}/bin/jq -r '.current.wind_speed_10m')
+    CODE=$(echo "$DATA" | ${pkgs.jq}/bin/jq -r '.current.weather_code')
+
+    # WMO weather code to icon
+    case "$CODE" in
+      0) ICON="☀" DESC="Clear sky" ;;
+      1|2|3) ICON="⛅" DESC="Partly cloudy" ;;
+      45|48) ICON="🌫" DESC="Fog" ;;
+      51|53|55) ICON="🌦" DESC="Drizzle" ;;
+      61|63|65) ICON="🌧" DESC="Rain" ;;
+      66|67) ICON="🌧" DESC="Freezing rain" ;;
+      71|73|75) ICON="🌨" DESC="Snow" ;;
+      77) ICON="🌨" DESC="Snow grains" ;;
+      80|81|82) ICON="🌧" DESC="Showers" ;;
+      85|86) ICON="🌨" DESC="Snow showers" ;;
+      95|96|99) ICON="⛈" DESC="Thunderstorm" ;;
+      *) ICON="?" DESC="Unknown" ;;
+    esac
+
+    echo "Moscow"
+    echo "$ICON $DESC, ''${TEMP}°C"
+    echo "Feels like ''${FEELS}°C"
+    echo "Humidity: ''${HUMIDITY}%"
+    echo "Wind: ''${WIND} km/h"
   '';
 
   news-script = pkgs.writeShellScriptBin "eww-news" ''
@@ -105,12 +135,12 @@ in
     .content {
       font-size: 14px;
       color: $fg;
-      line-height: 1.6;
+      padding: 4px 0;
     }
 
     .news-text {
       font-size: 13px;
-      line-height: 1.8;
+      padding: 6px 0;
     }
   '';
 }

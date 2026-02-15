@@ -75,6 +75,14 @@
     run ${pkgs.rustup}/bin/rustup default stable
   '';
 
+  # Cursor theme — consistent across mixed-DPI monitors
+  home.pointerCursor = {
+    name = "Bibata-Modern-Classic";
+    package = pkgs.bibata-cursors;
+    size = 32;
+    gtk.enable = true;
+  };
+
   # Let home-manager manage itself
   programs.home-manager.enable = true;
 
