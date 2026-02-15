@@ -25,16 +25,15 @@
   # SOPS - use SSH host key for age decryption (available before /home mounts)
   sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
 
-  # Fix ownership of subvolume mount points during system activation
-  system.activationScripts.fixSubvolumeOwnership = ''
-    ${pkgs.coreutils}/bin/chown sakost:users \
-      /home/sakost/games \
-      /home/sakost/dev \
-      /home/sakost/dev/models \
-      /home/sakost/dev/data \
-      /home/sakost/dev/cache \
-      /home/sakost/.snapshots
-  '';
+  # Fix ownership of subvolume mount points (runs after mounts are available)
+  systemd.tmpfiles.rules = [
+    "z /home/sakost/games - sakost users - -"
+    "z /home/sakost/dev - sakost users - -"
+    "z /home/sakost/dev/models - sakost users - -"
+    "z /home/sakost/dev/data - sakost users - -"
+    "z /home/sakost/dev/cache - sakost users - -"
+    "z /home/sakost/.snapshots - sakost users - -"
+  ];
 
   # Timezone and locale
   time.timeZone = "Europe/Moscow";
