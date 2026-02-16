@@ -10,6 +10,11 @@
 
   # Enable rootful Podman via socket
   virtualisation.containers.enable = true;
+  virtualisation.containers.containersConf.settings = {
+    engine = {
+      compose_warning_logs = false;
+    };
+  };
 
   # Podman-compose and tools
   environment.systemPackages = with pkgs; [
