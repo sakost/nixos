@@ -19,6 +19,7 @@
     ./programs/steam.nix
     ./programs/wallpaper-engine.nix
     ./programs/eww.nix
+    ./programs/onlyoffice.nix
     ./desktop/hyprland.nix
   ];
 
