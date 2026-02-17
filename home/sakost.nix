@@ -63,6 +63,7 @@
       velero
       python3
       protobuf
+      buf
       zip
       unzip
       libsecret
