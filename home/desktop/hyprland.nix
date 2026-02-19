@@ -448,6 +448,10 @@ in
         "$mainMod, mouse_down, exec, hypr-sync-ws next"
         "$mainMod, mouse_up, exec, hypr-sync-ws prev"
 
+        # Notification profiles (mako modes)
+        "$mainMod, N, exec, makoctl mode | grep -q dnd && makoctl mode -r dnd || makoctl mode -a dnd"
+        "$mainMod SHIFT, N, exec, makoctl mode | grep -q work && makoctl mode -r work || makoctl mode -a work"
+
         # Fuzzy finders
         "$mainMod, T, exec, rofi-file-finder"
         "$mainMod, TAB, exec, rofi-window-switcher"

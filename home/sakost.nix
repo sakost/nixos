@@ -18,6 +18,7 @@
     ./programs/flutter.nix
     ./programs/steam.nix
     ./programs/wallpaper-engine.nix
+    ./programs/mako.nix
     ./programs/eww.nix
     ./programs/onlyoffice.nix
     ./desktop/hyprland.nix

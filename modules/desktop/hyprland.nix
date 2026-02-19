@@ -45,7 +45,7 @@ in {
       # Desktop utilities
       nautilus
       gvfs # Virtual filesystem (trash, mtp, network shares, etc.)
-      dunst
+      mako
       libnotify
       networkmanagerapplet
       brightnessctl
