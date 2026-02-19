@@ -211,9 +211,9 @@ in
         (mako-widget)))
 
     (defwidget clock-widget []
-      (box :class "widget-box clock-box" :orientation "h" :space-evenly false :halign "center"
-        (label :class "time" :text time_val)
-        (label :class "date" :text date_val)))
+      (box :class "widget-box clock-box" :orientation "v" :space-evenly false
+        (label :class "time" :text time_val :halign "center")
+        (label :class "date" :text date_val :halign "center")))
 
     (defwidget weather-widget []
       (box :class "widget-box" :orientation "v" :space-evenly false
@@ -311,8 +311,7 @@ in
       .date {
         font-size: 20px;
         color: $accent;
-        margin-left: 20px;
-        margin-top: 16px;
+        margin-top: 8px;
       }
     }
 
@@ -322,7 +321,7 @@ in
     }
 
     .two-col > * {
-      margin: 0 8px;
+      margin: 0;
       margin-bottom: 0;
     }
 
