@@ -21,6 +21,7 @@
     ./programs/mako.nix
     ./programs/eww.nix
     ./programs/onlyoffice.nix
+    ./programs/gdb.nix
     ./desktop/hyprland.nix
   ];
 
