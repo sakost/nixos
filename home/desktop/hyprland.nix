@@ -182,6 +182,7 @@ in
   wayland.windowManager.hyprland = {
     enable = true;
     xwayland.enable = true;
+    systemd.enable = false; # Managed by UWSM instead
 
     plugins = [
       pkgs.hyprlandPlugins.hyprsplit
@@ -521,7 +522,7 @@ in
       After = [ "graphical-session.target" ];
     };
     Service = {
-      ExecStart = "${pkgs.telegram-desktop}/bin/telegram-desktop -startintray";
+      ExecStart = "${pkgs.telegram-desktop}/bin/Telegram -startintray";
       Restart = "on-failure";
       RestartSec = 3;
     };
