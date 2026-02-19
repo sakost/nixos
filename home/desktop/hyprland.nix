@@ -118,29 +118,29 @@ let
     done
   '';
   cacheBase = "${config.home.homeDirectory}/dev/cache";
-  fileIndexPath = "${cacheBase}/rofi-file-index";
+  fileIndexPath = "${cacheBase}/file-index";
 
   # Update the file index cache
-  rofi-file-index-update = pkgs.writeShellScriptBin "rofi-file-index-update" ''
+  file-index-update = pkgs.writeShellScriptBin "file-index-update" ''
     mkdir -p "${cacheBase}"
     ${pkgs.fd}/bin/fd --type f --hidden --exclude .git . "$HOME" > "${fileIndexPath}.tmp"
     mv "${fileIndexPath}.tmp" "${fileIndexPath}"
   '';
 
   # Fuzzy file finder: reads from cached index, opens selection with xdg-open
-  rofi-file-finder = pkgs.writeShellScriptBin "rofi-file-finder" ''
+  file-finder = pkgs.writeShellScriptBin "file-finder" ''
     if [ ! -f "${fileIndexPath}" ]; then
-      ${rofi-file-index-update}/bin/rofi-file-index-update
+      ${file-index-update}/bin/file-index-update
     fi
-    selected=$(rofi -dmenu -i -p "Files" -matching fuzzy < "${fileIndexPath}")
+    selected=$(cat "${fileIndexPath}" | ${pkgs.anyrun}/bin/anyrun --plugins ${pkgs.anyrun}/lib/libstdin.so)
     [ -n "$selected" ] && xdg-open "$selected"
   '';
 
-  # Window switcher: hyprctl clients + rofi, focuses selection
-  rofi-window-switcher = pkgs.writeShellScriptBin "rofi-window-switcher" ''
+  # Window switcher: hyprctl clients + anyrun, focuses selection
+  window-switcher = pkgs.writeShellScriptBin "window-switcher" ''
     selected=$(hyprctl clients -j | ${pkgs.jq}/bin/jq -r \
       '.[] | select(.mapped == true) | "\(.address)\t\(.class): \(.title)"' | \
-      rofi -dmenu -i -p "Windows" -matching fuzzy -display-columns 2)
+      ${pkgs.anyrun}/bin/anyrun --plugins ${pkgs.anyrun}/lib/libstdin.so)
     [ -n "$selected" ] && {
       addr=$(echo "$selected" | cut -f1)
       hyprctl dispatch focuswindow "address:$addr"
@@ -207,7 +207,7 @@ let
   '';
 in
 {
-  home.packages = [ hypr-autoname hypr-sync-ws hypr-ws-sync-daemon rofi-file-finder rofi-file-index-update rofi-window-switcher ];
+  home.packages = [ hypr-autoname hypr-sync-ws hypr-ws-sync-daemon file-finder file-index-update window-switcher ];
 
   wayland.windowManager.hyprland = {
     enable = true;
@@ -255,12 +255,14 @@ in
       # Programs
       "$terminal" = "uwsm app -- alacritty";
       "$fileManager" = "uwsm app -- nautilus";
-      "$menu" = "rofi -show drun";
+      "$menu" = "anyrun";
 
       # Autostart (waybar is managed by home-manager systemd service)
+      # GUI apps use "uwsm app --" to get proper systemd scope isolation
+      # (prevents NOTIFY_SOCKET hijacking that can crash Hyprland)
       exec-once = [
-        "eww open dashboard"
-        "spotify"
+        "uwsm app -- eww open dashboard"
+        "uwsm app -- spotify"
       ];
 
       # General
@@ -365,9 +367,9 @@ in
       #   SUPER + C            — close window
       #   SUPER + Escape       — power menu (wlogout)
       #   SUPER + E            — file manager
-      #   SUPER + V            — clipboard history (rofi)
+      #   SUPER + V            — clipboard history (anyrun)
       #   SUPER + F            — toggle floating
-      #   SUPER + R            — app launcher (rofi)
+      #   SUPER + R            — app launcher (anyrun)
       #   SUPER + P            — pseudo-tile
       #   SUPER + J            — toggle split direction
       #   SUPER + arrows       — move focus (left/right/up/down)
@@ -396,7 +398,7 @@ in
         # Apps
         "$mainMod, Q, exec, $terminal"
         "$mainMod, C, killactive"
-        "$mainMod, escape, exec, wlogout"
+        "$mainMod, escape, exec, uwsm app -- wlogout"
         "$mainMod, E, exec, $fileManager"
         "$mainMod, F, togglefloating"
         "$mainMod, R, exec, $menu"
@@ -453,11 +455,11 @@ in
         "$mainMod SHIFT, N, exec, makoctl mode | grep -q work && makoctl mode -r work || makoctl mode -a work"
 
         # Fuzzy finders
-        "$mainMod, T, exec, rofi-file-finder"
-        "$mainMod, TAB, exec, rofi-window-switcher"
+        "$mainMod, T, exec, file-finder"
+        "$mainMod, TAB, exec, window-switcher"
 
         # Clipboard history
-        "$mainMod, V, exec, cliphist list | rofi -dmenu | cliphist decode | wl-copy"
+        "$mainMod, V, exec, cliphist list | anyrun --plugins ${pkgs.anyrun}/lib/libstdin.so | cliphist decode | wl-copy"
 
         # Screenshot
         ", Print, exec, grim -g \"$(slurp)\" - | wl-copy -t image/png"
@@ -553,16 +555,16 @@ in
     Install.WantedBy = [ "graphical-session.target" ];
   };
 
-  systemd.user.services.rofi-file-index = {
-    Unit.Description = "Update rofi file finder index";
+  systemd.user.services.file-index = {
+    Unit.Description = "Update file finder index";
     Service = {
       Type = "oneshot";
-      ExecStart = "${rofi-file-index-update}/bin/rofi-file-index-update";
+      ExecStart = "${file-index-update}/bin/file-index-update";
     };
   };
 
-  systemd.user.timers.rofi-file-index = {
-    Unit.Description = "Periodically update rofi file finder index";
+  systemd.user.timers.file-index = {
+    Unit.Description = "Periodically update file finder index";
     Timer = {
       OnCalendar = "hourly";
       OnStartupSec = "1min";

@@ -18,10 +18,10 @@ modules/                — System-level NixOS modules with custom.* options
   programs/             — fonts, git, zsh, nix-ld, android, steam, gnome-keyring
   services/             — ssh, networking, proxy, podman, snapshots
 home/                   — Home-manager config (imported from home/sakost.nix)
-  programs/             — Per-program configs (waybar, alacritty, zsh, rofi, nixvim, mako, eww, wlogout, etc.)
+  programs/             — Per-program configs (waybar, alacritty, zsh, anyrun, nixvim, mako, eww, wlogout, etc.)
   desktop/              — User-level hyprland config
   xdg.nix              — XDG base directories and environment variables
-overlays/               — Nixpkgs overlays (argocd-fix, hyprsplit-update)
+overlays/               — Nixpkgs overlays (argocd-fix)
 secrets/                — SOPS-encrypted secrets (age-based)
 docs/                   — Cheatsheets (hyprland-cheatsheet.md, nvim-cheatsheet.md)
 ```
@@ -52,7 +52,7 @@ Each program with non-trivial config gets its own file in `home/programs/` (e.g.
 
 - **Compositor**: Hyprland (Wayland) with XWayland
 - **Status bar**: Waybar (managed via home-manager systemd service)
-- **Launcher**: Rofi (app launcher, clipboard history, file finder, window switcher)
+- **Launcher**: Anyrun (Wayland-native app launcher, clipboard history, file finder, window switcher)
 - **Terminal**: Alacritty
 - **Editor**: Neovim via nixvim
 - **Login manager**: greetd with tuigreet
@@ -110,6 +110,7 @@ Neovim has a built-in database client via vim-dadbod + dadbod-ui. Config: `home/
 
 ## Important notes
 
+- **UWSM app launching**: Long-running GUI apps launched from Hyprland keybindings must use `uwsm app -- <command>` for proper systemd scope isolation. This prevents apps (e.g. podman's conmon) from hijacking the session's MainPID via `NOTIFY_SOCKET`. Short-lived commands (makoctl, wpctl, grim, etc.) don't need wrapping.
 - Timezone is `Europe/Moscow`, locale is `en_US.UTF-8` with Russian (`ru_RU.UTF-8`) for `LC_TIME`
 - `nixpkgs.config.allowUnfree = true` — unfree packages are allowed
 - Flake inputs are passed via `specialArgs` (system) and `extraSpecialArgs` (home-manager) — use `inputs` to reference them in modules

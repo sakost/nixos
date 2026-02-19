@@ -7,7 +7,7 @@
     ./xdg.nix
     ./programs/zsh.nix
     ./programs/alacritty.nix
-    ./programs/rofi.nix
+    ./programs/anyrun.nix
     ./programs/gui-apps.nix
     ./programs/waybar.nix
     ./programs/wlogout.nix
@@ -22,6 +22,7 @@
     ./programs/eww.nix
     ./programs/onlyoffice.nix
     ./programs/gdb.nix
+    ./programs/ollama.nix
     ./desktop/hyprland.nix
   ];
 

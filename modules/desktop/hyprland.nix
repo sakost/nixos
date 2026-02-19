@@ -34,7 +34,6 @@ in {
       # Wayland utilities
       kitty
       swww
-      rofi
       waybar
       satty
       slurp
