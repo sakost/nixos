@@ -105,7 +105,7 @@ Servers: Python (pyright), Rust (rust-analyzer), TypeScript (ts_ls), Nix (nil), 
 
 | Key | Mode | Action |
 |-----|------|--------|
-| `Space e` | n | Show diagnostic float |
+| `Space e` | n | Show diagnostic float (in LSP buffers; toggles file explorer elsewhere) |
 | `[d` | n | Previous diagnostic |
 | `]d` | n | Next diagnostic |
 
@@ -242,4 +242,4 @@ For Cloud SQL via proxy: start `cloud-sql-proxy` first, then connect to `postgre
 
 - Press `Space` and wait ~200ms for **which-key** popup showing all bindings
 - Colorscheme: **Tokyo Night** (transparent)
-- Treesitter provides syntax highlighting for: bash, c, cpp, css, dockerfile, go, html, javascript, json, lua, markdown, nix, proto, python, rust, toml, tsx, typescript, vim, yaml
+- Treesitter provides syntax highlighting for: bash, c, cpp, css, dockerfile, go, html, javascript, json, lua, markdown, markdown_inline, nix, proto, python, rust, toml, tsx, typescript, vim, vimdoc, yaml

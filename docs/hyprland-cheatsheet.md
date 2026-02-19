@@ -57,11 +57,19 @@ Switching workspaces syncs all monitors to the same workspace number.
 | `Super + S` | Toggle scratchpad |
 | `Super + Shift + S` | Move window to scratchpad |
 
-## Overview
+## Fuzzy Finders
 
 | Key | Action |
 |-----|--------|
-| `Super + TAB` | Toggle Hyprspace overview panel |
+| `Super + T` | File finder (rofi, cached index updated hourly) |
+| `Super + TAB` | Window switcher (rofi, focus selected window) |
+
+## Notifications (mako)
+
+| Key | Action |
+|-----|--------|
+| `Super + N` | Toggle Do Not Disturb mode |
+| `Super + Shift + N` | Toggle Work mode (reduced notifications) |
 
 ## Screenshot
 
@@ -106,8 +114,8 @@ Switching workspaces syncs all monitors to the same workspace number.
 ## Plugins
 
 - **hyprsplit**: Per-monitor workspace sets with synchronized switching
-- **Hyprspace**: Workspace overview panel with thumbnails (currently disabled)
 - **hyprwinwrap**: Use any window as desktop wallpaper
+- **Hyprspace**: Workspace overview panel — disabled (broken with Hyprland 0.53.3, LOG → Log rename)
 
 ## Layout Info
 

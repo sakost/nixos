@@ -2,11 +2,11 @@
 
 ## Repository overview
 
-Multi-host NixOS flake for user **sakost**. Uses nixpkgs unstable, home-manager, nixvim, sops-nix, lanzaboote (secure boot), and android-nixpkgs.
+Multi-host NixOS flake for user **sakost**. Uses nixpkgs unstable, home-manager, nixvim, sops-nix, lanzaboote (secure boot), android-nixpkgs, claude-code, claude-desktop, and yandex-browser.
 
 Two hosts defined via `mkHost` in `flake.nix`:
 - `sakost-pc` — main desktop (Intel CPU, NVIDIA GPU)
-- `sakost-pc-portable` — portable/temp disk setup
+- `sakost-pc-portable` — portable/temp disk setup (outdated, not actively maintained)
 
 ## Directory structure
 
@@ -15,12 +15,15 @@ hosts/<hostname>/       — Per-host config (hardware.nix, disk-config.nix, defa
 modules/                — System-level NixOS modules with custom.* options
   hardware/             — nvidia, intel-cpu, amd-cpu, audio, bluetooth, mouse, tpm
   desktop/              — hyprland, greetd, xdg-portals
-  programs/             — fonts, git, zsh, nix-ld, android
-  services/             — ssh, networking, proxy, podman
+  programs/             — fonts, git, zsh, nix-ld, android, steam, gnome-keyring
+  services/             — ssh, networking, proxy, podman, snapshots
 home/                   — Home-manager config (imported from home/sakost.nix)
-  programs/             — Per-program configs (waybar, alacritty, zsh, rofi, nixvim, etc.)
+  programs/             — Per-program configs (waybar, alacritty, zsh, rofi, nixvim, mako, eww, wlogout, etc.)
   desktop/              — User-level hyprland config
+  xdg.nix              — XDG base directories and environment variables
+overlays/               — Nixpkgs overlays (argocd-fix, hyprsplit-update)
 secrets/                — SOPS-encrypted secrets (age-based)
+docs/                   — Cheatsheets (hyprland-cheatsheet.md, nvim-cheatsheet.md)
 ```
 
 ## Key patterns
@@ -49,11 +52,19 @@ Each program with non-trivial config gets its own file in `home/programs/` (e.g.
 
 - **Compositor**: Hyprland (Wayland) with XWayland
 - **Status bar**: Waybar (managed via home-manager systemd service)
-- **Launcher**: Rofi
+- **Launcher**: Rofi (app launcher, clipboard history, file finder, window switcher)
 - **Terminal**: Alacritty
 - **Editor**: Neovim via nixvim
-- **Login manager**: greetd
+- **Login manager**: greetd with tuigreet
+- **Notifications**: mako (supports DND and work profiles via `makoctl mode`)
+- **Screenshots**: grim + slurp + satty (annotation)
+- **Clipboard**: cliphist + wl-clipboard
+- **Wallpaper**: swww
+- **File manager**: Nautilus
+- **Logout menu**: wlogout
+- **Dashboard**: eww
 - **Theme**: TokyoNight-inspired dark theme
+- **Plugins**: hyprsplit (per-monitor workspaces), hyprwinwrap (window as wallpaper)
 
 ## Secrets management
 
