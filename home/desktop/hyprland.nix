@@ -253,8 +253,8 @@ in
       ];
 
       # Programs
-      "$terminal" = "alacritty";
-      "$fileManager" = "nautilus";
+      "$terminal" = "uwsm app -- alacritty";
+      "$fileManager" = "uwsm app -- nautilus";
       "$menu" = "rofi -show drun";
 
       # Autostart (waybar is managed by home-manager systemd service)

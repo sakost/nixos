@@ -62,7 +62,6 @@
         { nixpkgs.overlays = [
             android-nixpkgs.overlays.default
             (import ./overlays/argocd-fix.nix)
-            (import ./overlays/hyprsplit-update.nix)
           ];
         }
         {
