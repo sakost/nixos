@@ -1,5 +1,5 @@
 # Hyprland user configuration
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 let
   numWorkspaces = 10;
@@ -117,6 +117,36 @@ let
       esac
     done
   '';
+  cacheBase = "${config.home.homeDirectory}/dev/cache";
+  fileIndexPath = "${cacheBase}/rofi-file-index";
+
+  # Update the file index cache
+  rofi-file-index-update = pkgs.writeShellScriptBin "rofi-file-index-update" ''
+    mkdir -p "${cacheBase}"
+    ${pkgs.fd}/bin/fd --type f --hidden --exclude .git . "$HOME" > "${fileIndexPath}.tmp"
+    mv "${fileIndexPath}.tmp" "${fileIndexPath}"
+  '';
+
+  # Fuzzy file finder: reads from cached index, opens selection with xdg-open
+  rofi-file-finder = pkgs.writeShellScriptBin "rofi-file-finder" ''
+    if [ ! -f "${fileIndexPath}" ]; then
+      ${rofi-file-index-update}/bin/rofi-file-index-update
+    fi
+    selected=$(rofi -dmenu -i -p "Files" -matching fuzzy < "${fileIndexPath}")
+    [ -n "$selected" ] && xdg-open "$selected"
+  '';
+
+  # Window switcher: hyprctl clients + rofi, focuses selection
+  rofi-window-switcher = pkgs.writeShellScriptBin "rofi-window-switcher" ''
+    selected=$(hyprctl clients -j | ${pkgs.jq}/bin/jq -r \
+      '.[] | select(.mapped == true) | "\(.address)\t\(.class): \(.title)"' | \
+      rofi -dmenu -i -p "Windows" -matching fuzzy -display-columns 2)
+    [ -n "$selected" ] && {
+      addr=$(echo "$selected" | cut -f1)
+      hyprctl dispatch focuswindow "address:$addr"
+    }
+  '';
+
   # Daemon that keeps all monitors on the same logical workspace
   # Catches desync from Waybar clicks or any other non-synced source
   hypr-ws-sync-daemon = pkgs.writeShellScriptBin "hypr-ws-sync-daemon" ''
@@ -177,7 +207,7 @@ let
   '';
 in
 {
-  home.packages = [ hypr-autoname hypr-sync-ws hypr-ws-sync-daemon ];
+  home.packages = [ hypr-autoname hypr-sync-ws hypr-ws-sync-daemon rofi-file-finder rofi-file-index-update rofi-window-switcher ];
 
   wayland.windowManager.hyprland = {
     enable = true;
@@ -418,6 +448,10 @@ in
         "$mainMod, mouse_down, exec, hypr-sync-ws next"
         "$mainMod, mouse_up, exec, hypr-sync-ws prev"
 
+        # Fuzzy finders
+        "$mainMod, T, exec, rofi-file-finder"
+        "$mainMod, TAB, exec, rofi-window-switcher"
+
         # Clipboard history
         "$mainMod, V, exec, cliphist list | rofi -dmenu | cliphist decode | wl-copy"
 
@@ -513,6 +547,24 @@ in
       RestartSec = 2;
     };
     Install.WantedBy = [ "graphical-session.target" ];
+  };
+
+  systemd.user.services.rofi-file-index = {
+    Unit.Description = "Update rofi file finder index";
+    Service = {
+      Type = "oneshot";
+      ExecStart = "${rofi-file-index-update}/bin/rofi-file-index-update";
+    };
+  };
+
+  systemd.user.timers.rofi-file-index = {
+    Unit.Description = "Periodically update rofi file finder index";
+    Timer = {
+      OnCalendar = "hourly";
+      OnStartupSec = "1min";
+      Persistent = true;
+    };
+    Install.WantedBy = [ "timers.target" ];
   };
 
   systemd.user.services.telegram-desktop = {
