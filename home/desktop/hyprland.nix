@@ -228,11 +228,7 @@ in
 
       # Autostart (waybar is managed by home-manager systemd service)
       exec-once = [
-        "wl-paste --watch cliphist store"
-        "hyprland-autoname-workspaces"
-        "hypr-ws-sync-daemon"
         "eww open dashboard"
-        "telegram-desktop -startintray"
         "spotify"
       ];
 
@@ -475,5 +471,60 @@ in
         "suppress_event focus, match:class jetbrains-.*, match:title win.*"
       ];
     };
+  };
+
+  systemd.user.services.cliphist-watch = {
+    Unit = {
+      Description = "Clipboard history watcher";
+      PartOf = [ "graphical-session.target" ];
+      After = [ "graphical-session.target" ];
+    };
+    Service = {
+      ExecStart = "${pkgs.wl-clipboard}/bin/wl-paste --watch ${pkgs.cliphist}/bin/cliphist store";
+      Restart = "on-failure";
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
+  };
+
+  systemd.user.services.hyprland-autoname-workspaces = {
+    Unit = {
+      Description = "Hyprland workspace auto-namer";
+      PartOf = [ "graphical-session.target" ];
+      After = [ "graphical-session.target" ];
+    };
+    Service = {
+      ExecStart = "${hypr-autoname}/bin/hyprland-autoname-workspaces";
+      Restart = "on-failure";
+      RestartSec = 2;
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
+  };
+
+  systemd.user.services.hypr-ws-sync-daemon = {
+    Unit = {
+      Description = "Hyprland workspace sync daemon";
+      PartOf = [ "graphical-session.target" ];
+      After = [ "graphical-session.target" ];
+    };
+    Service = {
+      ExecStart = "${hypr-ws-sync-daemon}/bin/hypr-ws-sync-daemon";
+      Restart = "on-failure";
+      RestartSec = 2;
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
+  };
+
+  systemd.user.services.telegram-desktop = {
+    Unit = {
+      Description = "Telegram Desktop";
+      PartOf = [ "graphical-session.target" ];
+      After = [ "graphical-session.target" ];
+    };
+    Service = {
+      ExecStart = "${pkgs.telegram-desktop}/bin/telegram-desktop -startintray";
+      Restart = "on-failure";
+      RestartSec = 3;
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
   };
 }

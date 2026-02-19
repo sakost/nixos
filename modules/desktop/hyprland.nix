@@ -10,7 +10,10 @@ in {
 
   config = lib.mkIf cfg.enable {
     # Enable Hyprland
-    programs.hyprland.enable = true;
+    programs.hyprland = {
+      enable = true;
+      withUWSM = true;
+    };
 
     # XWayland for X11 app compatibility
     programs.xwayland.enable = true;
