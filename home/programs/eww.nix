@@ -141,7 +141,9 @@ let
   '';
 
   calendar-script = pkgs.writeShellScriptBin "eww-calendar" ''
-    OUTPUT=$(${pkgs.gcalcli}/bin/gcalcli agenda --nocolor --nodeclined 2>/dev/null)
+    # Strip ANSI escape codes — gcalcli's --nocolor doesn't fully strip them
+    strip_ansi() { sed 's/\x1b\[[0-9;]*m//g'; }
+    OUTPUT=$(${pkgs.gcalcli}/bin/gcalcli agenda --nocolor --nodeclined 2>/dev/null | strip_ansi)
     if [[ -z "$OUTPUT" ]] || echo "$OUTPUT" | grep -q "No Events Found"; then
       echo "No upcoming events"
     else
@@ -315,8 +317,13 @@ in
     }
 
     // ── Two-column row ──
+    .two-col {
+      margin-bottom: 16px;
+    }
+
     .two-col > * {
       margin: 0 8px;
+      margin-bottom: 0;
     }
 
     // ── Section titles ──
