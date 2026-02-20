@@ -37,19 +37,27 @@
 
       clock = {
         format = " {:%H:%M}";
-        format-alt = " {:%A, %B %d, %Y   %H:%M:%S}";
-        tooltip-format = "<tt><big>{calendar}</big></tt>";
+        format-alt = " {:%A, %d %B %Y   %H:%M:%S}";
+        on-click = "eww-toggle-calendar";
+        tooltip = false;
         locale = "ru_RU.UTF-8";
         calendar = {
           mode = "month";
+          mode-mon-col = 1;
           weeks-pos = "right";
+          on-scroll = 1;
           format = {
-            months = "<span color='#c0caf5'><b>{}</b></span>";
-            days = "<span color='#565f89'>{}</span>";
+            months = "<span color='#c0caf5' size='x-large'><b>{}</b></span>";
+            days = "<span color='#a9b1d6'>{}</span>";
             weekdays = "<span color='#7aa2f7'><b>{}</b></span>";
-            weeks = "<span color='#33ccff'><b>W{}</b></span>";
-            today = "<span color='#00ff99'><b><u>{}</u></b></span>";
+            weeks = "<span color='#565f89'>W{}</span>";
+            today = "<span color='#1a1b26' bgcolor='#00ff99'><b> {} </b></span>";
           };
+        };
+        actions = {
+          on-click-right = "mode";
+          on-scroll-up = "shift_up";
+          on-scroll-down = "shift_down";
         };
         interval = 1;
       };
@@ -107,9 +115,16 @@
 
       tooltip {
         background-color: #1a1b26;
-        border: 1px solid #33ccff;
-        border-radius: 8px;
+        border: 1px solid rgba(51, 204, 255, 0.6);
+        border-radius: 12px;
         color: #c0caf5;
+        padding: 12px 16px;
+        font-size: 14px;
+      }
+
+      tooltip label {
+        font-family: "JetBrainsMono Nerd Font", monospace;
+        min-width: 280px;
       }
 
       #workspaces button {
