@@ -20,6 +20,7 @@
     ./programs/wallpaper-engine.nix
     ./programs/mako.nix
     ./programs/eww.nix
+    ./programs/zathura.nix
     ./programs/onlyoffice.nix
     ./programs/gdb.nix
     ./programs/ollama.nix
