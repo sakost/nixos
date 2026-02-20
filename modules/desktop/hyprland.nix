@@ -25,6 +25,9 @@ in {
     # GVFS for trash and virtual filesystems in Nautilus
     services.gvfs.enable = true;
 
+    # Elephant — data provider backend required by Walker launcher
+    services.elephant.enable = true;
+
     # Wayland packages
     environment.systemPackages = with pkgs; [
       hyprland
@@ -39,7 +42,6 @@ in {
       slurp
       grim
       wl-clipboard
-      cliphist
 
       # Desktop utilities
       nautilus

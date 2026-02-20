@@ -7,7 +7,7 @@ Mod key: **Super** (Windows key)
 | Key | Action |
 |-----|--------|
 | `Super + Q` | Open terminal (Alacritty) |
-| `Super + R` | App launcher (Rofi) |
+| `Super + Space` | App launcher (Walker) |
 | `Super + E` | File manager (Nautilus) |
 | `Super + Escape` | Power menu (wlogout: logout/suspend/reboot/shutdown) |
 
@@ -17,7 +17,7 @@ Mod key: **Super** (Windows key)
 |-----|--------|
 | `Super + C` | Close active window |
 | `Super + F` | Toggle floating mode |
-| `Super + V` | Clipboard history (Rofi) |
+| `Super + V` | Clipboard history (Walker clipboard provider) |
 | `Super + P` | Toggle pseudo-tiling |
 | `Super + J` | Toggle split direction (dwindle) |
 
@@ -57,12 +57,12 @@ Switching workspaces syncs all monitors to the same workspace number.
 | `Super + S` | Toggle scratchpad |
 | `Super + Shift + S` | Move window to scratchpad |
 
-## Fuzzy Finders
+## Walker Providers
 
 | Key | Action |
 |-----|--------|
-| `Super + T` | File finder (rofi, cached index updated hourly) |
-| `Super + TAB` | Window switcher (rofi, focus selected window) |
+| `Super + T` | File browser (Walker files provider) |
+| `Super + TAB` | Window switcher (Walker windows provider) |
 
 ## Notifications (mako)
 

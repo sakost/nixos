@@ -18,12 +18,12 @@ modules/                — System-level NixOS modules with custom.* options
   programs/             — fonts, git, zsh, nix-ld, android, steam, gnome-keyring
   services/             — ssh, networking, proxy, podman, snapshots
 home/                   — Home-manager config (imported from home/sakost.nix)
-  programs/             — Per-program configs (waybar, alacritty, zsh, anyrun, nixvim, mako, eww, wlogout, etc.)
+  programs/             — Per-program configs (waybar, alacritty, zsh, walker, nixvim, mako, eww, wlogout, etc.)
   desktop/              — User-level hyprland config
   xdg.nix              — XDG base directories and environment variables
 overlays/               — Nixpkgs overlays (argocd-fix)
 secrets/                — SOPS-encrypted secrets (age-based)
-docs/                   — Cheatsheets (hyprland-cheatsheet.md, nvim-cheatsheet.md)
+docs/                   — Cheatsheets (hyprland-cheatsheet.md, walker-cheatsheet.md, nvim-cheatsheet.md)
 ```
 
 ## Key patterns
@@ -52,13 +52,13 @@ Each program with non-trivial config gets its own file in `home/programs/` (e.g.
 
 - **Compositor**: Hyprland (Wayland) with XWayland
 - **Status bar**: Waybar (managed via home-manager systemd service)
-- **Launcher**: Anyrun (Wayland-native app launcher, clipboard history, file finder, window switcher)
+- **Launcher**: Walker (Wayland-native app launcher with built-in clipboard history, file browser, window switcher, calculator, web search, dmenu mode)
 - **Terminal**: Alacritty
 - **Editor**: Neovim via nixvim
 - **Login manager**: greetd with tuigreet
 - **Notifications**: mako (supports DND and work profiles via `makoctl mode`)
 - **Screenshots**: grim + slurp + satty (annotation)
-- **Clipboard**: cliphist + wl-clipboard
+- **Clipboard**: Walker built-in clipboard provider + wl-clipboard
 - **Wallpaper**: swww
 - **File manager**: Nautilus
 - **Logout menu**: wlogout

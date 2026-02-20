@@ -7,7 +7,7 @@
     ./xdg.nix
     ./programs/zsh.nix
     ./programs/alacritty.nix
-    ./programs/anyrun.nix
+    ./programs/walker.nix
     ./programs/gui-apps.nix
     ./programs/waybar.nix
     ./programs/wlogout.nix

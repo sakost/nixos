@@ -117,35 +117,6 @@ let
       esac
     done
   '';
-  cacheBase = "${config.home.homeDirectory}/dev/cache";
-  fileIndexPath = "${cacheBase}/file-index";
-
-  # Update the file index cache
-  file-index-update = pkgs.writeShellScriptBin "file-index-update" ''
-    mkdir -p "${cacheBase}"
-    ${pkgs.fd}/bin/fd --type f --hidden --exclude .git . "$HOME" > "${fileIndexPath}.tmp"
-    mv "${fileIndexPath}.tmp" "${fileIndexPath}"
-  '';
-
-  # Fuzzy file finder: reads from cached index, opens selection with xdg-open
-  file-finder = pkgs.writeShellScriptBin "file-finder" ''
-    if [ ! -f "${fileIndexPath}" ]; then
-      ${file-index-update}/bin/file-index-update
-    fi
-    selected=$(cat "${fileIndexPath}" | ${pkgs.anyrun}/bin/anyrun --plugins ${pkgs.anyrun}/lib/libstdin.so)
-    [ -n "$selected" ] && xdg-open "$selected"
-  '';
-
-  # Window switcher: hyprctl clients + anyrun, focuses selection
-  window-switcher = pkgs.writeShellScriptBin "window-switcher" ''
-    selected=$(hyprctl clients -j | ${pkgs.jq}/bin/jq -r \
-      '.[] | select(.mapped == true) | "\(.address)\t\(.class): \(.title)"' | \
-      ${pkgs.anyrun}/bin/anyrun --plugins ${pkgs.anyrun}/lib/libstdin.so)
-    [ -n "$selected" ] && {
-      addr=$(echo "$selected" | cut -f1)
-      hyprctl dispatch focuswindow "address:$addr"
-    }
-  '';
 
   # Daemon that keeps all monitors on the same logical workspace
   # Catches desync from Waybar clicks or any other non-synced source
@@ -207,7 +178,7 @@ let
   '';
 in
 {
-  home.packages = [ hypr-autoname hypr-sync-ws hypr-ws-sync-daemon file-finder file-index-update window-switcher ];
+  home.packages = [ hypr-autoname hypr-sync-ws hypr-ws-sync-daemon ];
 
   wayland.windowManager.hyprland = {
     enable = true;
@@ -248,6 +219,8 @@ in
         "__GLX_VENDOR_LIBRARY_NAME,nvidia"
         "WLR_NO_HARDWARE_CURSORS,1"
         "__GL_VRR_ALLOWED,1"
+        # GTK4 4.20+ renamed ngl→gl; needed for walker and other GTK4 apps on Nvidia
+        "GSK_RENDERER,gl"
         # Java/Swing apps (Android Studio, JetBrains IDEs)
         "_JAVA_AWT_WM_NONREPARENTING,1"
       ];
@@ -255,7 +228,7 @@ in
       # Programs
       "$terminal" = "uwsm app -- alacritty";
       "$fileManager" = "uwsm app -- nautilus";
-      "$menu" = "anyrun";
+      "$menu" = "walker";
 
       # Autostart (waybar is managed by home-manager systemd service)
       # GUI apps use "uwsm app --" to get proper systemd scope isolation
@@ -367,9 +340,9 @@ in
       #   SUPER + C            — close window
       #   SUPER + Escape       — power menu (wlogout)
       #   SUPER + E            — file manager
-      #   SUPER + V            — clipboard history (anyrun)
+      #   SUPER + V            — clipboard history (walker)
       #   SUPER + F            — toggle floating
-      #   SUPER + R            — app launcher (anyrun)
+      #   SUPER + Space        — app launcher (walker)
       #   SUPER + P            — pseudo-tile
       #   SUPER + J            — toggle split direction
       #   SUPER + arrows       — move focus (left/right/up/down)
@@ -386,7 +359,7 @@ in
       #   SUPER + mouse scroll — cycle workspaces (focused monitor only)
       #
       # Overview:
-      #   SUPER + TAB          — Hyprspace overview panel
+      #   SUPER + TAB          — window switcher (walker)
       #
       # Media / misc:
       #   Print                — screenshot (region → clipboard)
@@ -401,7 +374,7 @@ in
         "$mainMod, escape, exec, uwsm app -- wlogout"
         "$mainMod, E, exec, $fileManager"
         "$mainMod, F, togglefloating"
-        "$mainMod, R, exec, $menu"
+        "$mainMod, space, exec, $menu"
         "$mainMod, P, pseudo"
         "$mainMod, J, togglesplit"
 
@@ -454,12 +427,10 @@ in
         "$mainMod, N, exec, makoctl mode | grep -q dnd && makoctl mode -r dnd || makoctl mode -a dnd"
         "$mainMod SHIFT, N, exec, makoctl mode | grep -q work && makoctl mode -r work || makoctl mode -a work"
 
-        # Fuzzy finders
-        "$mainMod, T, exec, file-finder"
-        "$mainMod, TAB, exec, window-switcher"
-
-        # Clipboard history
-        "$mainMod, V, exec, cliphist list | anyrun --plugins ${pkgs.anyrun}/lib/libstdin.so | cliphist decode | wl-copy"
+        # Walker providers
+        "$mainMod, T, exec, walker -m files"
+        "$mainMod, TAB, exec, walker -m windows"
+        "$mainMod, V, exec, walker -m clipboard"
 
         # Screenshot
         ", Print, exec, grim -g \"$(slurp)\" - | wl-copy -t image/png"
@@ -514,19 +485,6 @@ in
     };
   };
 
-  systemd.user.services.cliphist-watch = {
-    Unit = {
-      Description = "Clipboard history watcher";
-      PartOf = [ "graphical-session.target" ];
-      After = [ "graphical-session.target" ];
-    };
-    Service = {
-      ExecStart = "${pkgs.wl-clipboard}/bin/wl-paste --watch ${pkgs.cliphist}/bin/cliphist store";
-      Restart = "on-failure";
-    };
-    Install.WantedBy = [ "graphical-session.target" ];
-  };
-
   systemd.user.services.hyprland-autoname-workspaces = {
     Unit = {
       Description = "Hyprland workspace auto-namer";
@@ -553,24 +511,6 @@ in
       RestartSec = 2;
     };
     Install.WantedBy = [ "graphical-session.target" ];
-  };
-
-  systemd.user.services.file-index = {
-    Unit.Description = "Update file finder index";
-    Service = {
-      Type = "oneshot";
-      ExecStart = "${file-index-update}/bin/file-index-update";
-    };
-  };
-
-  systemd.user.timers.file-index = {
-    Unit.Description = "Periodically update file finder index";
-    Timer = {
-      OnCalendar = "hourly";
-      OnStartupSec = "1min";
-      Persistent = true;
-    };
-    Install.WantedBy = [ "timers.target" ];
   };
 
   systemd.user.services.telegram-desktop = {
