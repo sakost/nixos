@@ -116,4 +116,10 @@ in
 
   # Walker theme — placed as directory structure (walker expects themes/<name>/style.css)
   xdg.configFile."walker/themes/tokyonight/style.css".text = themeCss;
+
+  # Elephant config — disable uwsm auto-detect prefix (uwsm-app exec fails
+  # from elephant's process context; systemd-run scope never gets created)
+  xdg.configFile."elephant/elephant.toml".text = ''
+    auto_detect_launch_prefix = false
+  '';
 }
