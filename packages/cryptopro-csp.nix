@@ -19,7 +19,26 @@
   xorg,
   version ? "5.0",
   archiveHash,
+  cadesArchiveHash ? null,
 }:
+
+let
+  # Optional separate CAdES browser plugin archive (newer versions ship independently)
+  cadesArchive = if cadesArchiveHash != null then requireFile {
+    name = "cades-linux-amd64.tar.gz";
+    message = ''
+      CAdES browser plugin update requires a manual download.
+
+      1. Go to https://cryptopro.ru/products/cades/downloads
+      2. Download "КриптоПро ЭЦП Browser plug-in для Linux (x64)" — cades-linux-amd64.tar.gz
+      3. Run: nix hash file cades-linux-amd64.tar.gz
+      4. Set the hash in custom.programs.cryptopro.cadesArchiveHash
+      5. Run: nix-store --add-fixed sha256 cades-linux-amd64.tar.gz
+      6. Rebuild: sudo nixos-rebuild switch --flake .#sakost-pc
+    '';
+    hash = cadesArchiveHash;
+  } else null;
+in
 
 stdenv.mkDerivation {
   pname = "cryptopro-csp";
@@ -72,6 +91,9 @@ stdenv.mkDerivation {
   unpackPhase = ''
     mkdir -p source
     tar -xzf $src -C source
+    ${lib.optionalString (cadesArchive != null) ''
+      tar -xzf ${cadesArchive} -C source
+    ''}
   '';
 
   installPhase = ''
@@ -95,7 +117,7 @@ stdenv.mkDerivation {
     )
 
     for pattern in "''${debs[@]}"; do
-      for deb in source/linux-amd64_deb/$pattern*.deb; do
+      for deb in source/linux-amd64_deb/$pattern*.deb source/cades-linux-amd64/$pattern*.deb; do
         if [ -f "$deb" ]; then
           echo "Extracting: $deb"
           dpkg-deb -x "$deb" $out

@@ -86,6 +86,7 @@
   custom.programs.cryptopro = {
     enable = true;
     archiveHash = "sha256-oM/0hvv2D3a2HTUnSUWzAuUyfQ8SY+RlrU09Kj1f+rQ=";
+    cadesArchiveHash = "sha256-0+XYOVwhgZmTw4Q4fiamVZp6CTyUwikmIDoBdp9Px54=";
   };
 
   # Enable services

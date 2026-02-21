@@ -4,7 +4,7 @@
 let
   cfg = config.custom.programs.cryptopro;
   cryptopro = pkgs.callPackage ../../packages/cryptopro-csp.nix {
-    inherit (cfg) version archiveHash;
+    inherit (cfg) version archiveHash cadesArchiveHash;
   };
   libdir = "${cryptopro}/opt/cprocsp/lib/amd64";
 
@@ -30,8 +30,8 @@ let
     import struct, json, subprocess, os, sys, select, fcntl
     from urllib.parse import urlparse
 
-    NMCADES = "/opt/cprocsp/bin/amd64/nmcades"
-    LD_PATH = "/opt/cprocsp/lib/amd64"
+    NMCADES = "${cryptopro}/opt/cprocsp/bin/amd64/nmcades"
+    LD_PATH = "${cryptopro}/opt/cprocsp/lib/amd64"
     ZENITY = "${pkgs.zenity}/bin/zenity"
     TRUSTED_FILE = os.path.expanduser(
         "~/.config/cryptopro-trusted-sites"
@@ -98,13 +98,16 @@ let
 
 
     env = {**os.environ, "LD_LIBRARY_PATH": LD_PATH}
-    proc = subprocess.Popen(
-        [NMCADES] + sys.argv[1:],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        env=env,
-    )
+    try:
+        proc = subprocess.Popen(
+            [NMCADES] + sys.argv[1:],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            env=env,
+        )
+    except OSError:
+        sys.exit(1)
 
     stdin_fd = sys.stdin.buffer
     stdout_fd = sys.stdout.buffer
@@ -150,7 +153,7 @@ let
                     if dtype == "approved_site":
                         value = msg.get("data", {}).get("value", "")
                         if value.startswith("is_approved_site:"):
-                            url = value[len("is_approved_site: "):]
+                            url = value[len("is_approved_site:"):].lstrip()
                             approved = is_trusted(url, trusted_sites)
                             if not approved:
                                 approved = ask_user(url)
@@ -158,10 +161,13 @@ let
                                     origin = site_origin(url)
                                     trusted_sites.add(origin)
                                     save_site(origin)
-                            resp = json.loads(json.dumps(msg))
-                            resp["data"]["params"] = [
-                                {"type": "boolean", "value": approved}
-                            ]
+                            resp = {
+                                **msg,
+                                "data": {
+                                    **msg["data"],
+                                    "params": [{"type": "boolean", "value": approved}],
+                                },
+                            }
                             write_msg(proc.stdin, resp)
                             continue
                     write_msg(stdout_fd, msg)
@@ -172,7 +178,7 @@ let
   '';
 
   # Native messaging host manifest for CAdES browser extension.
-  # Points to the proxy wrapper that auto-approves trusted sites.
+  # Points to the proxy wrapper that manages per-site trust approval via GUI dialog.
   # Both Chrome Web Store and Opera/Yandex Store extension IDs are included.
   nmcadesJson = builtins.toJSON {
     name = "ru.cryptopro.nmcades";
@@ -375,6 +381,17 @@ in {
       '';
     };
 
+    cadesArchiveHash = lib.mkOption {
+      type = lib.types.nullOr lib.types.nonEmptyStr;
+      default = null;
+      description = ''
+        SHA-256 hash of a separate CAdES browser plugin archive (cades-linux-amd64.tar.gz).
+        When set, CAdES packages are taken from this archive instead of the main CSP archive.
+        Download from https://cryptopro.ru/products/cades/downloads and compute with:
+          nix hash file cades-linux-amd64.tar.gz
+      '';
+    };
+
     enableSmartCards = lib.mkOption {
       type = lib.types.bool;
       default = true;
@@ -384,7 +401,7 @@ in {
     enableBrowserPlugin = lib.mkOption {
       type = lib.types.bool;
       default = true;
-      description = "Enable CAdES browser plugin for Chrome/Chromium.";
+      description = "Enable CAdES browser plugin for Chrome/Chromium/Yandex Browser.";
     };
 
     user = lib.mkOption {
@@ -452,6 +469,7 @@ in {
     environment.etc = lib.mkIf cfg.enableBrowserPlugin {
       "opt/chrome/native-messaging-hosts/ru.cryptopro.nmcades.json".text = nmcadesJson;
       "chromium/native-messaging-hosts/ru.cryptopro.nmcades.json".text = nmcadesJson;
+      "opt/yandex/browser/native-messaging-hosts/ru.cryptopro.nmcades.json".text = nmcadesJson;
     };
   };
 }
