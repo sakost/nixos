@@ -9,11 +9,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1771447164,
-        "narHash": "sha256-dOoMkWXu3ojZOyfInacR/dsq37wZk4nqb4zHvejzFzw=",
+        "lastModified": 1771619423,
+        "narHash": "sha256-kssJe2c6aw/Q33lRtelKi9zbPUNc+p+17XWoVbyQ8ic=",
         "owner": "tadfisher",
         "repo": "android-nixpkgs",
-        "rev": "74f936dc18dece1529823e2e294427035d9e2376",
+        "rev": "1667d5cf13647472ba383bf447f98aae97c97533",
         "type": "github"
       },
       "original": {
@@ -30,11 +30,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1771452362,
-        "narHash": "sha256-EeXsFYu4jgk7EVrfYHw/bg9d17X5CAbCx98x5yYgnn8=",
+        "lastModified": 1771632347,
+        "narHash": "sha256-kNm0YX9RUwf7GZaWQu2F71ccm4OUMz0xFkXn6mGPfps=",
         "owner": "sadjow",
         "repo": "claude-code-nix",
-        "rev": "c4f00ef61954f46944680f358af60e97006ee754",
+        "rev": "ec90f84b2ea21f6d2272e00d1becbc13030d1895",
         "type": "github"
       },
       "original": {
@@ -220,11 +220,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1771471179,
-        "narHash": "sha256-XuP8HPzvt4+m9aKVeL9GdGNlTeyeDn3zEeUuorvrw88=",
+        "lastModified": 1771647911,
+        "narHash": "sha256-18liNHHwOmcaKCpOptE3wLW97fm5v7RTLiZBecX7km0=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "2dedeb55b2c140d9a123ae931588e8903fe202ef",
+        "rev": "436b27742c996b75e2baf8e835e3b3eae0c9fbd4",
         "type": "github"
       },
       "original": {
@@ -359,11 +359,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1771166946,
-        "narHash": "sha256-UFc4lfGBr+wJmwgDGJDn1cVD6DTr0/8TdronNUiyXlU=",
+        "lastModified": 1771524872,
+        "narHash": "sha256-eksVUcUsfS9mQx4D9DrYu88u9w70bAf+n6KmTDuIGEE=",
         "owner": "Mic92",
         "repo": "sops-nix",
-        "rev": "2d0cf89b4404529778bc82de7e42b5754e0fe4fa",
+        "rev": "e85540ffe97322dc1fea14dd11cdc2f59d540ac7",
         "type": "github"
       },
       "original": {
@@ -439,11 +439,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1770578559,
-        "narHash": "sha256-dqD+RXM7eMQ2bbFPt3cgUz8YDJqSI+C2woUcQyM23hc=",
+        "lastModified": 1771602237,
+        "narHash": "sha256-S7k/G8tI5yVYXhvOb//hGrtunrttKXQ0OP+vdmNWmAQ=",
         "owner": "sakost",
         "repo": "nix-yandex-browser",
-        "rev": "d702d594941d79dd93b7fd34eebff254302477fe",
+        "rev": "2c1ad56f4536f180e7510892725c4b165485b6fe",
         "type": "github"
       },
       "original": {
