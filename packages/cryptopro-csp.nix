@@ -16,7 +16,7 @@
   zlib,
   glibc,
   gcc-unwrapped,
-  xorg,
+  libxxf86vm,
   version ? "5.0",
   archiveHash,
   cadesArchiveHash ? null,
@@ -74,7 +74,7 @@ stdenv.mkDerivation {
     zlib
     glibc
     gcc-unwrapped.lib
-    xorg.libXxf86vm
+    libxxf86vm
   ];
 
   dontConfigure = true;
