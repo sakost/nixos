@@ -83,6 +83,10 @@
   # Enable programs
   custom.programs.steam.enable = true;
   custom.programs.gnome-keyring.enable = true;
+  custom.programs.cryptopro = {
+    enable = true;
+    archiveHash = "sha256-oM/0hvv2D3a2HTUnSUWzAuUyfQ8SY+RlrU09Kj1f+rQ=";
+  };
 
   # Enable services
   custom.services = {
