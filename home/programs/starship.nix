@@ -22,7 +22,7 @@
 
       git_branch = {
         style = "bold #bb9af7";
-        symbol = " ";
+        symbol = builtins.fromJSON ''"\ue0a0"'' + " ";
       };
 
       git_status = {
@@ -31,23 +31,23 @@
 
       nix_shell = {
         style = "bold #7dcfff";
-        symbol = " ";
+        symbol = builtins.fromJSON ''"\uf313"'' + " ";
         format = "via [$symbol$state]($style) ";
       };
 
       rust = {
         style = "bold #f7768e";
-        symbol = " ";
+        symbol = builtins.fromJSON ''"\ue7a8"'' + " ";
       };
 
       golang = {
         style = "bold #73daca";
-        symbol = " ";
+        symbol = builtins.fromJSON ''"\ue627"'' + " ";
       };
 
       python = {
         style = "bold #e0af68";
-        symbol = " ";
+        symbol = builtins.fromJSON ''"\ue73c"'' + " ";
         detect_files = [ "pyproject.toml" "setup.py" "setup.cfg" "requirements.txt" "Pipfile" "tox.ini" ];
         detect_folders = [ ".venv" "venv" ];
         detect_extensions = [];
@@ -55,7 +55,7 @@
 
       nodejs = {
         style = "bold #9ece6a";
-        symbol = " ";
+        symbol = builtins.fromJSON ''"\ue718"'' + " ";
       };
 
       kubernetes = {
