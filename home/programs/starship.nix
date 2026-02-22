@@ -32,7 +32,7 @@
       nix_shell = {
         style = "bold #7dcfff";
         symbol = builtins.fromJSON ''"\uf313"'' + " ";
-        format = "via [$symbol$state]($style) ";
+        format = "via [$symbol$name]($style) ";
       };
 
       rust = {
