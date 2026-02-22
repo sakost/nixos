@@ -79,9 +79,9 @@ Config: `home/programs/zsh.nix` (programs.fzf)
 
 | Key | Action |
 |-----|--------|
-| `Ctrl + T` | Fuzzy find file (insert path) |
+| `Ctrl + T` | Fuzzy find file (insert path) + bat syntax preview |
 | `Ctrl + R` | Fuzzy history search (overridden by atuin) |
-| `Alt + C` | Fuzzy cd into directory |
+| `Alt + C` | Fuzzy cd into directory + eza tree preview |
 
 Uses `fd` as backend (respects `.gitignore`, includes hidden files, excludes `.git/`).
 
@@ -121,15 +121,17 @@ Launch with `y` (shell wrapper — `cd`s to last directory on exit).
 | `~` | Go to home |
 | `Tab` | Switch pane |
 
-## zoxide (cd replacement)
+## zoxide (replaces cd)
 
 Config: `home/programs/zsh.nix` (programs.zoxide)
 
+Zoxide replaces `cd` directly — all commands below use `cd`/`cdi`:
+
 ```bash
-z foo                         # cd to most-used directory matching "foo"
-z foo bar                     # Match multiple fragments
-zi foo                        # Interactive selection with fzf
-z -                           # Go back to previous directory
+cd foo                        # Smart jump to most-used directory matching "foo"
+cd foo bar                    # Match multiple fragments
+cdi foo                       # Interactive fzf selection + eza tree preview
+cd -                          # Go back to previous directory
 ```
 
 Learns from your `cd` usage — most visited directories rank higher.
