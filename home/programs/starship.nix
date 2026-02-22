@@ -48,6 +48,9 @@
       python = {
         style = "bold #e0af68";
         symbol = " ";
+        detect_files = [ "pyproject.toml" "setup.py" "setup.cfg" "requirements.txt" "Pipfile" "tox.ini" ];
+        detect_folders = [ ".venv" "venv" ];
+        detect_extensions = [];
       };
 
       nodejs = {
