@@ -72,7 +72,7 @@
     syntaxHighlighting.enable = true;
 
     # Completion styling (interactive menu that clears properly on cancel)
-    initExtra = ''
+    initContent = ''
       zmodload zsh/complist
       zstyle ':completion:*' menu select
       zstyle ':completion:*' list-colors "''${(s.:.)LS_COLORS}"
