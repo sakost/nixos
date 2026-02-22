@@ -1,5 +1,5 @@
 # Yazi file manager configuration
-{ ... }:
+{ pkgs, ... }:
 
 {
   programs.yazi = {
@@ -13,6 +13,25 @@
         sort_by = "natural";
         sort_dir_first = true;
       };
+
+      opener = {
+        edit = [{ run = ''nvim "$@"''; block = true; }];
+        pdf = [{ run = ''zathura "$@"''; orphan = true; }];
+        image = [{ run = ''xdg-open "$@"''; orphan = true; }];
+        video = [{ run = ''xdg-open "$@"''; orphan = true; }];
+        fallback = [{ run = ''xdg-open "$@"''; orphan = true; }];
+      };
+
+      open.rules = [
+        { mime = "text/*"; use = "edit"; }
+        { mime = "application/json"; use = "edit"; }
+        { mime = "*/xml"; use = "edit"; }
+        { name = "*.nix"; use = "edit"; }
+        { mime = "application/pdf"; use = "pdf"; }
+        { mime = "image/*"; use = "image"; }
+        { mime = "video/*"; use = "video"; }
+        { name = "*"; use = "fallback"; }
+      ];
     };
 
     theme = {

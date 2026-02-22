@@ -80,17 +80,18 @@ sudo nixos-rebuild switch --flake .#sakost-pc
 - greetd display manager with tuigreet
 - XDG desktop portals
 - swww wallpaper daemon
-- cliphist clipboard manager
+- Walker clipboard provider (built-in, no separate cliphist needed)
 - Telegram Desktop (autostart minimized to tray)
 
 ### Programs
 - **Editors**: Nixvim with full IDE setup (LSPs, completion, telescope, git integration)
-- **Shells**: Zsh with oh-my-zsh, autosuggestions, syntax highlighting
-- **Terminal**: Alacritty
-- **Launcher**: Rofi
+- **Shells**: Zsh with starship prompt, atuin history, autosuggestions, syntax highlighting
+- **Terminal**: Alacritty (TokyoNight theme, 50k scrollback)
+- **Launcher**: Walker (Wayland-native, built-in clipboard/files/windows/calculator)
+- **File manager**: Nautilus (GUI), yazi (terminal)
 - **Browsers**: Google Chrome
 - **Dev tools**: rustup (stable), Go, Node.js, npm, Yarn, uv, ripgrep, direnv + nix-direnv
-- **CLI tools**: Claude Code, fastfetch, zoxide
+- **CLI tools**: Claude Code, eza, bat, fd, fzf, zoxide, atuin, tldr, fastfetch
 - **GUI apps**: Telegram Desktop, Google Chrome
 - **Compatibility**: nix-ld for running unpatched binaries
 

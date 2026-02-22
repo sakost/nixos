@@ -11,10 +11,24 @@
   programs.fzf = {
     enable = true;
     enableZshIntegration = true;
-    defaultCommand = "fd --type f --hidden --follow --exclude .git";
-    changeDirWidgetCommand = "fd --type d --hidden --follow --exclude .git";
-    changeDirWidgetOptions = [ "--preview 'eza --tree --level=2 --icons --color=always {}'" ];
-    fileWidgetOptions = [ "--preview 'bat --color=always --style=numbers --line-range=:200 {}'" ];
+    defaultCommand = "${pkgs.fd}/bin/fd --type f --hidden --follow --exclude .git";
+    changeDirWidgetCommand = "${pkgs.fd}/bin/fd --type d --hidden --follow --exclude .git";
+    changeDirWidgetOptions = [ "--preview '${pkgs.eza}/bin/eza --tree --level=2 --icons --color=always {}'" ];
+    fileWidgetOptions = [ "--preview '${pkgs.bat}/bin/bat --color=always --style=numbers --line-range=:200 {}'" ];
+    colors = {
+      "bg+" = "#283457";
+      bg = "#1a1b26";
+      spinner = "#7dcfff";
+      hl = "#7aa2f7";
+      fg = "#c0caf5";
+      header = "#7aa2f7";
+      info = "#e0af68";
+      pointer = "#7dcfff";
+      marker = "#9ece6a";
+      "fg+" = "#c0caf5";
+      prompt = "#7aa2f7";
+      "hl+" = "#7aa2f7";
+    };
   };
 
   programs.eza = {
@@ -82,7 +96,10 @@
       zstyle ':completion:*' list-colors "''${(s.:.)LS_COLORS}"
       zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
 
-      export _ZO_FZF_OPTS="--preview 'eza --tree --level=2 --icons --color=always {2..}'"
+      export _ZO_FZF_OPTS="--preview '${pkgs.eza}/bin/eza --tree --level=2 --icons --color=always {2..}'"
+
+      # Ensure atuin owns Ctrl+R (fzf may bind it depending on init order)
+      bindkey '^R' atuin-search
     '';
 
     history = {
@@ -92,6 +109,6 @@
       share = false;         # Don't share history between terminals in real-time
     };
 
-    dotDir = "${config.xdg.configHome}/zsh";
+    dotDir = ".config/zsh";
   };
 }
