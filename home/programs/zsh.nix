@@ -5,6 +5,7 @@
   programs.zoxide = {
     enable = true;
     enableZshIntegration = true;
+    options = [ "--cmd cd" ];
   };
 
   programs.fzf = {
@@ -12,6 +13,8 @@
     enableZshIntegration = true;
     defaultCommand = "fd --type f --hidden --follow --exclude .git";
     changeDirWidgetCommand = "fd --type d --hidden --follow --exclude .git";
+    changeDirWidgetOptions = [ "--preview 'eza --tree --level=2 --icons --color=always {}'" ];
+    fileWidgetOptions = [ "--preview 'bat --color=always --style=numbers --line-range=:200 {}'" ];
   };
 
   programs.eza = {
@@ -72,11 +75,14 @@
     syntaxHighlighting.enable = true;
 
     # Completion styling (interactive menu that clears properly on cancel)
+    # Zoxide interactive preview (eza tree in fzf panel)
     initContent = ''
       zmodload zsh/complist
       zstyle ':completion:*' menu select
       zstyle ':completion:*' list-colors "''${(s.:.)LS_COLORS}"
       zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
+
+      export _ZO_FZF_OPTS="--preview 'eza --tree --level=2 --icons --color=always {2..}'"
     '';
 
     history = {
