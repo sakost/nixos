@@ -71,6 +71,14 @@
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
 
+    # Completion styling (interactive menu that clears properly on cancel)
+    initExtra = ''
+      zmodload zsh/complist
+      zstyle ':completion:*' menu select
+      zstyle ':completion:*' list-colors "''${(s.:.)LS_COLORS}"
+      zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
+    '';
+
     history = {
       append = true;         # Append on exit rather than overwrite
       save = 10000;
