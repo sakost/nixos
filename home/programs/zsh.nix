@@ -83,6 +83,9 @@
 
       # bat
       cat = "bat";
+
+      # misc
+      cl = "clear";
     };
 
     autosuggestion.enable = true;
@@ -100,6 +103,9 @@
 
       # Ensure atuin owns Ctrl+R (fzf may bind it depending on init order)
       bindkey '^R' atuin-search
+
+      # Ctrl+L to clear screen
+      bindkey '^L' clear-screen
     '';
 
     history = {
