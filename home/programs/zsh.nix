@@ -10,16 +10,40 @@
   programs.fzf = {
     enable = true;
     enableZshIntegration = true;
+    defaultCommand = "fd --type f --hidden --follow --exclude .git";
+    changeDirWidgetCommand = "fd --type d --hidden --follow --exclude .git";
+  };
+
+  programs.eza = {
+    enable = true;
+    enableZshIntegration = true;
+    icons = "auto";
+    git = true;
+    extraOptions = [
+      "--group-directories-first"
+    ];
+  };
+
+  programs.bat = {
+    enable = true;
+    config = {
+      theme = "tokyonight_night";
+    };
+    themes = {
+      tokyonight_night = {
+        src = pkgs.fetchFromGitHub {
+          owner = "folke";
+          repo = "tokyonight.nvim";
+          rev = "v4.8.0";
+          hash = "sha256-5QeY3EevOQzz5PHDW2CUVJ7N42TRQdh7QOF9PH1YxkU=";
+        };
+        file = "extras/sublime/tokyonight_night.tmTheme";
+      };
+    };
   };
 
   programs.zsh = {
     enable = true;
-
-    oh-my-zsh = {
-      enable = true;
-      plugins = [ "git" "sudo" "history" ];
-      theme = "agnoster";
-    };
 
     shellAliases = {
       # NixOS rebuild shortcuts (config in home directory)
@@ -34,14 +58,25 @@
       # Python
       python = "python3";
 
-      # Common shortcuts
-      ll = "ls -la";
-      la = "ls -A";
-      l = "ls -CF";
+      # eza replacements
+      ll = "eza -la";
+      la = "eza -a";
+      l = "eza -l";
+      lt = "eza --tree --level=2";
+
+      # bat
+      cat = "bat";
     };
 
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
+
+    history = {
+      append = true;         # Append on exit rather than overwrite
+      save = 10000;
+      size = 10000;
+      share = false;         # Don't share history between terminals in real-time
+    };
 
     dotDir = "${config.xdg.configHome}/zsh";
   };

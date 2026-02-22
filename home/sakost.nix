@@ -20,6 +20,9 @@
     ./programs/wallpaper-engine.nix
     ./programs/mako.nix
     ./programs/eww.nix
+    ./programs/starship.nix
+    ./programs/atuin.nix
+    ./programs/yazi.nix
     ./programs/zathura.nix
     ./programs/onlyoffice.nix
     ./programs/gdb.nix
@@ -71,6 +74,8 @@
       zip
       unzip
       libsecret
+      tldr
+      fd
     ];
   };
 
