@@ -115,6 +115,6 @@
       share = false;         # Don't share history between terminals in real-time
     };
 
-    dotDir = ".config/zsh";
+    dotDir = "${config.xdg.configHome}/zsh";
   };
 }
