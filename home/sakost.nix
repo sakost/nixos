@@ -28,6 +28,7 @@
     ./programs/gdb.nix
     ./programs/ollama.nix
     ./programs/natscli.nix
+    ./programs/openssl.nix
     ./programs/xxd.nix
     ./desktop/hyprland.nix
   ];
