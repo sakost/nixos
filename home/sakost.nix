@@ -27,6 +27,8 @@
     ./programs/onlyoffice.nix
     ./programs/gdb.nix
     ./programs/ollama.nix
+    ./programs/natscli.nix
+    ./programs/xxd.nix
     ./desktop/hyprland.nix
   ];
 
