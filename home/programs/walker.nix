@@ -38,12 +38,28 @@ let
       color: #a9b1d6;
     }
 
-    .item-box:selected {
+    child:selected .item-box,
+    row:selected .item-box {
       background: rgba(122, 162, 247, 0.2);
-      color: #c0caf5;
+      color: #ffffff;
     }
 
-    .item-box:hover {
+    child:selected .item-box *,
+    row:selected .item-box * {
+      color: #ffffff;
+    }
+
+    child:selected .item-subtext,
+    row:selected .item-subtext {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    child:selected .activationlabel,
+    row:selected .activationlabel {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    child:hover .item-box {
       background: rgba(122, 162, 247, 0.1);
     }
 
