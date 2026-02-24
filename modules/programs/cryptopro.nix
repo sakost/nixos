@@ -522,7 +522,7 @@ in {
 
         # Install CA certificates into user stores (must run as the target user)
         ${lib.optionalString (cfg.caCertificates != {}) ''
-          su -s /bin/sh ${cfg.user} -c '${certInstallScript}'
+          ${pkgs.util-linux}/bin/runuser -u ${cfg.user} -- ${certInstallScript}
         ''}
       '';
     };
