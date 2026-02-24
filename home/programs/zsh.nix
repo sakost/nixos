@@ -104,6 +104,8 @@
     # Completion styling (interactive menu that clears properly on cancel)
     # Zoxide interactive preview (eza tree in fzf panel)
     initContent = ''
+      source <(kubectl-cnpg completion zsh)
+
       zmodload zsh/complist
       zstyle ':completion:*' menu select
       zstyle ':completion:*' list-colors "''${(s.:.)LS_COLORS}"
