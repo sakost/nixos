@@ -94,6 +94,13 @@
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
 
+    plugins = [
+      {
+        name = "git-auto-fetch";
+        src = "${pkgs.oh-my-zsh}/share/oh-my-zsh/plugins/git-auto-fetch";
+      }
+    ];
+
     # Completion styling (interactive menu that clears properly on cancel)
     # Zoxide interactive preview (eza tree in fzf panel)
     initContent = ''
