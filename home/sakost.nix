@@ -65,6 +65,7 @@
       argocd
       fluxcd
       kubectl
+      kubectl-cnpg
       kubeseal
       kubie
       helmfile
