@@ -5,7 +5,6 @@
   programs.zoxide = {
     enable = true;
     enableZshIntegration = true;
-    options = [ "--cmd cd" ];
   };
 
   programs.fzf = {
@@ -13,8 +12,12 @@
     enableZshIntegration = true;
     defaultCommand = "${pkgs.fd}/bin/fd --type f --hidden --follow --exclude .git";
     changeDirWidgetCommand = "${pkgs.fd}/bin/fd --type d --hidden --follow --exclude .git";
-    changeDirWidgetOptions = [ "--preview '${pkgs.eza}/bin/eza --tree --level=2 --icons --color=always {}'" ];
-    fileWidgetOptions = [ "--preview '${pkgs.bat}/bin/bat --color=always --style=numbers --line-range=:200 {}'" ];
+    changeDirWidgetOptions = [
+      "--preview '${pkgs.eza}/bin/eza --tree --level=2 --icons --color=always {}'"
+    ];
+    fileWidgetOptions = [
+      "--preview '${pkgs.bat}/bin/bat --color=always --style=numbers --line-range=:200 {}'"
+    ];
     colors = {
       "bg+" = "#283457";
       bg = "#1a1b26";
@@ -109,10 +112,10 @@
     '';
 
     history = {
-      append = true;         # Append on exit rather than overwrite
+      append = true; # Append on exit rather than overwrite
       save = 10000;
       size = 10000;
-      share = false;         # Don't share history between terminals in real-time
+      share = false; # Don't share history between terminals in real-time
     };
 
     dotDir = "${config.xdg.configHome}/zsh";
