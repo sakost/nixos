@@ -191,6 +191,39 @@ let
     ];
   };
 
+  # Government root and intermediate CA certificates for GOST certificate chain validation.
+  # Without these, CryptoPro cannot build a trust chain and browser signing fails with 0x800B010A.
+  defaultCACerts = {
+    "Минцифры России (root)" = {
+      url = "http://reestr-pki.ru/cdp/guc2022.crt";
+      hash = "sha256-S7N8x8D/S/KqiT6VB267NWXGkjfuG2FjW+7kwZZklcc=";
+      store = "uRoot";
+    };
+    "ФНС России (intermediate)" = {
+      url = "http://pki.tax.gov.ru/crt/ca_fns_russia_2023_01.crt";
+      hash = "sha256-frQlvE5yojoILBdntVqbl4oL+1+OxHLDCGMbB7QAgxw=";
+      store = "uCA";
+    };
+  };
+
+  caCertFiles = lib.mapAttrs (_name: spec: pkgs.fetchurl {
+    inherit (spec) url hash;
+  }) cfg.caCertificates;
+
+  certInstallScript = let
+    certmgr = "${cryptopro}/bin/certmgr";
+  in pkgs.writeShellScript "cryptopro-install-certs" (
+    lib.concatStringsSep "\n" (lib.mapAttrsToList (name: spec: let
+      certFile = caCertFiles.${name};
+      isRoot = spec.store == "uRoot";
+    in ''
+      # Install: ${name}
+      if ! ${certmgr} -list -store ${spec.store} 2>/dev/null | grep -q "$(${certmgr} -list -file ${certFile} 2>/dev/null | grep 'SHA1 Thumbprint' | head -1 | sed 's/.*: //')"; then
+        ${if isRoot then ''echo "o" | '' else ""}${certmgr} -inst -file ${certFile} -store ${spec.store} 2>/dev/null || true
+      fi
+    '') cfg.caCertificates)
+  );
+
   setupScript = let
     cpconfig = "${cryptopro}/bin/cpconfig";
   in pkgs.writeShellScript "cryptopro-setup" ''
@@ -415,6 +448,30 @@ in {
       default = "users";
       description = "Group for the CryptoPro user (used for shared tmp directory permissions).";
     };
+
+    caCertificates = lib.mkOption {
+      type = lib.types.attrsOf (lib.types.submodule {
+        options = {
+          url = lib.mkOption {
+            type = lib.types.str;
+            description = "URL to fetch the CA certificate from.";
+          };
+          hash = lib.mkOption {
+            type = lib.types.str;
+            description = "SRI hash of the certificate file.";
+          };
+          store = lib.mkOption {
+            type = lib.types.enum [ "uRoot" "uCA" ];
+            description = "CryptoPro store to install the certificate into (uRoot for root CAs, uCA for intermediates).";
+          };
+        };
+      });
+      default = defaultCACerts;
+      description = ''
+        CA certificates to install into CryptoPro stores for certificate chain validation.
+        Defaults to Минцифры root and ФНС intermediate CAs needed for government-issued GOST certificates.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -462,6 +519,11 @@ in {
           ${setupScript}
           echo "${cryptopro}" > /var/opt/cprocsp/.nixos-setup-done
         fi
+
+        # Install CA certificates into user stores (must run as the target user)
+        ${lib.optionalString (cfg.caCertificates != {}) ''
+          su -s /bin/sh ${cfg.user} -c '${certInstallScript}'
+        ''}
       '';
     };
 
