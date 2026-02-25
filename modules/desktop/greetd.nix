@@ -1,10 +1,41 @@
 # Greetd display manager with ReGreet graphical greeter
+# Uses Hyprland as wrapper compositor (instead of Cage) for proper
+# multi-monitor support with different resolutions and scaling.
 { config, lib, pkgs, theme, ... }:
 
 let
   cfg = config.custom.desktop.greetd;
   c = theme.colors;
   rgba = theme.rgba;
+
+  greetdHyprlandConfig = pkgs.writeText "greetd-hyprland.conf" ''
+    # Monitor layout (must match user session for correct positioning)
+    monitor = DP-2, 3840x2160@144, 0x0, 1.5
+    monitor = HDMI-A-1, 1920x1080@60, 2560x0, 1.0
+
+    misc {
+      disable_hyprland_logo = true
+      disable_splash_rendering = true
+    }
+
+    # NVIDIA environment
+    env = LIBVA_DRIVER_NAME,nvidia
+    env = GBM_BACKEND,nvidia-drm
+    env = __GLX_VENDOR_LIBRARY_NAME,nvidia
+    env = WLR_NO_HARDWARE_CURSORS,1
+    env = XCURSOR_SIZE,32
+    env = GSK_RENDERER,gl
+
+    # Disable portals (not needed for greeter, avoids xdph stall)
+    env = GTK_USE_PORTAL,0
+    env = GDK_DEBUG,no-portals
+
+    # Session discovery for ReGreet
+    env = XDG_DATA_DIRS,${config.services.displayManager.sessionData.desktops}/share:/run/current-system/sw/share
+
+    # Launch ReGreet then exit Hyprland when done
+    exec-once = ${pkgs.dbus}/bin/dbus-run-session ${lib.getExe config.programs.regreet.package}; ${pkgs.hyprland}/bin/hyprctl dispatch exit
+  '';
 in {
   options.custom.desktop.greetd = {
     enable = lib.mkEnableOption "Greetd display manager";
@@ -89,5 +120,9 @@ in {
         }
       '';
     };
+
+    # Override default Cage command with Hyprland for multi-monitor support
+    services.greetd.settings.default_session.command =
+      "${pkgs.hyprland}/bin/Hyprland --config ${greetdHyprlandConfig}";
   };
 }
