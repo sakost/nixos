@@ -19,6 +19,8 @@ Multi-host NixOS flake configuration with Hyprland, Nvidia, and sing-box proxy.
 │   ├── desktop/              # Hyprland, greetd, XDG portals
 │   ├── programs/             # zsh, fonts, git, nix-ld
 │   └── services/             # SSH, networking, proxy
+├── lib/                      # Shared Nix libraries
+│   └── theme.nix             # Centralized theme (colors, fonts, opacity)
 ├── home/                     # Home-manager configuration
 │   ├── sakost.nix            # User entry point
 │   ├── xdg.nix              # XDG dirs, env vars, cache paths
@@ -77,7 +79,8 @@ sudo nixos-rebuild switch --flake .#sakost-pc
 ### Desktop
 - Hyprland Wayland compositor with HDR (4K@144Hz)
 - Waybar status bar with calendar tooltip
-- greetd display manager with tuigreet
+- greetd display manager with ReGreet (GTK4 graphical greeter)
+- hyprlock lock screen
 - XDG desktop portals
 - swww wallpaper daemon
 - Walker clipboard provider (built-in, no separate cliphist needed)
@@ -86,7 +89,7 @@ sudo nixos-rebuild switch --flake .#sakost-pc
 ### Programs
 - **Editors**: Nixvim with full IDE setup (LSPs, completion, telescope, git integration)
 - **Shells**: Zsh with starship prompt, atuin history, autosuggestions, syntax highlighting
-- **Terminal**: Alacritty (TokyoNight theme, 50k scrollback)
+- **Terminal**: Alacritty (50k scrollback)
 - **Launcher**: Walker (Wayland-native, built-in clipboard/files/windows/calculator)
 - **File manager**: Nautilus (GUI), yazi (terminal)
 - **Browsers**: Google Chrome
@@ -94,6 +97,10 @@ sudo nixos-rebuild switch --flake .#sakost-pc
 - **CLI tools**: Claude Code, eza, bat, fd, fzf, zoxide, atuin, tldr, fastfetch
 - **GUI apps**: Telegram Desktop, Google Chrome
 - **Compatibility**: nix-ld for running unpatched binaries
+
+### Theme
+
+TokyoNight dark theme defined in `lib/theme.nix` and shared across all components (alacritty, waybar, mako, eww, wlogout, hyprlock, walker, starship, fzf, zathura, yazi, hyprland, greetd). All colors, fonts, opacity, and border values are centralized — edit one file to retheme everything.
 
 ### Services
 - OpenSSH (key-only auth)

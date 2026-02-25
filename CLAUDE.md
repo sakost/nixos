@@ -21,6 +21,8 @@ home/                   — Home-manager config (imported from home/sakost.nix)
   programs/             — Per-program configs (waybar, alacritty, zsh, walker, nixvim, mako, eww, wlogout, etc.)
   desktop/              — User-level hyprland config
   xdg.nix              — XDG base directories and environment variables
+lib/                    — Shared Nix libraries
+  theme.nix             — Centralized color/font/opacity theme definition
 overlays/               — Nixpkgs overlays (argocd-fix)
 secrets/                — SOPS-encrypted secrets (age-based)
 docs/                   — Cheatsheets (hyprland-cheatsheet.md, walker-cheatsheet.md, nvim-cheatsheet.md)
@@ -48,6 +50,22 @@ Home-manager runs as a NixOS module (not standalone). All user config is under `
 ### Per-program home-manager configs
 Each program with non-trivial config gets its own file in `home/programs/` (e.g., `waybar.nix`, `alacritty.nix`). Import it in `home/sakost.nix`.
 
+### Centralized theme (`lib/theme.nix`)
+All colors, fonts, opacity, and border values are defined in `lib/theme.nix` and passed to every module via `specialArgs` as `theme`. Never hardcode color values — always use the theme:
+```nix
+{ theme, pkgs, ... }:
+let
+  c = theme.colors;     # c.bg, c.fg, c.accent, c.red, c.green, etc.
+  rgba = theme.rgba;    # rgba c.accent 0.5 → "rgba(122, 162, 247, 0.5)"
+in { ... }
+```
+- **`theme.colors.*`** — hex colors (base palette + semantic aliases like `accent`, `error`, `warn`, `success`, `muted`)
+- **`theme.rgba`** — helper: `theme.rgba <hex-color> <alpha>` → CSS `rgba(r, g, b, a)` string
+- **`theme.fonts.mono`** / **`theme.fonts.size.*`** — font family and sizes (`small`=11, `normal`=12, `medium`=14, `large`=18)
+- **`theme.opacity.*`** — opacity presets (`terminal`=0.95, `panel`=0.85, `dashboard`=0.6)
+- **`theme.border.width`** / **`theme.border.radius.*`** — border width and radius (`small`=8, `medium`=12, `large`=16)
+- For Hyprland's `rgba(HEXaa)` format, use a local helper: `hyprRgba = color: alpha: "rgba(${builtins.substring 1 6 color}${alpha})";`
+
 ## Desktop environment
 
 - **Compositor**: Hyprland (Wayland) with XWayland
@@ -55,7 +73,8 @@ Each program with non-trivial config gets its own file in `home/programs/` (e.g.
 - **Launcher**: Walker (Wayland-native app launcher with built-in clipboard history, file browser, window switcher, calculator, web search, dmenu mode)
 - **Terminal**: Alacritty
 - **Editor**: Neovim via nixvim
-- **Login manager**: greetd with tuigreet
+- **Login manager**: greetd with ReGreet (GTK4 graphical greeter)
+- **Lock screen**: hyprlock (SUPER + D)
 - **Notifications**: mako (supports DND and work profiles via `makoctl mode`)
 - **Screenshots**: grim + slurp + satty (annotation)
 - **Clipboard**: Walker built-in clipboard provider + wl-clipboard
@@ -63,7 +82,7 @@ Each program with non-trivial config gets its own file in `home/programs/` (e.g.
 - **File manager**: Nautilus
 - **Logout menu**: wlogout
 - **Dashboard**: eww
-- **Theme**: TokyoNight-inspired dark theme
+- **Theme**: TokyoNight (centralized in `lib/theme.nix`)
 - **Plugins**: hyprsplit (per-monitor workspaces), hyprwinwrap (window as wallpaper)
 
 ## Secrets management
