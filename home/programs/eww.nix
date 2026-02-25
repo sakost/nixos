@@ -1,6 +1,6 @@
 # Eww dashboard overlay for HDMI-A-1
 # Info hub: clock, weather, system stats, media player, calendar, news, notification status
-{ pkgs, ... }:
+{ pkgs, theme, ... }:
 
 let
   weather-script = pkgs.writeShellScriptBin "eww-weather" ''
@@ -315,18 +315,18 @@ in
   '';
 
   xdg.configFile."eww/eww.scss".text = ''
-    // TokyoNight-inspired palette
-    $bg: rgba(26, 27, 38, 0.6);
-    $bg-dark: rgba(16, 17, 28, 0.7);
-    $fg: rgba(192, 202, 245, 0.95);
-    $fg-dim: rgba(169, 177, 214, 0.7);
-    $accent: rgba(122, 162, 247, 0.95);
-    $green: rgba(158, 206, 106, 0.95);
-    $border: rgba(122, 162, 247, 0.2);
+    // ${theme.name} palette
+    $bg: ${theme.rgba theme.colors.bg theme.opacity.dashboard};
+    $bg-dark: ${theme.rgba theme.colors.bg-dark 0.7};
+    $fg: ${theme.rgba theme.colors.fg 0.95};
+    $fg-dim: ${theme.rgba theme.colors.fg-dim 0.7};
+    $accent: ${theme.rgba theme.colors.accent 0.95};
+    $green: ${theme.rgba theme.colors.green 0.95};
+    $border: ${theme.rgba theme.colors.accent 0.2};
 
     * {
       all: unset;
-      font-family: "JetBrainsMono Nerd Font", monospace;
+      font-family: "${theme.fonts.mono}", monospace;
     }
 
     .dashboard {
@@ -506,8 +506,8 @@ in
 
     // ── Calendar popup ──
     .cal-popup {
-      background-color: rgba(26, 27, 38, 0.95);
-      border: 1px solid rgba(122, 162, 247, 0.4);
+      background-color: ${theme.rgba theme.colors.bg theme.opacity.panel};
+      border: 1px solid ${theme.rgba theme.colors.accent 0.4};
       border-radius: 16px;
       padding: 16px 20px;
     }
@@ -546,11 +546,11 @@ in
     }
 
     .cal-popup-cal calendar.button:hover {
-      background-color: rgba(122, 162, 247, 0.2);
+      background-color: ${theme.rgba theme.colors.accent 0.2};
     }
 
     .cal-popup-cal calendar:indeterminate {
-      color: rgba(86, 95, 137, 0.6);
+      color: ${theme.rgba theme.colors.muted 0.6};
     }
 
     .cal-popup-cal calendar.highlight {
@@ -565,7 +565,7 @@ in
     }
 
     .cal-popup-cal calendar:selected {
-      background-color: rgba(122, 162, 247, 0.3);
+      background-color: ${theme.rgba theme.colors.accent 0.3};
       border-radius: 50%;
       color: $fg;
     }

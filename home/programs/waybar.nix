@@ -1,6 +1,10 @@
 # Waybar — status bar for Hyprland
-{ config, pkgs, ... }:
+{ theme, ... }:
 
+let
+  c = theme.colors;
+  rgba = theme.rgba;
+in
 {
   programs.waybar = {
     enable = true;
@@ -47,11 +51,11 @@
           weeks-pos = "right";
           on-scroll = 1;
           format = {
-            months = "<span color='#c0caf5' size='x-large'><b>{}</b></span>";
-            days = "<span color='#a9b1d6'>{}</span>";
-            weekdays = "<span color='#7aa2f7'><b>{}</b></span>";
-            weeks = "<span color='#565f89'>W{}</span>";
-            today = "<span color='#1a1b26' bgcolor='#00ff99'><b> {} </b></span>";
+            months = "<span color='${c.fg}' size='x-large'><b>{}</b></span>";
+            days = "<span color='${c.fg-dim}'>{}</span>";
+            weekdays = "<span color='${c.accent}'><b>{}</b></span>";
+            weeks = "<span color='${c.muted}'>W{}</span>";
+            today = "<span color='${c.bg}' bgcolor='${c.bright-green}'><b> {} </b></span>";
           };
         };
         actions = {
@@ -100,59 +104,58 @@
     }];
 
     style = ''
-      /* TokyoNight-inspired dark theme */
       * {
-        font-family: "JetBrainsMono Nerd Font", "Noto Sans", sans-serif;
+        font-family: "${theme.fonts.mono}", "Noto Sans", sans-serif;
         font-size: 13px;
         min-height: 0;
       }
 
       window#waybar {
-        background-color: rgba(26, 27, 38, 0.85);
-        color: #c0caf5;
-        border-bottom: 2px solid rgba(51, 204, 255, 0.5);
+        background-color: ${rgba c.bg theme.opacity.panel};
+        color: ${c.fg};
+        border-bottom: ${toString theme.border.width}px solid ${rgba c.bright-cyan 0.5};
       }
 
       tooltip {
-        background-color: #1a1b26;
-        border: 1px solid rgba(51, 204, 255, 0.6);
-        border-radius: 12px;
-        color: #c0caf5;
+        background-color: ${c.bg};
+        border: 1px solid ${rgba c.bright-cyan 0.6};
+        border-radius: ${toString theme.border.radius.medium}px;
+        color: ${c.fg};
         padding: 12px 16px;
-        font-size: 14px;
+        font-size: ${toString theme.fonts.size.medium}px;
       }
 
       tooltip label {
-        font-family: "JetBrainsMono Nerd Font", monospace;
+        font-family: "${theme.fonts.mono}", monospace;
         min-width: 280px;
       }
 
       #workspaces button {
         padding: 0 8px;
-        color: #565f89;
-        border-bottom: 2px solid transparent;
+        color: ${c.muted};
+        border-bottom: ${toString theme.border.width}px solid transparent;
         border-radius: 0;
         background: transparent;
       }
 
       #workspaces button.active {
-        color: #33ccff;
-        border-bottom: 2px solid #33ccff;
+        color: ${c.bright-cyan};
+        border-bottom: ${toString theme.border.width}px solid ${c.bright-cyan};
       }
 
       #workspaces button:hover {
-        background: rgba(51, 204, 255, 0.15);
-        color: #c0caf5;
+        background: ${rgba c.bright-cyan 0.15};
+        color: ${c.fg};
       }
 
       #window {
         padding: 0 12px;
-        color: #9aa5ce;
+        color: ${c.window-fg};
       }
 
       #clock {
         padding: 0 12px;
-        color: #c0caf5;
+        color: ${c.fg};
         font-weight: bold;
       }
 
@@ -163,36 +166,36 @@
       #memory,
       #tray {
         padding: 0 10px;
-        color: #c0caf5;
+        color: ${c.fg};
       }
 
       #language {
-        color: #00ff99;
+        color: ${c.bright-green};
         font-weight: bold;
       }
 
       #pulseaudio {
-        color: #7aa2f7;
+        color: ${c.blue};
       }
 
       #pulseaudio.muted {
-        color: #565f89;
+        color: ${c.muted};
       }
 
       #network {
-        color: #9ece6a;
+        color: ${c.green};
       }
 
       #network.disconnected {
-        color: #f7768e;
+        color: ${c.red};
       }
 
       #cpu {
-        color: #e0af68;
+        color: ${c.yellow};
       }
 
       #memory {
-        color: #bb9af7;
+        color: ${c.magenta};
       }
     '';
   };

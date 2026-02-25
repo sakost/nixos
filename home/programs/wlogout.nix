@@ -1,6 +1,10 @@
 # Power menu (wlogout)
-{ config, pkgs, ... }:
+{ theme, pkgs, ... }:
 
+let
+  c = theme.colors;
+  rgba = theme.rgba;
+in
 {
   programs.wlogout = {
     enable = true;
@@ -45,79 +49,78 @@
     ];
 
     style = ''
-      /* TokyoNight theme */
       * {
         background-image: none;
-        font-family: "JetBrainsMono Nerd Font", monospace;
-        font-size: 14px;
+        font-family: "${theme.fonts.mono}", monospace;
+        font-size: ${toString theme.fonts.size.medium}px;
       }
 
       window {
-        background-color: rgba(26, 27, 38, 0.85);
+        background-color: ${rgba c.bg theme.opacity.panel};
       }
 
       button {
-        color: #c0caf5;
-        background-color: rgba(26, 27, 38, 0.0);
+        color: ${c.fg};
+        background-color: ${rgba c.bg 0.0};
         background-repeat: no-repeat;
         background-position: center;
         background-size: 25%;
-        border: 2px solid rgba(122, 162, 247, 0.0);
-        border-radius: 16px;
+        border: ${toString theme.border.width}px solid ${rgba c.accent 0.0};
+        border-radius: ${toString theme.border.radius.large}px;
         margin: 10px;
         transition: all 0.3s ease;
       }
 
       button:hover {
-        background-color: rgba(122, 162, 247, 0.15);
-        border: 2px solid rgba(122, 162, 247, 0.6);
+        background-color: ${rgba c.accent 0.15};
+        border: ${toString theme.border.width}px solid ${rgba c.accent 0.6};
       }
 
       button:focus {
-        background-color: rgba(122, 162, 247, 0.15);
-        border: 2px solid #7aa2f7;
+        background-color: ${rgba c.accent 0.15};
+        border: ${toString theme.border.width}px solid ${c.accent};
       }
 
       #lock {
         background-image: image(url("${pkgs.wlogout}/share/wlogout/icons/lock.png"));
       }
       #lock:hover {
-        border-color: #7aa2f7;
+        border-color: ${c.accent};
       }
 
       #logout {
         background-image: image(url("${pkgs.wlogout}/share/wlogout/icons/logout.png"));
       }
       #logout:hover {
-        border-color: #e0af68;
+        border-color: ${c.yellow};
       }
 
       #suspend {
         background-image: image(url("${pkgs.wlogout}/share/wlogout/icons/suspend.png"));
       }
       #suspend:hover {
-        border-color: #bb9af7;
+        border-color: ${c.magenta};
       }
 
       #hibernate {
         background-image: image(url("${pkgs.wlogout}/share/wlogout/icons/hibernate.png"));
       }
       #hibernate:hover {
-        border-color: #7dcfff;
+        border-color: ${c.cyan};
       }
 
       #reboot {
         background-image: image(url("${pkgs.wlogout}/share/wlogout/icons/reboot.png"));
       }
       #reboot:hover {
-        border-color: #9ece6a;
+        border-color: ${c.green};
       }
 
       #shutdown {
         background-image: image(url("${pkgs.wlogout}/share/wlogout/icons/shutdown.png"));
       }
       #shutdown:hover {
-        border-color: #f7768e;
+        border-color: ${c.red};
       }
     '';
   };

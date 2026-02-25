@@ -50,10 +50,12 @@
   let
     system = "x86_64-linux";
 
+    theme = import ./lib/theme.nix;
+
     # Helper function to create a NixOS system configuration
     mkHost = hostname: nixpkgs.lib.nixosSystem {
       inherit system;
-      specialArgs = { inherit inputs hostname; };
+      specialArgs = { inherit inputs hostname theme; };
       modules = [
         ./hosts/${hostname}
         sops-nix.nixosModules.sops
@@ -68,7 +70,7 @@
           home-manager = {
             useGlobalPkgs = true;
             useUserPackages = true;
-            extraSpecialArgs = { inherit inputs; };
+            extraSpecialArgs = { inherit inputs theme; };
             users.sakost = import ./home/sakost.nix;
           };
         }

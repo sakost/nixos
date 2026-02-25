@@ -1,19 +1,21 @@
 # Mako notification daemon with profile/mode support
-{ ... }:
+{ theme, ... }:
 
+let
+  c = theme.colors;
+in
 {
   services.mako = {
     enable = true;
 
     settings = {
-      # Appearance — TokyoNight
-      background-color = "#1a1b26";
-      text-color = "#c0caf5";
-      border-color = "#7aa2f7";
-      border-radius = 8;
-      border-size = 2;
+      background-color = c.bg;
+      text-color = c.fg;
+      border-color = c.accent;
+      border-radius = theme.border.radius.small;
+      border-size = theme.border.width;
 
-      font = "JetBrainsMono Nerd Font 11";
+      font = "${theme.fonts.mono} ${toString theme.fonts.size.small}";
       icons = true;
       max-visible = 5;
       sort = "-time";
@@ -25,7 +27,7 @@
     extraConfig = ''
       # Critical alerts never expire
       [urgency=critical]
-      border-color=#f7768e
+      border-color=${c.error}
       default-timeout=0
 
       # dnd mode: silence everything

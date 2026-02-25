@@ -1,6 +1,9 @@
 # Alacritty terminal configuration
-{ config, pkgs, ... }:
+{ theme, ... }:
 
+let
+  c = theme.colors;
+in
 {
   programs.alacritty = {
     enable = true;
@@ -15,7 +18,7 @@
       };
 
       window = {
-        opacity = 0.95;
+        opacity = theme.opacity.terminal;
         padding = {
           x = 10;
           y = 10;
@@ -23,45 +26,44 @@
       };
 
       font = {
-        size = 12.0;
+        size = theme.fonts.size.normal * 1.0;
         normal = {
-          family = "JetBrains Mono Nerd Font";
+          family = theme.fonts.mono;
           style = "Regular";
         };
       };
 
-      # TokyoNight color scheme
       colors = {
         primary = {
-          background = "#1a1b26";
-          foreground = "#c0caf5";
+          background = c.bg;
+          foreground = c.fg;
         };
 
         normal = {
-          black = "#15161e";
-          red = "#f7768e";
-          green = "#9ece6a";
-          yellow = "#e0af68";
-          blue = "#7aa2f7";
-          magenta = "#bb9af7";
-          cyan = "#7dcfff";
-          white = "#a9b1d6";
+          black   = c.bg-dark;
+          red     = c.red;
+          green   = c.green;
+          yellow  = c.yellow;
+          blue    = c.blue;
+          magenta = c.magenta;
+          cyan    = c.cyan;
+          white   = c.fg-dim;
         };
 
         bright = {
-          black = "#414868";
-          red = "#f7768e";
-          green = "#9ece6a";
-          yellow = "#e0af68";
-          blue = "#7aa2f7";
-          magenta = "#bb9af7";
-          cyan = "#7dcfff";
-          white = "#c0caf5";
+          black   = c.bright-black;
+          red     = c.red;
+          green   = c.green;
+          yellow  = c.yellow;
+          blue    = c.blue;
+          magenta = c.magenta;
+          cyan    = c.cyan;
+          white   = c.fg;
         };
 
         selection = {
-          background = "#283457";
-          foreground = "#c0caf5";
+          background = c.selection;
+          foreground = c.fg;
         };
       };
     };

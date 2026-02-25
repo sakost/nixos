@@ -1,7 +1,11 @@
 # Hyprland user configuration
-{ config, pkgs, ... }:
+{ config, pkgs, theme, ... }:
 
 let
+  c = theme.colors;
+  # Hyprland uses rgba(RRGGBBaa) format — strip # and append alpha hex
+  hyprRgba = color: alpha: "rgba(${builtins.substring 1 6 color}${alpha})";
+
   numWorkspaces = 10;
 
   # Synchronized workspace switching: switches all monitors to the same workspace number
@@ -242,8 +246,8 @@ in
       general = {
         gaps_in = 5;
         gaps_out = 20;
-        border_size = 2;
-        "col.active_border" = "rgba(33ccffee) rgba(00ff99ee) 45deg";
+        border_size = theme.border.width;
+        "col.active_border" = "${hyprRgba c.bright-cyan "ee"} ${hyprRgba c.bright-green "ee"} 45deg";
         "col.inactive_border" = "rgba(595959aa)";
         resize_on_border = false;
         allow_tearing = false;

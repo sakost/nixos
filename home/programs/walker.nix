@@ -1,33 +1,34 @@
 # Walker — Wayland-native application launcher
-{ ... }:
+{ theme, ... }:
 
 let
-  themeCss = ''
-    /* TokyoNight-inspired dark theme for Walker */
+  c = theme.colors;
+  rgba = theme.rgba;
 
+  themeCss = ''
     .box-wrapper {
-      background: rgba(26, 27, 38, 0.92);
-      border: 2px solid rgba(122, 162, 247, 0.6);
-      border-radius: 16px;
+      background: ${rgba c.bg 0.92};
+      border: ${toString theme.border.width}px solid ${rgba c.accent 0.6};
+      border-radius: ${toString theme.border.radius.large}px;
       padding: 8px;
-      font-family: "JetBrainsMono Nerd Font", monospace;
-      font-size: 14px;
-      color: #c0caf5;
+      font-family: "${theme.fonts.mono}", monospace;
+      font-size: ${toString theme.fonts.size.medium}px;
+      color: ${c.fg};
     }
 
     .input {
-      background: rgba(36, 40, 59, 0.9);
-      border: 1px solid rgba(122, 162, 247, 0.4);
-      border-radius: 12px;
+      background: ${rgba c.bg-light 0.9};
+      border: 1px solid ${rgba c.accent 0.4};
+      border-radius: ${toString theme.border.radius.medium}px;
       padding: 10px 16px;
       margin: 4px 8px;
-      color: #c0caf5;
-      caret-color: #7aa2f7;
+      color: ${c.fg};
+      caret-color: ${c.accent};
       font-size: 16px;
     }
 
     .input:focus {
-      border-color: rgba(122, 162, 247, 0.8);
+      border-color: ${rgba c.accent 0.8};
     }
 
     .item-box {
@@ -35,36 +36,36 @@ let
       padding: 8px 12px;
       margin: 2px 0;
       border-radius: 10px;
-      color: #a9b1d6;
+      color: ${c.fg-dim};
     }
 
     child:selected .item-box,
     row:selected .item-box {
-      background: rgba(122, 162, 247, 0.2);
-      color: #ffffff;
+      background: ${rgba c.accent 0.2};
+      color: ${c.white};
     }
 
     child:selected .item-box *,
     row:selected .item-box * {
-      color: #ffffff;
+      color: ${c.white};
     }
 
     child:selected .item-subtext,
     row:selected .item-subtext {
-      color: rgba(255, 255, 255, 0.8);
+      color: ${rgba c.white 0.8};
     }
 
     child:selected .activationlabel,
     row:selected .activationlabel {
-      color: rgba(255, 255, 255, 0.8);
+      color: ${rgba c.white 0.8};
     }
 
     child:hover .item-box {
-      background: rgba(122, 162, 247, 0.1);
+      background: ${rgba c.accent 0.1};
     }
 
     .item-subtext {
-      color: rgba(169, 177, 214, 0.7);
+      color: ${rgba c.fg-dim 0.7};
       font-size: 12px;
     }
 
@@ -76,12 +77,12 @@ let
 
     .activationlabel {
       background: transparent;
-      color: rgba(169, 177, 214, 0.6);
+      color: ${rgba c.fg-dim 0.6};
       font-size: 12px;
     }
 
     .spinner {
-      color: #7aa2f7;
+      color: ${c.accent};
     }
   '';
 in

@@ -1,6 +1,9 @@
 # Yazi file manager configuration
-{ pkgs, ... }:
+{ theme, ... }:
 
+let
+  c = theme.colors;
+in
 {
   programs.yazi = {
     enable = true;
@@ -36,9 +39,9 @@
 
     theme = {
       manager = {
-        cwd = { fg = "#7aa2f7"; };
-        hovered = { bg = "#283457"; };
-        preview_hovered = { bg = "#283457"; };
+        cwd = { fg = c.accent; };
+        hovered = { bg = c.selection; };
+        preview_hovered = { bg = c.selection; };
       };
 
       status = {
@@ -48,10 +51,10 @@
 
       filetype = {
         rules = [
-          { mime = "image/*"; fg = "#bb9af7"; }
-          { mime = "video/*"; fg = "#e0af68"; }
-          { mime = "audio/*"; fg = "#e0af68"; }
-          { name = "*.nix"; fg = "#7dcfff"; }
+          { mime = "image/*"; fg = c.magenta; }
+          { mime = "video/*"; fg = c.yellow; }
+          { mime = "audio/*"; fg = c.yellow; }
+          { name = "*.nix"; fg = c.cyan; }
         ];
       };
     };

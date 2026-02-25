@@ -1,5 +1,9 @@
 # Zsh user configuration
-{ config, pkgs, ... }:
+{ config, pkgs, theme, ... }:
+
+let
+  c = theme.colors;
+in
 
 {
   programs.zoxide = {
@@ -19,18 +23,18 @@
       "--preview '${pkgs.bat}/bin/bat --color=always --style=numbers --line-range=:200 {}'"
     ];
     colors = {
-      "bg+" = "#283457";
-      bg = "#1a1b26";
-      spinner = "#7dcfff";
-      hl = "#7aa2f7";
-      fg = "#c0caf5";
-      header = "#7aa2f7";
-      info = "#e0af68";
-      pointer = "#7dcfff";
-      marker = "#9ece6a";
-      "fg+" = "#c0caf5";
-      prompt = "#7aa2f7";
-      "hl+" = "#7aa2f7";
+      "bg+" = c.selection;
+      bg = c.bg;
+      spinner = c.cyan;
+      hl = c.accent;
+      fg = c.fg;
+      header = c.accent;
+      info = c.yellow;
+      pointer = c.cyan;
+      marker = c.green;
+      "fg+" = c.fg;
+      prompt = c.accent;
+      "hl+" = c.accent;
     };
   };
 

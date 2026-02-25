@@ -1,38 +1,41 @@
-# Zathura PDF reader — vim-like keybindings, TokyoNight theme
-{ pkgs, ... }:
+# Zathura PDF reader — vim-like keybindings
+{ theme, ... }:
 
+let
+  c = theme.colors;
+  rgba = theme.rgba;
+in
 {
   programs.zathura = {
     enable = true;
 
     options = {
-      # TokyoNight-inspired colors
-      default-bg = "#1a1b26";
-      default-fg = "#c0caf5";
-      statusbar-bg = "#1a1b26";
-      statusbar-fg = "#a9b1d6";
-      inputbar-bg = "#1a1b26";
-      inputbar-fg = "#c0caf5";
-      notification-bg = "#1a1b26";
-      notification-fg = "#c0caf5";
-      notification-error-bg = "#1a1b26";
-      notification-error-fg = "#f7768e";
-      notification-warning-bg = "#1a1b26";
-      notification-warning-fg = "#e0af68";
-      highlight-color = "rgba(224,175,104,0.5)";
-      highlight-active-color = "rgba(122,162,247,0.5)";
-      completion-bg = "#1a1b26";
-      completion-fg = "#c0caf5";
-      completion-highlight-bg = "#283457";
-      completion-highlight-fg = "#c0caf5";
-      recolor-lightcolor = "#1a1b26";
-      recolor-darkcolor = "#c0caf5";
+      default-bg = c.bg;
+      default-fg = c.fg;
+      statusbar-bg = c.bg;
+      statusbar-fg = c.fg-dim;
+      inputbar-bg = c.bg;
+      inputbar-fg = c.fg;
+      notification-bg = c.bg;
+      notification-fg = c.fg;
+      notification-error-bg = c.bg;
+      notification-error-fg = c.error;
+      notification-warning-bg = c.bg;
+      notification-warning-fg = c.warn;
+      highlight-color = rgba c.yellow 0.5;
+      highlight-active-color = rgba c.accent 0.5;
+      completion-bg = c.bg;
+      completion-fg = c.fg;
+      completion-highlight-bg = c.selection;
+      completion-highlight-fg = c.fg;
+      recolor-lightcolor = c.bg;
+      recolor-darkcolor = c.fg;
 
       # Behaviour
       selection-clipboard = "clipboard";
       adjust-open = "best-fit";
       recolor = true;
-      font = "JetBrainsMono Nerd Font 12";
+      font = "${theme.fonts.mono} ${toString theme.fonts.size.normal}";
     };
   };
 
