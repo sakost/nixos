@@ -361,6 +361,10 @@ in
       # Overview:
       #   SUPER + TAB          — window switcher (walker)
       #
+      # Session:
+      #   SUPER + D            — lock screen (hyprlock)
+      #   SUPER + Escape       — power menu (wlogout)
+      #
       # Media / misc:
       #   Print                — screenshot (region → clipboard)
       #   Right Alt            — switch keyboard layout (via XKB)
@@ -371,6 +375,7 @@ in
         # Apps
         "$mainMod, Q, exec, $terminal"
         "$mainMod, C, killactive"
+        "$mainMod, D, exec, hyprlock"
         "$mainMod, escape, exec, uwsm app -- wlogout"
         "$mainMod, E, exec, $fileManager"
         "$mainMod, F, togglefloating"

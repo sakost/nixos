@@ -11,6 +11,7 @@
     ./programs/gui-apps.nix
     ./programs/waybar.nix
     ./programs/wlogout.nix
+    ./programs/hyprlock.nix
     ./programs/git.nix
     ./programs/gh.nix
     ./programs/nixvim

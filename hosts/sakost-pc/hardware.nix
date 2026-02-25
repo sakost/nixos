@@ -13,7 +13,8 @@
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
-  boot.kernelParams = [ "nvidia-drm.modeset=1" ];
+  boot.kernelParams = [ "nvidia-drm.modeset=1" "resume_offset=533760" ];
+  boot.resumeDevice = "/dev/mapper/cryptroot";
 
   boot.loader.systemd-boot.enable = lib.mkForce false;
   boot.loader.efi.canTouchEfiVariables = true;
