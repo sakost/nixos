@@ -27,6 +27,7 @@
     ./programs/onlyoffice.nix
     ./programs/gdb.nix
     ./programs/ollama.nix
+    ./programs/obs-studio.nix
     ./programs/natscli.nix
     ./programs/openssl.nix
     ./programs/xxd.nix
