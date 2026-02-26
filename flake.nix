@@ -35,7 +35,7 @@
     };
 
     claude-desktop = {
-      url = "github:k3d3/claude-desktop-linux-flake";
+      url = "github:heytcass/claude-desktop-linux-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
