@@ -32,6 +32,7 @@
     ./programs/natscli.nix
     ./programs/openssl.nix
     ./programs/xxd.nix
+    ./programs/mpv.nix
     ./desktop/hyprland.nix
   ];
 

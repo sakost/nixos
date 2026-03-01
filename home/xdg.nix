@@ -61,5 +61,66 @@ in
       prefix=${config.xdg.dataHome}/npm
       cache=${cacheBase}/npm
     '';
+
+    mimeApps = {
+      enable = true;
+      defaultApplications = {
+        # Web browser — Google Chrome
+        "text/html" = "google-chrome.desktop";
+        "x-scheme-handler/http" = "google-chrome.desktop";
+        "x-scheme-handler/https" = "google-chrome.desktop";
+        "x-scheme-handler/about" = "google-chrome.desktop";
+        "x-scheme-handler/unknown" = "google-chrome.desktop";
+
+        # File manager — Nautilus
+        "inode/directory" = "org.gnome.Nautilus.desktop";
+
+        # Video — mpv
+        "video/mp4" = "mpv.desktop";
+        "video/x-matroska" = "mpv.desktop";
+        "video/webm" = "mpv.desktop";
+        "video/x-msvideo" = "mpv.desktop";
+        "video/quicktime" = "mpv.desktop";
+        "video/x-flv" = "mpv.desktop";
+        "video/ogg" = "mpv.desktop";
+        "video/mpeg" = "mpv.desktop";
+        "video/3gpp" = "mpv.desktop";
+        "video/x-ogm+ogg" = "mpv.desktop";
+
+        # Images — Eye of GNOME (loupe)
+        "image/png" = "org.gnome.Loupe.desktop";
+        "image/jpeg" = "org.gnome.Loupe.desktop";
+        "image/gif" = "org.gnome.Loupe.desktop";
+        "image/webp" = "org.gnome.Loupe.desktop";
+        "image/svg+xml" = "org.gnome.Loupe.desktop";
+        "image/bmp" = "org.gnome.Loupe.desktop";
+        "image/tiff" = "org.gnome.Loupe.desktop";
+
+        # PDF / documents — Zathura
+        "application/pdf" = "org.pwmt.zathura.desktop";
+
+        # Text — Neovim (via terminal)
+        "text/plain" = "nvim.desktop";
+        "text/x-csrc" = "nvim.desktop";
+        "text/x-python" = "nvim.desktop";
+        "text/x-shellscript" = "nvim.desktop";
+        "application/json" = "nvim.desktop";
+        "application/xml" = "nvim.desktop";
+        "application/x-yaml" = "nvim.desktop";
+
+        # Telegram links
+        "x-scheme-handler/tg" = "org.telegram.desktop.desktop";
+
+        # Audio — mpv
+        "audio/mpeg" = "mpv.desktop";
+        "audio/flac" = "mpv.desktop";
+        "audio/ogg" = "mpv.desktop";
+        "audio/wav" = "mpv.desktop";
+        "audio/x-wav" = "mpv.desktop";
+        "audio/mp4" = "mpv.desktop";
+        "audio/aac" = "mpv.desktop";
+      };
+    };
+
   };
 }
