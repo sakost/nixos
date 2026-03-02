@@ -33,6 +33,7 @@
     ./programs/openssl.nix
     ./programs/xxd.nix
     ./programs/mpv.nix
+    ./programs/lnav.nix
     ./desktop/hyprland.nix
   ];
 
