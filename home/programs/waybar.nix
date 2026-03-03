@@ -42,7 +42,7 @@ in
       clock = {
         format = " {:%H:%M}";
         format-alt = " {:%A, %d %B %Y   %H:%M:%S}";
-        on-click = "gsimplecal";
+        on-click-right = "env GTK_THEME=Adwaita:dark gsimplecal";
         tooltip = false;
         locale = "ru_RU.UTF-8";
         interval = 1;

@@ -35,6 +35,7 @@
     ./programs/mpv.nix
     ./programs/lnav.nix
     ./programs/tmux.nix
+    ./programs/gsimplecal.nix
     ./desktop/hyprland.nix
   ];
 

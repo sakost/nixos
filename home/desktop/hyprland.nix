@@ -485,7 +485,7 @@ in
         "suppress_event maximize, match:class .*"
         "float on, match:class com.gabm.satty"
         "float on, match:class gsimplecal"
-        "move cursor -50% 40, match:class gsimplecal"
+        "move cursor -50% 34, match:class gsimplecal"
         # Zoom — reduce rendering overhead to prevent lag
         "no_blur true, match:class zoom"
         "no_shadow true, match:class zoom"

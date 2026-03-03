@@ -10,6 +10,5 @@
     spotify
     zoom-us
     loupe
-    gsimplecal
   ];
 }
