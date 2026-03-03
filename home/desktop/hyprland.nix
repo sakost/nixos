@@ -484,6 +484,13 @@ in
       windowrule = [
         "suppress_event maximize, match:class .*"
         "float on, match:class com.gabm.satty"
+        "float on, match:class gsimplecal"
+        "move cursor -50% 40, match:class gsimplecal"
+        # Zoom — reduce rendering overhead to prevent lag
+        "no_blur true, match:class zoom"
+        "no_shadow true, match:class zoom"
+        "no_anim true, match:class zoom"
+        "immediate true, match:class zoom"
         # JetBrains IDEs / Android Studio — float popups & dialogs
         "float on, match:class jetbrains-.*, match:title (win.*|splash)"
         "center 1, match:class jetbrains-.*, match:title splash"

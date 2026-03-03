@@ -159,45 +159,6 @@ let
     echo "DND: $DND  ·  Work: $WORK"
   '';
 
-  close-calendar-script = pkgs.writeShellScriptBin "eww-close-calendar" ''
-    # If the cursor is inside the calendar popup, let the click through (navigation)
-    CURSOR=$(hyprctl cursorpos -j 2>/dev/null)
-    CX=$(echo "$CURSOR" | ${pkgs.jq}/bin/jq -r '.x')
-    CY=$(echo "$CURSOR" | ${pkgs.jq}/bin/jq -r '.y')
-
-    CAL_GEOM=$(hyprctl -j layers 2>/dev/null | ${pkgs.jq}/bin/jq -r '
-      [.[] | .levels | .[] | .[] | select(.namespace == "calendar-popup")] |
-      first | "\(.x) \(.y) \(.w) \(.h)"
-    ' 2>/dev/null)
-
-    if [[ -n "$CAL_GEOM" && "$CAL_GEOM" != "null" ]]; then
-      read -r CAL_X CAL_Y CAL_W CAL_H <<< "$CAL_GEOM"
-      if (( CX >= CAL_X && CX <= CAL_X + CAL_W && CY >= CAL_Y && CY <= CAL_Y + CAL_H )); then
-        exit 0
-      fi
-    fi
-
-    ${pkgs.eww}/bin/eww close calendar-popup 2>/dev/null
-    hyprctl keyword unbind ",mouse:272" 2>/dev/null
-    hyprctl keyword unbind ",Escape" 2>/dev/null
-  '';
-
-  toggle-calendar-script = pkgs.writeShellScriptBin "eww-toggle-calendar" ''
-    STATE=$(${pkgs.eww}/bin/eww windows | grep "calendar-popup")
-    if [[ "$STATE" == "*calendar-popup" ]]; then
-      ${close-calendar-script}/bin/eww-close-calendar
-    else
-      # Clean up any stale binds from a previous session
-      hyprctl keyword unbind ",mouse:272" 2>/dev/null
-      hyprctl keyword unbind ",Escape" 2>/dev/null
-
-      MON=$(hyprctl -j monitors | ${pkgs.jq}/bin/jq -r '.[] | select(.focused == true) | .name')
-      ${pkgs.eww}/bin/eww open calendar-popup --screen "$MON"
-      # Auto-close on any left click or Escape (non-consuming — click passes through)
-      hyprctl keyword bindn ",mouse:272,exec,${close-calendar-script}/bin/eww-close-calendar"
-      hyprctl keyword bindn ",Escape,exec,${close-calendar-script}/bin/eww-close-calendar"
-    fi
-  '';
 
   news-script = pkgs.writeShellScriptBin "eww-news" ''
     ${pkgs.curl}/bin/curl -s 'https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=7' \
@@ -213,8 +174,6 @@ in
     sysinfo-script
     player-script
     calendar-script
-    close-calendar-script
-    toggle-calendar-script
     mako-status-script
   ];
 
@@ -302,24 +261,6 @@ in
     (defwidget mako-widget []
       (box :class "mako-status" :orientation "h" :space-evenly false :halign "center"
         (label :text mako_val)))
-
-    ;; ── Calendar popup (toggled from waybar clock) ──
-    (defwidget calendar-popup []
-      (box :class "cal-popup" :orientation "v" :space-evenly false
-        (box :class "cal-popup-header" :orientation "h" :space-evenly false :halign "center"
-          (label :class "cal-popup-title" :text date_val))
-        (calendar :class "cal-popup-cal"
-          :show-heading true
-          :show-day-names true
-          :show-week-numbers true)))
-
-    (defwindow calendar-popup
-      :monitor 0
-      :geometry (geometry :x "0%" :y "38px" :width "340px" :height "10px" :anchor "top center")
-      :stacking "overlay"
-      :exclusive false
-      :focusable false
-      (calendar-popup))
 
     ;; ── Window on HDMI-A-1, bottom layer (above wallpaper, below windows) ──
     (defwindow dashboard
@@ -519,72 +460,6 @@ in
     // ── Calendar (dashboard) ──
     .calendar-text {
       font-size: 13px;
-    }
-
-    // ── Calendar popup ──
-    .cal-popup {
-      background-color: ${theme.rgba theme.colors.bg theme.opacity.panel};
-      border: 1px solid ${theme.rgba theme.colors.accent 0.4};
-      border-radius: 16px;
-      padding: 16px 20px;
-    }
-
-    .cal-popup-header {
-      margin-bottom: 12px;
-    }
-
-    .cal-popup-title {
-      font-size: 15px;
-      color: $accent;
-      font-weight: bold;
-    }
-
-    .cal-popup-cal {
-      font-size: 14px;
-      color: $fg;
-    }
-
-    .cal-popup-cal calendar {
-      background-color: transparent;
-      color: $fg;
-    }
-
-    .cal-popup-cal calendar.header {
-      color: $accent;
-      font-weight: bold;
-      font-size: 15px;
-      padding: 4px 0 8px 0;
-    }
-
-    .cal-popup-cal calendar.button {
-      color: $accent;
-      padding: 4px 8px;
-      border-radius: 8px;
-    }
-
-    .cal-popup-cal calendar.button:hover {
-      background-color: ${theme.rgba theme.colors.accent 0.2};
-    }
-
-    .cal-popup-cal calendar:indeterminate {
-      color: ${theme.rgba theme.colors.muted 0.6};
-    }
-
-    .cal-popup-cal calendar.highlight {
-      color: $green;
-      font-weight: bold;
-    }
-
-    .cal-popup-cal calendar.day-name.highlight,
-    .cal-popup-cal calendar.week-number.highlight {
-      color: $fg-dim;
-      font-weight: normal;
-    }
-
-    .cal-popup-cal calendar:selected {
-      background-color: ${theme.rgba theme.colors.accent 0.3};
-      border-radius: 50%;
-      color: $fg;
     }
 
     // ── News ──

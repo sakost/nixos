@@ -42,27 +42,9 @@ in
       clock = {
         format = " {:%H:%M}";
         format-alt = " {:%A, %d %B %Y   %H:%M:%S}";
-        on-click = "eww-toggle-calendar";
+        on-click = "gsimplecal";
         tooltip = false;
         locale = "ru_RU.UTF-8";
-        calendar = {
-          mode = "month";
-          mode-mon-col = 1;
-          weeks-pos = "right";
-          on-scroll = 1;
-          format = {
-            months = "<span color='${c.fg}' size='x-large'><b>{}</b></span>";
-            days = "<span color='${c.fg-dim}'>{}</span>";
-            weekdays = "<span color='${c.accent}'><b>{}</b></span>";
-            weeks = "<span color='${c.muted}'>W{}</span>";
-            today = "<span color='${c.bg}' bgcolor='${c.bright-green}'><b> {} </b></span>";
-          };
-        };
-        actions = {
-          on-click-right = "mode";
-          on-scroll-up = "shift_up";
-          on-scroll-down = "shift_down";
-        };
         interval = 1;
       };
 
