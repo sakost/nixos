@@ -12,11 +12,6 @@ in {
     virtualisation.libvirtd = {
       enable = true;
       qemu = {
-        # OVMF (UEFI firmware) — required for Windows 11 Secure Boot
-        ovmf = {
-          enable = true;
-          packages = [ pkgs.OVMFFull ];
-        };
         # swtpm — software TPM emulator, required for Windows 11
         swtpm.enable = true;
       };

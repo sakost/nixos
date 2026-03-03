@@ -2,5 +2,5 @@
 { config, pkgs, ... }:
 
 {
-  programs.virt-manager.enable = true;
+  home.packages = [ pkgs.virt-manager ];
 }

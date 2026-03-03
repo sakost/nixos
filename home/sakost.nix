@@ -37,6 +37,7 @@
     ./programs/tmux.nix
     ./programs/gsimplecal.nix
     ./programs/virt-manager.nix
+    ./programs/nvtop.nix
     ./desktop/hyprland.nix
   ];
 

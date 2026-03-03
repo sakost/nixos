@@ -27,5 +27,8 @@ in {
     # Graphics acceleration
     hardware.graphics.enable = true;
     hardware.graphics.enable32Bit = true;
+
+    # NVIDIA Container Toolkit — enables GPU access in containers (Docker/Podman)
+    hardware.nvidia-container-toolkit.enable = true;
   };
 }
