@@ -38,6 +38,7 @@
     ./programs/gsimplecal.nix
     ./programs/virt-manager.nix
     ./programs/nvtop.nix
+    ./programs/onefetch.nix
     ./desktop/hyprland.nix
   ];
 
