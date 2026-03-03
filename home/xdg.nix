@@ -5,6 +5,11 @@ let
   cacheBase = "${config.home.homeDirectory}/dev/cache";
 in
 {
+  # Extra PATH entries
+  home.sessionPath = [
+    "${config.home.homeDirectory}/.local/bin"
+  ];
+
   # Environment variables for XDG compliance
   home.sessionVariables = {
     RUSTUP_HOME = "${config.xdg.dataHome}/rustup";
