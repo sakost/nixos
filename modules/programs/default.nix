@@ -11,5 +11,6 @@
     ./steam.nix
     ./gnome-keyring.nix
     ./cryptopro.nix
+    ./virt-manager.nix
   ];
 }

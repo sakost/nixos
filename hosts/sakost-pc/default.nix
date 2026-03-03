@@ -82,6 +82,7 @@
 
   # Enable programs
   custom.programs.steam.enable = true;
+  custom.programs.virt-manager.enable = true;
   custom.programs.gnome-keyring.enable = true;
   custom.programs.cryptopro = {
     enable = true;
