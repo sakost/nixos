@@ -160,6 +160,23 @@ let
   '';
 
   close-calendar-script = pkgs.writeShellScriptBin "eww-close-calendar" ''
+    # If the cursor is inside the calendar popup, let the click through (navigation)
+    CURSOR=$(hyprctl cursorpos -j 2>/dev/null)
+    CX=$(echo "$CURSOR" | ${pkgs.jq}/bin/jq -r '.x')
+    CY=$(echo "$CURSOR" | ${pkgs.jq}/bin/jq -r '.y')
+
+    CAL_GEOM=$(hyprctl -j layers 2>/dev/null | ${pkgs.jq}/bin/jq -r '
+      [.[] | .levels | .[] | .[] | select(.namespace == "calendar-popup")] |
+      first | "\(.x) \(.y) \(.w) \(.h)"
+    ' 2>/dev/null)
+
+    if [[ -n "$CAL_GEOM" && "$CAL_GEOM" != "null" ]]; then
+      read -r CAL_X CAL_Y CAL_W CAL_H <<< "$CAL_GEOM"
+      if (( CX >= CAL_X && CX <= CAL_X + CAL_W && CY >= CAL_Y && CY <= CAL_Y + CAL_H )); then
+        exit 0
+      fi
+    fi
+
     ${pkgs.eww}/bin/eww close calendar-popup 2>/dev/null
     hyprctl keyword unbind ",mouse:272" 2>/dev/null
     hyprctl keyword unbind ",Escape" 2>/dev/null
