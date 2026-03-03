@@ -34,6 +34,7 @@
     ./programs/xxd.nix
     ./programs/mpv.nix
     ./programs/lnav.nix
+    ./programs/tmux.nix
     ./desktop/hyprland.nix
   ];
 
