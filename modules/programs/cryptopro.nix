@@ -212,13 +212,16 @@ let
 
   certInstallScript = let
     certmgr = "${cryptopro}/bin/certmgr";
+    grep = "${pkgs.gnugrep}/bin/grep";
+    sed = "${pkgs.gnused}/bin/sed";
+    head = "${pkgs.coreutils}/bin/head";
   in pkgs.writeShellScript "cryptopro-install-certs" (
     lib.concatStringsSep "\n" (lib.mapAttrsToList (name: spec: let
       certFile = caCertFiles.${name};
       isRoot = spec.store == "uRoot";
     in ''
       # Install: ${name}
-      if ! ${certmgr} -list -store ${spec.store} 2>/dev/null | grep -q "$(${certmgr} -list -file ${certFile} 2>/dev/null | grep 'SHA1 Thumbprint' | head -1 | sed 's/.*: //')"; then
+      if ! ${certmgr} -list -store ${spec.store} 2>/dev/null | ${grep} -q "$(${certmgr} -list -file ${certFile} 2>/dev/null | ${grep} 'SHA1 Thumbprint' | ${head} -1 | ${sed} 's/.*: //')"; then
         ${if isRoot then ''echo "o" | '' else ""}${certmgr} -inst -file ${certFile} -store ${spec.store} 2>/dev/null || true
       fi
     '') cfg.caCertificates)
