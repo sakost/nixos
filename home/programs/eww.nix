@@ -1,12 +1,18 @@
-# Eww dashboard overlay for HDMI-A-1
-# Info hub: clock, weather, system stats, media player, calendar, news, notification status
-{ pkgs, theme, ... }:
+# Eww glassmorphic dashboard overlay for HDMI-A-1
+# Widgets: clock, weather, system, media player (with album art & controls),
+#          uptime, power buttons, calendar, news, notification status
+{ pkgs, lib, theme, ... }:
 
 let
+  c = theme.colors;
+  rgba = theme.rgba;
+
+  # ── Scripts ──────────────────────────────────────────────────────────────
+
   weather-script = pkgs.writeShellScriptBin "eww-weather" ''
     DATA=$(${pkgs.curl}/bin/curl -s --max-time 10 \
       'https://api.open-meteo.com/v1/forecast?latitude=55.75&longitude=37.62&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=Europe/Moscow' 2>/dev/null)
-    [[ -z "$DATA" ]] && echo "Weather unavailable" && exit 0
+    [[ -z "$DATA" ]] && echo '{"icon":"","desc":"Unavailable","temp":"--","feels":"--","humidity":"--","wind":"--"}' && exit 0
 
     TEMP=$(echo "$DATA" | ${pkgs.jq}/bin/jq -r '.current.temperature_2m')
     FEELS=$(echo "$DATA" | ${pkgs.jq}/bin/jq -r '.current.apparent_temperature')
@@ -15,23 +21,27 @@ let
     CODE=$(echo "$DATA" | ${pkgs.jq}/bin/jq -r '.current.weather_code')
 
     case "$CODE" in
-      0) ICON="☀" DESC="Clear sky" ;;
-      1|2|3) ICON="⛅" DESC="Partly cloudy" ;;
-      45|48) ICON="🌫" DESC="Fog" ;;
-      51|53|55) ICON="🌦" DESC="Drizzle" ;;
-      61|63|65) ICON="🌧" DESC="Rain" ;;
-      66|67) ICON="🌧" DESC="Freezing rain" ;;
-      71|73|75) ICON="🌨" DESC="Snow" ;;
-      77) ICON="🌨" DESC="Snow grains" ;;
-      80|81|82) ICON="🌧" DESC="Showers" ;;
-      85|86) ICON="🌨" DESC="Snow showers" ;;
-      95|96|99) ICON="⛈" DESC="Thunderstorm" ;;
-      *) ICON="?" DESC="Unknown" ;;
+      0) ICON="" DESC="Clear sky" ;;
+      1) ICON="" DESC="Mainly clear" ;;
+      2) ICON="" DESC="Partly cloudy" ;;
+      3) ICON="" DESC="Overcast" ;;
+      45|48) ICON="" DESC="Fog" ;;
+      51|53|55) ICON="" DESC="Drizzle" ;;
+      61|63|65) ICON="" DESC="Rain" ;;
+      66|67) ICON="" DESC="Freezing rain" ;;
+      71|73|75) ICON="" DESC="Snow" ;;
+      77) ICON="" DESC="Snow grains" ;;
+      80|81|82) ICON="" DESC="Showers" ;;
+      85|86) ICON="" DESC="Snow showers" ;;
+      95|96|99) ICON="" DESC="Thunderstorm" ;;
+      *) ICON="" DESC="Unknown" ;;
     esac
 
-    echo "Moscow · $ICON $DESC"
-    echo "''${TEMP}°C (feels ''${FEELS}°C)"
-    echo "💧 ''${HUMIDITY}%  ·  💨 ''${WIND} km/h"
+    ${pkgs.jq}/bin/jq -nc \
+      --arg icon "$ICON" --arg desc "$DESC" \
+      --arg temp "''${TEMP}°" --arg feels "''${FEELS}°" \
+      --arg humidity "''${HUMIDITY}%" --arg wind "''${WIND} km/h" \
+      '{icon:$icon, desc:$desc, temp:$temp, feels:$feels, humidity:$humidity, wind:$wind}'
   '';
 
   sysinfo-script = pkgs.writeShellScriptBin "eww-sysinfo" ''
@@ -39,19 +49,16 @@ let
       ${pkgs.gawk}/bin/awk '/:/ && !/lo:/ {rx+=$2; tx+=$10} END{print rx, tx}' /proc/net/dev
     }
 
-    # Snapshot 1 (CPU + network)
     read -ra CPU1 <<< "$(head -1 /proc/stat)"
     read -r NET_RX1 NET_TX1 <<< "$(net_bytes)"
     NET_RX1=''${NET_RX1:-0}; NET_TX1=''${NET_TX1:-0}
 
     sleep 1
 
-    # Snapshot 2
     read -ra CPU2 <<< "$(head -1 /proc/stat)"
     read -r NET_RX2 NET_TX2 <<< "$(net_bytes)"
     NET_RX2=''${NET_RX2:-0}; NET_TX2=''${NET_TX2:-0}
 
-    # CPU%
     idle1=''${CPU1[4]}; total1=0
     for v in "''${CPU1[@]:1}"; do total1=$((total1 + v)); done
     idle2=''${CPU2[4]}; total2=0
@@ -59,7 +66,6 @@ let
     dt=$((total2 - total1)); di=$((idle2 - idle1))
     cpu=0; ((dt > 0)) && cpu=$(( (dt - di) * 100 / dt ))
 
-    # RAM
     total_kb=$(${pkgs.gawk}/bin/awk '/^MemTotal:/{print $2}' /proc/meminfo)
     avail_kb=$(${pkgs.gawk}/bin/awk '/^MemAvailable:/{print $2}' /proc/meminfo)
     used_kb=$((total_kb - avail_kb))
@@ -67,7 +73,6 @@ let
     ram_used=$(${pkgs.gawk}/bin/awk "BEGIN{printf \"%.1f\", $used_kb / 1048576}")
     ram_total=$(${pkgs.gawk}/bin/awk "BEGIN{printf \"%.1f\", $total_kb / 1048576}")
 
-    # Disks
     sys_info=$(df -h / | tail -1)
     sys_total_h=$(echo "$sys_info" | ${pkgs.gawk}/bin/awk '{print $2}')
     sys_used_h=$(echo "$sys_info" | ${pkgs.gawk}/bin/awk '{print $3}')
@@ -78,10 +83,8 @@ let
     data_used_h=$(echo "$data_info" | ${pkgs.gawk}/bin/awk '{print $3}')
     data=$(echo "$data_info" | ${pkgs.gawk}/bin/awk '{gsub(/%/,""); print $5}')
 
-    # GPU temp
     gpu=$(nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader 2>/dev/null || echo "N/A")
 
-    # Network speed
     rx_speed=$((NET_RX2 - NET_RX1))
     tx_speed=$((NET_TX2 - NET_TX1))
     fmt_speed() {
@@ -109,13 +112,18 @@ let
   player-script = pkgs.writeShellScriptBin "eww-player" ''
     STATUS=$(${pkgs.playerctl}/bin/playerctl status 2>/dev/null || echo "Stopped")
     if [[ "$STATUS" != "Playing" && "$STATUS" != "Paused" ]]; then
-      echo '{"status":"Stopped","icon":"⏹","title":"","detail":"","position":"0:00","length":"0:00","pct":0}'
+      echo '{"status":"Stopped","title":"Not Playing","artist":"","album":"","art":"","position":"0:00","length":"0:00","pct":0,"source":""}'
       exit 0
     fi
 
     TITLE=$(${pkgs.playerctl}/bin/playerctl metadata title 2>/dev/null || echo "")
     ARTIST=$(${pkgs.playerctl}/bin/playerctl metadata artist 2>/dev/null || echo "")
     ALBUM=$(${pkgs.playerctl}/bin/playerctl metadata album 2>/dev/null || echo "")
+    ART_URL=$(${pkgs.playerctl}/bin/playerctl metadata mpris:artUrl 2>/dev/null || echo "")
+    ART_URL=''${ART_URL/file:\/\//}
+    PLAYER=$(${pkgs.playerctl}/bin/playerctl metadata --format '{{playerName}}' 2>/dev/null || echo "")
+    PLAYER_NICE="''${PLAYER^}"
+
     POS_RAW=$(${pkgs.playerctl}/bin/playerctl position 2>/dev/null || echo "0")
     LEN_US=$(${pkgs.playerctl}/bin/playerctl metadata mpris:length 2>/dev/null || echo "0")
     [[ -z "$POS_RAW" ]] && POS_RAW="0"
@@ -127,21 +135,18 @@ let
     len_m=$((len_sec / 60)); len_s=$((len_sec % 60))
     pct=0; ((len_sec > 0)) && pct=$((pos_sec * 100 / len_sec))
 
-    ICON="▶"; [[ "$STATUS" == "Paused" ]] && ICON="⏸"
     POS_FMT=$(printf '%d:%02d' $pos_m $pos_s)
     LEN_FMT=$(printf '%d:%02d' $len_m $len_s)
 
-    if [[ -n "$ALBUM" ]]; then DETAIL="$ARTIST · $ALBUM"; else DETAIL="$ARTIST"; fi
-
     ${pkgs.jq}/bin/jq -nc \
-      --arg status "$STATUS" --arg icon "$ICON" --arg title "$TITLE" \
-      --arg detail "$DETAIL" --arg position "$POS_FMT" --arg length "$LEN_FMT" \
-      --argjson pct "$pct" \
-      '{status:$status, icon:$icon, title:$title, detail:$detail, position:$position, length:$length, pct:$pct}'
+      --arg status "$STATUS" --arg title "$TITLE" --arg artist "$ARTIST" \
+      --arg album "$ALBUM" --arg art "$ART_URL" \
+      --arg position "$POS_FMT" --arg length "$LEN_FMT" \
+      --argjson pct "$pct" --arg source "$PLAYER_NICE" \
+      '{status:$status, title:$title, artist:$artist, album:$album, art:$art, position:$position, length:$length, pct:$pct, source:$source}'
   '';
 
   calendar-script = pkgs.writeShellScriptBin "eww-calendar" ''
-    # Strip ANSI escape codes — gcalcli's --nocolor doesn't fully strip them
     strip_ansi() { sed 's/\x1b\[[0-9;]*m//g'; }
     OUTPUT=$(${pkgs.gcalcli}/bin/gcalcli agenda --nocolor --nodeclined 2>/dev/null | strip_ansi)
     if [[ -z "$OUTPUT" ]] || echo "$OUTPUT" | grep -q "No Events Found"; then
@@ -156,113 +161,225 @@ let
     DND="off"; WORK="off"
     echo "$MODES" | grep -q "dnd" && DND="on"
     echo "$MODES" | grep -q "work" && WORK="on"
-    echo "DND: $DND  ·  Work: $WORK"
+    echo "DND: $DND  |  Work: $WORK"
   '';
-
 
   news-script = pkgs.writeShellScriptBin "eww-news" ''
     ${pkgs.curl}/bin/curl -s 'https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=7' \
       | ${pkgs.jq}/bin/jq -r '.hits[] | "\(.title)"' 2>/dev/null || echo "News unavailable"
+  '';
+
+  uptime-script = pkgs.writeShellScriptBin "eww-uptime" ''
+    uptime -p | sed 's/up //'
+  '';
+
+  greeting-script = pkgs.writeShellScriptBin "eww-greeting" ''
+    HOUR=$(date +%H)
+    if ((HOUR >= 5 && HOUR < 12)); then
+      echo "Good morning, sakost"
+    elif ((HOUR >= 12 && HOUR < 17)); then
+      echo "Good afternoon, sakost"
+    elif ((HOUR >= 17 && HOUR < 22)); then
+      echo "Good evening, sakost"
+    else
+      echo "Good night, sakost"
+    fi
+  '';
+
+  # Toggle script for keybinding
+  toggle-script = pkgs.writeShellScriptBin "eww-toggle-dashboard" ''
+    STATE=$(${pkgs.eww}/bin/eww get dashboard_open 2>/dev/null || echo "false")
+    if [[ "$STATE" == "true" ]]; then
+      ${pkgs.eww}/bin/eww close dashboard
+      ${pkgs.eww}/bin/eww update dashboard_open=false
+    else
+      ${pkgs.eww}/bin/eww open dashboard
+      ${pkgs.eww}/bin/eww update dashboard_open=true
+    fi
   '';
 in
 {
   home.packages = [
     pkgs.eww
     pkgs.gcalcli
+    pkgs.playerctl
     weather-script
     news-script
     sysinfo-script
     player-script
     calendar-script
     mako-status-script
+    uptime-script
+    greeting-script
+    toggle-script
   ];
 
   xdg.configFile."eww/eww.yuck".text = ''
+    ;; ── State ──
+    (defvar dashboard_open false)
+
     ;; ── Polled variables ──
     (defpoll time_val :interval "1s" :initial "00:00" `date '+%H:%M'`)
+    (defpoll time_sec :interval "1s" :initial "00" `date '+%S'`)
     (defpoll date_val :interval "60s" :initial "" `date '+%A, %B %d'`)
-    (defpoll weather_val :interval "1800s" :initial "Loading..." `${weather-script}/bin/eww-weather`)
+    (defpoll greeting :interval "300s" :initial "" `${greeting-script}/bin/eww-greeting`)
+    (defpoll uptime_val :interval "30s" :initial "" `${uptime-script}/bin/eww-uptime`)
+
+    (defpoll weather :interval "1800s"
+      :initial '{"icon":"","desc":"Loading...","temp":"--","feels":"--","humidity":"--","wind":"--"}'
+      `${weather-script}/bin/eww-weather`)
+
     (defpoll sysinfo :interval "3s"
       :initial '{"cpu":0,"ram":0,"ram_used":"0","ram_total":"0","sys":0,"sys_used":"--","sys_total":"--","data":0,"data_used":"--","data_total":"--","gpu":"--","net_up":"--","net_down":"--"}'
       `${sysinfo-script}/bin/eww-sysinfo`)
-    (defpoll player :interval "2s"
-      :initial '{"status":"Stopped","icon":"⏹","title":"","detail":"","position":"0:00","length":"0:00","pct":0}'
+
+    (defpoll player :interval "1s"
+      :initial '{"status":"Stopped","title":"Not Playing","artist":"","album":"","art":"","position":"0:00","length":"0:00","pct":0,"source":""}'
       `${player-script}/bin/eww-player`)
+
     (defpoll calendar_val :interval "300s" :initial "Loading..." `${calendar-script}/bin/eww-calendar`)
     (defpoll news_val :interval "600s" :initial "Loading..." `${news-script}/bin/eww-news`)
-    (defpoll mako_val :interval "5s" :initial "DND: off  ·  Work: off" `${mako-status-script}/bin/eww-mako-status`)
+    (defpoll mako_val :interval "5s" :initial "DND: off  |  Work: off" `${mako-status-script}/bin/eww-mako-status`)
 
-    ;; ── Reusable metric bar (label + progress + detail text) ──
-    (defwidget metric [label value text]
-      (box :class "metric" :orientation "h" :space-evenly false
+    ;; ── Reusable metric bar ──
+    (defwidget metric [label value text ?icon ?css-class]
+      (box :class "metric ''${css-class}" :orientation "h" :space-evenly false
+        (label :class "metric-icon" :text {icon ?: ""})
         (label :class "metric-label" :text label)
         (scale :class "metric-scale" :min 0 :max 100 :value value :active false :orientation "h" :hexpand true)
         (label :class "metric-text" :text text)))
 
     ;; ── Dashboard ──
     (defwidget dashboard []
-      (box :class "dashboard" :orientation "v" :space-evenly false :halign "center" :valign "center"
-        (clock-widget)
-        (box :class "two-col" :orientation "h" :space-evenly true
+      (box :class "dashboard" :orientation "h" :space-evenly false :halign "center" :valign "center"
+        ;; Left column
+        (box :class "col col-left" :orientation "v" :space-evenly false
+          (clock-widget)
           (weather-widget)
+          (power-widget))
+        ;; Center column
+        (box :class "col col-center" :orientation "v" :space-evenly false
+          (player-widget)
           (sysinfo-widget))
-        (player-widget)
-        (calendar-widget)
-        (news-widget)
-        (mako-widget)))
+        ;; Right column
+        (box :class "col col-right" :orientation "v" :space-evenly false
+          (calendar-widget)
+          (news-widget)
+          (mako-widget))))
 
+    ;; ── Clock ──
     (defwidget clock-widget []
-      (box :class "widget-box clock-box" :orientation "v" :space-evenly false
-        (label :class "time" :text time_val :halign "center")
-        (label :class "date" :text date_val :halign "center")))
+      (box :class "card clock-card" :orientation "v" :space-evenly false
+        (label :class "greeting" :halign "start" :text greeting)
+        (box :class "time-row" :orientation "h" :space-evenly false :halign "start"
+          (label :class "time" :text time_val)
+          (label :class "time-sec" :text time_sec))
+        (label :class "date" :halign "start" :text date_val)
+        (box :class "uptime-row" :orientation "h" :space-evenly false :halign "start"
+          (label :class "uptime-icon" :text "")
+          (label :class "uptime-text" :text uptime_val))))
 
+    ;; ── Weather ──
     (defwidget weather-widget []
-      (box :class "widget-box" :orientation "v" :space-evenly false
-        (label :class "section-title" :text "Weather")
-        (label :class "content" :text weather_val :wrap true)))
-
-    (defwidget sysinfo-widget []
-      (box :class "widget-box" :orientation "v" :space-evenly false
-        (label :class "section-title" :text "System")
-        (metric :label "CPU" :value {sysinfo.cpu} :text "''${sysinfo.cpu}%")
-        (metric :label "RAM" :value {sysinfo.ram} :text "''${sysinfo.ram_used}G / ''${sysinfo.ram_total}G")
-        (metric :label "SYS" :value {sysinfo.sys} :text "''${sysinfo.sys_used} / ''${sysinfo.sys_total}")
-        (metric :label "DATA" :value {sysinfo.data} :text "''${sysinfo.data_used} / ''${sysinfo.data_total}")
-        (box :class "stat-text-row" :orientation "h" :space-evenly false
-          (label :class "stat-icon" :text " ")
-          (label :class "stat-detail" :text "''${sysinfo.gpu}°C")
-          (label :class "stat-spacer" :text "   ")
-          (label :class "stat-icon" :text " ")
-          (label :class "stat-detail" :text "↑''${sysinfo.net_up}  ↓''${sysinfo.net_down}"))))
-
-    (defwidget player-widget []
-      (box :class "widget-box player-box" :orientation "v" :space-evenly false
-        :visible {player.status != "Stopped"}
+      (box :class "card weather-card" :orientation "v" :space-evenly false
         (box :orientation "h" :space-evenly false
-          (label :class "player-icon" :text {player.icon})
+          (label :class "weather-icon" :text {weather.icon})
           (box :orientation "v" :space-evenly false :hexpand true
-            (label :class "player-title" :text {player.title} :halign "start")
-            (label :class "player-detail" :text {player.detail} :halign "start")))
-        (box :class "player-progress-row" :orientation "h" :space-evenly false
-          (label :class "player-time" :text {player.position})
-          (scale :class "player-scale" :min 0 :max 100 :value {player.pct} :active false :orientation "h" :hexpand true)
-          (label :class "player-time" :text {player.length}))))
+            (label :class "weather-temp" :halign "start" :text {weather.temp})
+            (label :class "weather-desc" :halign "start" :text {weather.desc})))
+        (box :class "weather-details" :orientation "h" :space-evenly true
+          (box :orientation "h" :space-evenly false :halign "center"
+            (label :class "weather-detail-icon" :text "")
+            (label :class "weather-detail-text" :text "feels ''${weather.feels}"))
+          (box :orientation "h" :space-evenly false :halign "center"
+            (label :class "weather-detail-icon" :text "")
+            (label :class "weather-detail-text" :text {weather.humidity}))
+          (box :orientation "h" :space-evenly false :halign "center"
+            (label :class "weather-detail-icon" :text "")
+            (label :class "weather-detail-text" :text {weather.wind})))))
 
+    ;; ── System Info ──
+    (defwidget sysinfo-widget []
+      (box :class "card sysinfo-card" :orientation "v" :space-evenly false
+        (label :class "card-title" :halign "start" :text "  System")
+        (metric :label "CPU" :value {sysinfo.cpu} :text "''${sysinfo.cpu}%" :icon "" :css-class "metric-cpu")
+        (metric :label "RAM" :value {sysinfo.ram} :text "''${sysinfo.ram_used}G / ''${sysinfo.ram_total}G" :icon "" :css-class "metric-ram")
+        (metric :label "SYS" :value {sysinfo.sys} :text "''${sysinfo.sys_used} / ''${sysinfo.sys_total}" :icon "" :css-class "metric-sys")
+        (metric :label "DATA" :value {sysinfo.data} :text "''${sysinfo.data_used} / ''${sysinfo.data_total}" :icon "" :css-class "metric-data")
+        (box :class "sys-footer" :orientation "h" :space-evenly true
+          (box :orientation "h" :space-evenly false :halign "center"
+            (label :class "sys-footer-icon gpu-icon" :text "󰢮")
+            (label :class "sys-footer-text" :text "''${sysinfo.gpu}°C"))
+          (box :orientation "h" :space-evenly false :halign "center"
+            (label :class "sys-footer-icon net-icon" :text "")
+            (label :class "sys-footer-text" :text "↑''${sysinfo.net_up}"))
+          (box :orientation "h" :space-evenly false :halign "center"
+            (label :class "sys-footer-icon net-icon" :text "")
+            (label :class "sys-footer-text" :text "↓''${sysinfo.net_down}")))))
+
+    ;; ── Media Player (with album art & controls) ──
+    (defwidget player-widget []
+      (box :class "card player-card" :orientation "h" :space-evenly false
+        :visible {player.status != "Stopped"}
+        ;; Album art
+        (box :class "album-art"
+          :style "background-image: url('''''${player.art}');"
+          :visible {player.art != ""}
+          :width 180 :height 180)
+        ;; No art placeholder
+        (box :class "album-art album-art-placeholder"
+          :visible {player.art == ""}
+          :width 180 :height 180
+          (label :class "album-art-icon" :text ""))
+        ;; Info + controls
+        (box :class "player-info" :orientation "v" :space-evenly false :hexpand true
+          ;; Source badge
+          (label :class "player-source" :halign "start"
+            :text {player.source != "" ? "via ''${player.source}" : ""})
+          ;; Title & artist
+          (label :class "player-title" :halign "start" :limit-width 30 :text {player.title})
+          (label :class "player-artist" :halign "start" :limit-width 35
+            :text {player.album != "" ? "''${player.artist}  ''${player.album}" : player.artist})
+          ;; Progress
+          (box :class "player-progress" :orientation "v" :space-evenly false
+            (scale :class "player-scale" :min 0 :max 100 :value {player.pct} :active false :orientation "h")
+            (box :orientation "h" :space-evenly false
+              (label :class "player-time" :halign "start" :text {player.position} :hexpand true)
+              (label :class "player-time" :halign "end" :text {player.length})))
+          ;; Controls
+          (box :class "player-controls" :orientation "h" :space-evenly true :halign "center"
+            (button :class "ctrl-btn" :onclick "${pkgs.playerctl}/bin/playerctl previous" "")
+            (button :class "play-btn" :onclick "${pkgs.playerctl}/bin/playerctl play-pause"
+              {player.status == "Playing" ? "" : ""})
+            (button :class "ctrl-btn" :onclick "${pkgs.playerctl}/bin/playerctl next" "")))))
+
+    ;; ── Power Buttons ──
+    (defwidget power-widget []
+      (box :class "card power-card" :orientation "h" :space-evenly true
+        (button :class "power-btn lock-btn" :onclick "${pkgs.hyprlock}/bin/hyprlock &" "")
+        (button :class "power-btn logout-btn" :onclick "loginctl terminate-user sakost" "")
+        (button :class "power-btn reboot-btn" :onclick "systemctl reboot" "")
+        (button :class "power-btn shutdown-btn" :onclick "systemctl poweroff" "")))
+
+    ;; ── Calendar ──
     (defwidget calendar-widget []
-      (box :class "widget-box" :orientation "v" :space-evenly false
-        (label :class "section-title" :text "Calendar")
-        (label :class "content calendar-text" :text calendar_val :wrap true)))
+      (box :class "card calendar-card" :orientation "v" :space-evenly false
+        (label :class "card-title" :halign "start" :text "  Calendar")
+        (label :class "card-content calendar-text" :text calendar_val :wrap true)))
 
+    ;; ── News ──
     (defwidget news-widget []
-      (box :class "widget-box" :orientation "v" :space-evenly false
-        (label :class "section-title" :text "Hacker News")
-        (label :class "content news-text" :text news_val :wrap true)))
+      (box :class "card news-card" :orientation "v" :space-evenly false
+        (label :class "card-title" :halign "start" :text "  Hacker News")
+        (label :class "card-content news-text" :text news_val :wrap true)))
 
+    ;; ── Mako Status ──
     (defwidget mako-widget []
       (box :class "mako-status" :orientation "h" :space-evenly false :halign "center"
-        (label :text mako_val)))
+        (label :class "mako-icon" :text "")
+        (label :class "mako-text" :text mako_val)))
 
-    ;; ── Window on HDMI-A-1, bottom layer (above wallpaper, below windows) ──
+    ;; ── Window ──
     (defwindow dashboard
       :monitor "HDMI-A-1"
       :geometry (geometry :x "0%" :y "0%" :width "100%" :height "100%")
@@ -273,206 +390,422 @@ in
   '';
 
   xdg.configFile."eww/eww.scss".text = ''
-    // ${theme.name} palette
-    $bg: ${theme.rgba theme.colors.bg theme.opacity.dashboard};
-    $bg-dark: ${theme.rgba theme.colors.bg-dark 0.7};
-    $fg: ${theme.rgba theme.colors.fg 0.95};
-    $fg-dim: ${theme.rgba theme.colors.fg-dim 0.7};
-    $accent: ${theme.rgba theme.colors.accent 0.95};
-    $green: ${theme.rgba theme.colors.green 0.95};
-    $border: ${theme.rgba theme.colors.accent 0.2};
+    // TokyoNight glassmorphic palette
+    $bg: ${c.bg};
+    $bg-dark: ${c.bg-dark};
+    $bg-light: ${c.bg-light};
+    $surface0: ${c.surface0};
+    $surface1: ${c.surface1};
+    $surface2: ${c.surface2};
+    $fg: ${c.fg};
+    $fg-dim: ${c.fg-dim};
+    $fg-dark: ${c.fg-dark};
+    $accent: ${c.accent};
+    $blue: ${c.blue};
+    $magenta: ${c.magenta};
+    $cyan: ${c.cyan};
+    $green: ${c.green};
+    $yellow: ${c.yellow};
+    $red: ${c.red};
+    $orange: ${c.orange};
+    $teal: ${c.teal};
+    $white: ${c.white};
+
+    // Glass mixins
+    $glass-bg: ${rgba c.bg-light 0.55};
+    $glass-border: ${rgba c.accent 0.15};
+    $glass-glow: ${rgba c.accent 0.08};
 
     * {
       all: unset;
       font-family: "${theme.fonts.mono}", monospace;
     }
 
+    // ── Layout ──
     .dashboard {
-      padding: 40px;
+      padding: 48px 40px;
     }
 
-    .widget-box {
-      background-color: $bg;
-      border-radius: 16px;
-      padding: 20px 24px;
-      margin-bottom: 16px;
-      border: 1px solid $border;
+    .col {
+      margin: 0 10px;
+    }
+    .col-left {
+      min-width: 420px;
+    }
+    .col-center {
+      min-width: 520px;
+    }
+    .col-right {
+      min-width: 380px;
+    }
+
+    // ── Glass card ──
+    .card {
+      background-color: $glass-bg;
+      border-radius: ${toString theme.border.radius.large}px;
+      border: 1px solid $glass-border;
+      padding: 22px 26px;
+      margin-bottom: 14px;
+      box-shadow: inset 0 1px 0 0 ${rgba c.white 0.06},
+                  0 8px 32px ${rgba c.bg-dark 0.4};
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: $accent;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    .card-content {
+      font-size: 13px;
+      color: $fg;
+      line-height: 1.5;
     }
 
     // ── Clock ──
-    .clock-box {
-      padding: 32px 24px;
-
-      .time {
-        font-size: 56px;
-        font-weight: bold;
-        color: $fg;
-      }
-
-      .date {
-        font-size: 20px;
-        color: $accent;
-        margin-top: 8px;
-      }
+    .clock-card {
+      padding: 30px 30px 24px;
+      border-left: 3px solid $accent;
     }
 
-    // ── Two-column row ──
-    .two-col {
-      margin-bottom: 16px;
+    .greeting {
+      font-size: 16px;
+      color: $fg-dim;
+      margin-bottom: 4px;
+      font-weight: 500;
     }
 
-    .two-col > * {
-      margin: 0;
-      margin-bottom: 0;
+    .time-row {
+      margin: 4px 0;
     }
 
-    // ── Section titles ──
-    .section-title {
-      font-size: 15px;
+    .time {
+      font-size: 72px;
+      font-weight: 900;
+      color: $fg;
+      letter-spacing: -2px;
+    }
+
+    .time-sec {
+      font-size: 28px;
       font-weight: bold;
       color: $accent;
-      margin-bottom: 10px;
+      margin-left: 6px;
+      margin-top: 36px;
     }
 
-    .content {
+    .date {
+      font-size: 16px;
+      color: $magenta;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .uptime-row {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid ${rgba c.surface1 0.5};
+    }
+
+    .uptime-icon {
+      font-size: 14px;
+      color: $fg-dark;
+      margin-right: 8px;
+    }
+
+    .uptime-text {
       font-size: 13px;
-      color: $fg;
-      padding: 2px 0;
+      color: $fg-dark;
     }
 
-    // ── System metrics ──
+    // ── Weather ──
+    .weather-card {
+      border-left: 3px solid $cyan;
+    }
+
+    .weather-icon {
+      font-size: 56px;
+      color: $cyan;
+      margin-right: 20px;
+      min-width: 70px;
+    }
+
+    .weather-temp {
+      font-size: 36px;
+      font-weight: 900;
+      color: $fg;
+    }
+
+    .weather-desc {
+      font-size: 14px;
+      color: $fg-dim;
+      margin-top: 2px;
+    }
+
+    .weather-details {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid ${rgba c.surface1 0.5};
+    }
+
+    .weather-detail-icon {
+      font-size: 14px;
+      color: $cyan;
+      margin-right: 6px;
+    }
+
+    .weather-detail-text {
+      font-size: 12px;
+      color: $fg-dim;
+    }
+
+    // ── System Info ──
+    .sysinfo-card {
+      border-left: 3px solid $green;
+    }
+
     .metric {
-      margin: 3px 0;
+      margin: 4px 0;
+    }
+
+    .metric-icon {
+      font-size: 14px;
+      min-width: 22px;
+      margin-right: 4px;
     }
 
     .metric-label {
       font-size: 11px;
-      color: $fg-dim;
+      color: $fg-dark;
       min-width: 40px;
-      margin-right: 8px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     .metric-text {
       font-size: 11px;
       color: $fg-dim;
-      min-width: 110px;
-      margin-left: 8px;
+      min-width: 130px;
+      margin-left: 10px;
     }
 
     .metric-scale trough {
-      background-color: $bg-dark;
-      border-radius: 3px;
-      min-height: 6px;
-    }
-
-    .metric-scale trough highlight {
-      background-image: linear-gradient(to right, $accent, $green);
-      border-radius: 3px;
+      background-color: ${rgba c.surface0 0.8};
+      border-radius: 4px;
       min-height: 6px;
     }
 
     .metric-scale slider {
-      margin: 0;
-      padding: 0;
-      min-width: 0;
-      min-height: 0;
+      all: unset;
+      margin: 0; padding: 0; min-width: 0; min-height: 0;
       background-color: transparent;
     }
 
-    .stat-text-row {
-      margin-top: 6px;
+    // Per-metric colors
+    .metric-cpu .metric-icon { color: $red; }
+    .metric-cpu .metric-scale trough highlight {
+      background-image: linear-gradient(to right, $red, $orange);
+      border-radius: 4px; min-height: 6px;
     }
 
-    .stat-icon {
-      font-size: 13px;
-      color: $accent;
-      margin-right: 4px;
+    .metric-ram .metric-icon { color: $green; }
+    .metric-ram .metric-scale trough highlight {
+      background-image: linear-gradient(to right, $green, $teal);
+      border-radius: 4px; min-height: 6px;
     }
 
-    .stat-detail {
+    .metric-sys .metric-icon { color: $blue; }
+    .metric-sys .metric-scale trough highlight {
+      background-image: linear-gradient(to right, $blue, $cyan);
+      border-radius: 4px; min-height: 6px;
+    }
+
+    .metric-data .metric-icon { color: $magenta; }
+    .metric-data .metric-scale trough highlight {
+      background-image: linear-gradient(to right, $magenta, $blue);
+      border-radius: 4px; min-height: 6px;
+    }
+
+    .sys-footer {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid ${rgba c.surface1 0.5};
+    }
+
+    .sys-footer-icon {
+      font-size: 14px;
+      margin-right: 6px;
+    }
+
+    .gpu-icon { color: $green; }
+    .net-icon { color: $cyan; }
+
+    .sys-footer-text {
       font-size: 11px;
       color: $fg-dim;
-      margin-right: 12px;
     }
 
-    .stat-spacer {
-      min-width: 8px;
+    // ── Media Player ──
+    .player-card {
+      padding: 18px 22px;
+      border-left: 3px solid $magenta;
     }
 
-    // ── Media player ──
-    .player-box {
-      border-left: 3px solid $accent;
+    .album-art {
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+      border-radius: 12px;
+      min-width: 180px;
+      min-height: 180px;
+      margin-right: 22px;
+      box-shadow: 0 4px 20px ${rgba c.bg-dark 0.6};
     }
 
-    .player-icon {
-      font-size: 22px;
-      color: $accent;
-      margin-right: 14px;
-      margin-top: 2px;
+    .album-art-placeholder {
+      background-color: ${rgba c.surface0 0.6};
+    }
+
+    .album-art-icon {
+      font-size: 48px;
+      color: $fg-dark;
+    }
+
+    .player-info {
+      padding: 4px 0;
+    }
+
+    .player-source {
+      font-size: 10px;
+      color: $yellow;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
     }
 
     .player-title {
-      font-size: 14px;
-      font-weight: bold;
+      font-size: 18px;
+      font-weight: 900;
       color: $fg;
     }
 
-    .player-detail {
-      font-size: 12px;
-      color: $fg-dim;
-      margin-top: 2px;
+    .player-artist {
+      font-size: 13px;
+      color: $magenta;
+      margin-top: 3px;
+      font-weight: 600;
     }
 
-    .player-progress-row {
-      margin-top: 8px;
+    .player-progress {
+      margin-top: 14px;
+    }
+
+    .player-scale trough {
+      background-color: ${rgba c.surface0 0.8};
+      border-radius: 4px;
+      min-height: 5px;
+    }
+
+    .player-scale trough highlight {
+      background-image: linear-gradient(to right, $magenta, $blue);
+      border-radius: 4px;
+      min-height: 5px;
+    }
+
+    .player-scale slider {
+      all: unset;
+      margin: 0; padding: 0; min-width: 0; min-height: 0;
+      background-color: transparent;
     }
 
     .player-time {
       font-size: 10px;
-      color: $fg-dim;
-      min-width: 36px;
+      color: $fg-dark;
+      margin-top: 4px;
     }
 
-    .player-scale {
-      margin: 0 8px;
+    .player-controls {
+      margin-top: 12px;
+      min-width: 180px;
     }
 
-    .player-scale trough {
-      background-color: $bg-dark;
-      border-radius: 2px;
-      min-height: 4px;
+    .ctrl-btn {
+      font-size: 22px;
+      color: $fg-dark;
+      transition: color 0.2s;
+    }
+    .ctrl-btn:hover {
+      color: $fg;
     }
 
-    .player-scale trough highlight {
-      background-color: $accent;
-      border-radius: 2px;
-      min-height: 4px;
+    .play-btn {
+      font-size: 36px;
+      color: $magenta;
+      transition: color 0.2s;
+    }
+    .play-btn:hover {
+      color: $accent;
     }
 
-    .player-scale slider {
-      margin: 0;
-      padding: 0;
-      min-width: 0;
-      min-height: 0;
-      background-color: transparent;
+    // ── Power Buttons ──
+    .power-card {
+      padding: 18px 24px;
     }
 
-    // ── Calendar (dashboard) ──
+    .power-btn {
+      font-size: 28px;
+      padding: 12px 20px;
+      border-radius: 12px;
+      background-color: ${rgba c.surface0 0.4};
+      transition: background-color 0.2s;
+    }
+    .power-btn:hover {
+      background-color: ${rgba c.surface1 0.6};
+    }
+
+    .lock-btn { color: $blue; }
+    .logout-btn { color: $green; }
+    .reboot-btn { color: $yellow; }
+    .shutdown-btn { color: $red; }
+
+    // ── Calendar ──
+    .calendar-card {
+      border-left: 3px solid $yellow;
+    }
+
     .calendar-text {
-      font-size: 13px;
+      font-size: 12px;
+      line-height: 1.6;
     }
 
     // ── News ──
-    .news-text {
-      font-size: 12px;
-      padding: 4px 0;
+    .news-card {
+      border-left: 3px solid $orange;
     }
 
-    // ── Mako status footer ──
-    .mako-status {
+    .news-text {
       font-size: 12px;
-      color: $fg-dim;
-      padding: 4px 0;
+      line-height: 1.7;
+    }
+
+    // ── Mako Status ──
+    .mako-status {
+      padding: 8px 0;
+    }
+
+    .mako-icon {
+      font-size: 14px;
+      color: $fg-dark;
+      margin-right: 8px;
+    }
+
+    .mako-text {
+      font-size: 12px;
+      color: $fg-dark;
     }
   '';
 }
