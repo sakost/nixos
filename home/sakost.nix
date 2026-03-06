@@ -90,6 +90,7 @@
       libsecret
       tldr
       fd
+      ssh-to-age
     ];
   };
 
