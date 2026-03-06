@@ -17,6 +17,21 @@ in {
       };
     };
 
+    # Fix hardcoded /usr/bin/sh in libvirt's virt-secret-init-encryption.service
+    # The upstream libvirt package ships this unit with /usr/bin/sh which doesn't exist on NixOS
+    nixpkgs.overlays = [
+      (final: prev: {
+        libvirt = prev.libvirt.overrideAttrs (old: {
+          postInstall = (old.postInstall or "") + ''
+            if [ -f $out/lib/systemd/system/virt-secret-init-encryption.service ]; then
+              substituteInPlace $out/lib/systemd/system/virt-secret-init-encryption.service \
+                --replace-fail '/usr/bin/sh' '${prev.bash}/bin/bash'
+            fi
+          '';
+        });
+      })
+    ];
+
     # SPICE USB redirection — lets you pass USB devices into the VM
     virtualisation.spiceUSBRedirection.enable = true;
 
