@@ -25,7 +25,7 @@
   # SOPS - use SSH host key for age decryption (available before /home mounts)
   sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
 
-  # OpenClaw secrets (env file with API keys)
+  # OpenClaw secrets (API keys and tokens loaded via EnvironmentFile)
   sops.secrets."openclaw-env" = {
     sopsFile = ../../secrets/openclaw-env;
     format = "binary";
@@ -61,9 +61,8 @@
   ];
   nixpkgs.config.allowUnfree = true;
   nixpkgs.config.android_sdk.accept_license = true;
-  nixpkgs.config.permittedInsecurePackages = [
-    "openclaw-2026.2.26"
-  ];
+  nixpkgs.config.permittedInsecurePackages =
+    lib.optional (pkgs.openclaw.meta.insecure or false) pkgs.openclaw.name;
 
   # Automatic garbage collection
   nix.gc = {
