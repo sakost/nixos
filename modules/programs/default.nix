@@ -12,5 +12,6 @@
     ./gnome-keyring.nix
     ./cryptopro.nix
     ./virt-manager.nix
+    ./veracrypt.nix
   ];
 }
