@@ -26,6 +26,9 @@ in
     bg          = "#1a1b26";
     bg-dark     = "#15161e";
     bg-light    = "#24283b";
+    surface0    = "#292e42";
+    surface1    = "#3b4261";
+    surface2    = "#545c7e";
     fg          = "#c0caf5";
     fg-dim      = "#a9b1d6";
     fg-dark     = "#565f89";
@@ -37,6 +40,7 @@ in
     blue        = "#7aa2f7";
     magenta     = "#bb9af7";
     cyan        = "#7dcfff";
+    orange      = "#ff9e64";
     teal        = "#73daca";
     bright-cyan = "#33ccff";
     bright-green = "#00ff99";
@@ -59,6 +63,7 @@ in
       normal = 12;
       medium = 14;
       large  = 18;
+      xlarge = 24;
     };
   };
 
@@ -66,6 +71,9 @@ in
     terminal  = 0.95;
     panel     = 0.85;
     dashboard = 0.6;
+    widget    = 0.85;
+    glass     = 0.92;
+    osd       = 0.9;
   };
 
   border = {
@@ -74,6 +82,8 @@ in
       small  = 8;
       medium = 12;
       large  = 16;
+      xlarge = 24;
+      pill   = 99;
     };
   };
 }

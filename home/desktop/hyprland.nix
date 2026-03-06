@@ -244,34 +244,32 @@ in
 
       # General
       general = {
-        gaps_in = 5;
-        gaps_out = 20;
-        border_size = theme.border.width;
-        "col.active_border" = "${hyprRgba c.bright-cyan "ee"} ${hyprRgba c.bright-green "ee"} 45deg";
-        "col.inactive_border" = "rgba(595959aa)";
-        resize_on_border = false;
+        gaps_in = 4;
+        gaps_out = 8;
+        border_size = 0;
+        resize_on_border = true;
+        extend_border_grab_area = 30;
         allow_tearing = false;
         layout = "dwindle";
       };
 
       # Decoration
       decoration = {
-        rounding = 10;
+        rounding = 8;
         active_opacity = 1.0;
         inactive_opacity = 1.0;
 
         shadow = {
-          enabled = true;
-          range = 4;
-          render_power = 3;
-          color = "rgba(1a1a1aee)";
+          enabled = false;
         };
 
         blur = {
           enabled = true;
-          size = 3;
-          passes = 1;
-          vibrancy = 0.1696;
+          size = 5;
+          passes = 3;
+          noise = 0.01;
+          contrast = 0.9;
+          vibrancy = 0.17;
         };
       };
 
@@ -280,24 +278,18 @@ in
         enabled = true;
 
         bezier = [
-          "easeOutQuint, 0.23, 1, 0.32, 1"
-          "easeInOutCubic, 0.65, 0.05, 0.36, 1"
+          "snappy, 0.05, 0.9, 0.1, 1.05"
+          "smooth, 0.25, 0.1, 0.25, 1"
           "linear, 0, 0, 1, 1"
-          "almostLinear, 0.5, 0.5, 0.75, 1"
-          "quick, 0.15, 0, 0.1, 1"
         ];
 
         animation = [
-          "global, 1, 10, default"
-          "border, 1, 5.39, easeOutQuint"
-          "windows, 1, 4.79, easeOutQuint"
-          "windowsIn, 1, 4.1, easeOutQuint, popin 87%"
-          "windowsOut, 1, 1.49, linear, popin 87%"
-          "fadeIn, 1, 1.73, almostLinear"
-          "fadeOut, 1, 1.46, almostLinear"
-          "fade, 1, 3.03, quick"
-          "layers, 1, 3.81, easeOutQuint"
-          "workspaces, 1, 1.94, almostLinear, fade"
+          "windows, 1, 4, snappy, popin 80%"
+          "windowsOut, 1, 4, snappy, popin 80%"
+          "fade, 1, 3, smooth"
+          "workspaces, 1, 4, smooth, slide"
+          "specialWorkspace, 1, 4, smooth, fade"
+          "layers, 1, 3, smooth, fade"
         ];
       };
 
@@ -318,8 +310,8 @@ in
 
       # Misc
       misc = {
-        force_default_wallpaper = -1;
-        disable_hyprland_logo = false;
+        force_default_wallpaper = 0;
+        disable_hyprland_logo = true;
       };
 
       # Input
@@ -479,6 +471,16 @@ in
       #   exitOnClick = true;
       #   showNewWorkspace = true;
       # };
+
+      # Layer rules — blur behind translucent layers
+      layerrule = [
+        "blur, waybar"
+        "ignorezero, waybar"
+        "blur, walker"
+        "ignorezero, walker"
+        "blur, notifications"
+        "ignorezero, notifications"
+      ];
 
       # Window rules
       windowrule = [

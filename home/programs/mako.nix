@@ -1,23 +1,25 @@
-# Mako notification daemon with profile/mode support
+# Mako notification daemon — glassmorphic styling
 { theme, ... }:
 
 let
   c = theme.colors;
+  rgba = theme.rgba;
 in
 {
   services.mako = {
     enable = true;
 
     settings = {
-      background-color = c.bg;
+      background-color = rgba c.bg-dark 0.92;
       text-color = c.fg;
-      border-color = c.accent;
-      border-radius = theme.border.radius.small;
-      border-size = theme.border.width;
+      border-color = "rgba(255, 255, 255, 0.08)";
+      border-radius = theme.border.radius.large;
+      border-size = 1;
 
       font = "${theme.fonts.mono} ${toString theme.fonts.size.small}";
+      width = 380;
       icons = true;
-      max-visible = 5;
+      max-visible = 4;
       sort = "-time";
 
       default-timeout = 5000;

@@ -56,29 +56,29 @@ in
       }
 
       window {
-        background-color: ${rgba c.bg theme.opacity.panel};
+        background-color: ${rgba c.bg 0.75};
       }
 
       button {
         color: ${c.fg};
-        background-color: ${rgba c.bg 0.0};
+        background-color: rgba(41, 46, 66, 0.7);
         background-repeat: no-repeat;
         background-position: center;
         background-size: 25%;
-        border: ${toString theme.border.width}px solid ${rgba c.accent 0.0};
-        border-radius: ${toString theme.border.radius.large}px;
-        margin: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 20px;
+        margin: 12px;
         transition: all 0.3s ease;
       }
 
       button:hover {
-        background-color: ${rgba c.accent 0.15};
-        border: ${toString theme.border.width}px solid ${rgba c.accent 0.6};
+        background-color: rgba(59, 66, 97, 0.8);
+        border: 1px solid;
       }
 
       button:focus {
-        background-color: ${rgba c.accent 0.15};
-        border: ${toString theme.border.width}px solid ${c.accent};
+        background-color: rgba(59, 66, 97, 0.8);
+        border: 1px solid ${c.accent};
       }
 
       #lock {
@@ -86,6 +86,7 @@ in
       }
       #lock:hover {
         border-color: ${c.accent};
+        box-shadow: 0 0 15px ${rgba c.accent 0.3};
       }
 
       #logout {
@@ -93,6 +94,7 @@ in
       }
       #logout:hover {
         border-color: ${c.yellow};
+        box-shadow: 0 0 15px ${rgba c.yellow 0.3};
       }
 
       #suspend {
@@ -100,6 +102,7 @@ in
       }
       #suspend:hover {
         border-color: ${c.magenta};
+        box-shadow: 0 0 15px ${rgba c.magenta 0.3};
       }
 
       #hibernate {
@@ -107,6 +110,7 @@ in
       }
       #hibernate:hover {
         border-color: ${c.cyan};
+        box-shadow: 0 0 15px ${rgba c.cyan 0.3};
       }
 
       #reboot {
@@ -114,6 +118,7 @@ in
       }
       #reboot:hover {
         border-color: ${c.green};
+        box-shadow: 0 0 15px ${rgba c.green 0.3};
       }
 
       #shutdown {
@@ -121,6 +126,7 @@ in
       }
       #shutdown:hover {
         border-color: ${c.red};
+        box-shadow: 0 0 15px ${rgba c.red 0.3};
       }
     '';
   };
