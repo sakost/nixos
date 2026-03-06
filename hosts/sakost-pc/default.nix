@@ -53,6 +53,9 @@
   ];
   nixpkgs.config.allowUnfree = true;
   nixpkgs.config.android_sdk.accept_license = true;
+  nixpkgs.config.permittedInsecurePackages = [
+    "openclaw-2026.2.26"
+  ];
 
   # Automatic garbage collection
   nix.gc = {
