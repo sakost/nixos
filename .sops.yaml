@@ -10,3 +10,9 @@ creation_rules:
     key_groups:
       - age:
           - *sakost-pc
+
+  # OpenClaw environment file (API keys, gateway token)
+  - path_regex: secrets/openclaw-env$
+    key_groups:
+      - age:
+          - *sakost-pc

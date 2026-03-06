@@ -45,6 +45,7 @@ in
       ExecStart = "${lib.getExe pkgs.openclaw} gateway --allow-unconfigured";
       Restart = "on-failure";
       RestartSec = 5;
+      EnvironmentFile = "/run/secrets/openclaw-env";
       Environment = [
         "OPENCLAW_CONFIG_PATH=${configDir}/config.json"
         "OPENCLAW_STATE_DIR=${stateDir}"

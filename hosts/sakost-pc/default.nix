@@ -25,6 +25,14 @@
   # SOPS - use SSH host key for age decryption (available before /home mounts)
   sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
 
+  # OpenClaw secrets (env file with API keys)
+  sops.secrets."openclaw-env" = {
+    sopsFile = ../../secrets/openclaw-env;
+    format = "binary";
+    mode = "0400";
+    owner = "sakost";
+  };
+
   # Fix ownership of subvolume mount points (runs after mounts are available)
   systemd.tmpfiles.rules = [
     "z /home/sakost/games - sakost users - -"
