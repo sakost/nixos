@@ -43,6 +43,7 @@
       # Apps
       "$mainMod, Q, exec, $terminal"
       "$mainMod, C, killactive"
+      "$mainMod CTRL, C, movetoworkspacesilent, special:hidden"
       "$mainMod SHIFT, C, exec, hyprctl kill"
       "$mainMod, D, exec, hyprlock"
       "$mainMod, escape, exec, uwsm app -- wlogout"
