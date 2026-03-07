@@ -7,44 +7,44 @@ let
   c = theme.colors;
   rgba = theme.rgba;
 
-  # Nerd Font icon helper — converts Unicode codepoint to UTF-8 string
-  # Usage: nfIcon "F017" → the timer icon
-  nfIcon = hex: (builtins.fromJSON ("\"\\u" + hex + "\""));
+  # Nerd Font v3 icon helper — SMP codepoints need UTF-16 surrogate pairs
+  # Usage: nfIconSMP "DB81" "DC93" → cog icon (U+F0493)
+  nfIconSMP = high: low: builtins.fromJSON ("\"\\u" + high + "\\u" + low + "\"");
 
-  # Icons used across widgets (Nerd Font codepoints)
+  # Icons used across widgets (Nerd Font v3 Material Design codepoints)
   icons = {
-    timer     = nfIcon "F017";  #
-    temp      = nfIcon "F2C9";  #
-    water     = nfIcon "F043";  #
-    wind      = nfIcon "F72E";  #
-    sun       = nfIcon "E30D";  #
-    cloud     = nfIcon "F0C2";  #
-    cloud-sun = nfIcon "F6C4";  #
-    fog       = nfIcon "F74E";  #
-    rain      = nfIcon "F740";  #
-    snow      = nfIcon "F742";  #
-    bolt      = nfIcon "F0E7";  #
-    drizzle   = nfIcon "F738";  #
-    question  = nfIcon "F128";  #
-    cpu       = nfIcon "F2DB";  #
-    memory    = nfIcon "F538";  #
-    disk      = nfIcon "F0A0";  #
-    database  = nfIcon "F1C0";  #
-    net-up    = nfIcon "F062";  #
-    net-down  = nfIcon "F063";  #
-    music     = nfIcon "F001";  #
-    backward  = nfIcon "F04A";  #
-    forward   = nfIcon "F04E";  #
-    play      = nfIcon "F04B";  #
-    pause     = nfIcon "F04C";  #
-    lock      = nfIcon "F023";  #
-    sign-out  = nfIcon "F08B";  #
-    redo      = nfIcon "F01E";  #
-    power     = nfIcon "F011";  #
-    calendar  = nfIcon "F073";  #
-    newspaper = nfIcon "F1EA";  #
-    bell      = nfIcon "F0F3";  #
-    gear      = nfIcon "F013";  #
+    timer     = nfIconSMP "DB82" "DD54";  # 󰥔 nf-md-timer_outline
+    temp      = nfIconSMP "DB81" "DD0F";  # 󰔏 nf-md-thermometer
+    water     = nfIconSMP "DB81" "DD8C";  # 󰖌 nf-md-water
+    wind      = nfIconSMP "DB81" "DD9D";  # 󰖝 nf-md-weather_windy
+    sun       = nfIconSMP "DB81" "DD99";  # 󰖙 nf-md-weather_sunny
+    cloud     = nfIconSMP "DB80" "DD63";  # 󰅣 nf-md-cloud
+    cloud-sun = nfIconSMP "DB81" "DD95";  # 󰖕 nf-md-weather_partly_cloudy
+    fog       = nfIconSMP "DB81" "DD91";  # 󰖑 nf-md-weather_fog
+    rain      = nfIconSMP "DB81" "DD97";  # 󰖗 nf-md-weather_rainy
+    snow      = nfIconSMP "DB81" "DD98";  # 󰖘 nf-md-weather_snowy
+    bolt      = nfIconSMP "DB81" "DD93";  # 󰖓 nf-md-weather_lightning
+    drizzle   = nfIconSMP "DB81" "DD96";  # 󰖖 nf-md-weather_pouring
+    question  = nfIconSMP "DB80" "DED7";  # 󰋗 nf-md-help_circle
+    cpu       = nfIconSMP "DB80" "DDC3";  # 󰇃 nf-md-chip
+    memory    = nfIconSMP "DB80" "DF5B";  # 󰍛 nf-md-memory
+    disk      = nfIconSMP "DB80" "DECA";  # 󰋊 nf-md-harddisk
+    database  = nfIconSMP "DB80" "DDBC";  # 󰆼 nf-md-database
+    net-up    = nfIconSMP "DB80" "DC5D";  # 󰁝 nf-md-arrow_up
+    net-down  = nfIconSMP "DB80" "DC45";  # 󰁅 nf-md-arrow_down
+    music     = nfIconSMP "DB81" "DF5A";  # 󰝚 nf-md-music_note
+    backward  = nfIconSMP "DB81" "DCAE";  # 󰒮 nf-md-skip_previous
+    forward   = nfIconSMP "DB81" "DCAD";  # 󰒭 nf-md-skip_next
+    play      = nfIconSMP "DB81" "DC0A";  # 󰐊 nf-md-play
+    pause     = nfIconSMP "DB80" "DFE4";  # 󰏤 nf-md-pause
+    lock      = nfIconSMP "DB80" "DF3E";  # 󰌾 nf-md-lock
+    sign-out  = nfIconSMP "DB80" "DF43";  # 󰍃 nf-md-logout
+    redo      = nfIconSMP "DB81" "DC50";  # 󰑐 nf-md-refresh
+    power     = nfIconSMP "DB81" "DC25";  # 󰐥 nf-md-power
+    calendar  = nfIconSMP "DB80" "DCED";  # 󰃭 nf-md-calendar
+    newspaper = nfIconSMP "DB80" "DF71";  # 󰍱 nf-md-newspaper
+    bell      = nfIconSMP "DB80" "DC9A";  # 󰂚 nf-md-bell
+    gear      = nfIconSMP "DB81" "DC93";  # 󰒓 nf-md-cog
   };
 
   # ── Scripts ──────────────────────────────────────────────────────────────
@@ -521,7 +521,7 @@ in
         :visible {player.status != "Stopped"}
         ;; Album art
         (box :class "album-art"
-          :style {player.art != "" ? "background-image: url('''''${player.art}');" : ""}
+          :style {player.art != "" ? "background-image: url(" + player.art + ");" : ""}
           :visible {player.art != ""}
           :width 180 :height 180)
         ;; No art placeholder
