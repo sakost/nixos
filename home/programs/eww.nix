@@ -520,15 +520,15 @@ in
       (box :class "card player-card" :orientation "h" :space-evenly false
         :visible {player.status != "Stopped"}
         ;; Album art
-        (box :class "album-art"
-          :style {player.art != "" ? "background-image: url(" + player.art + ");" : ""}
-          :visible {player.art != ""}
-          :width 180 :height 180)
-        ;; No art placeholder
-        (box :class "album-art album-art-placeholder"
-          :visible {player.art == ""}
-          :width 180 :height 180
-          (label :class "album-art-icon" :text "${icons.music}"))
+        (box :class "album-art" :width 180 :height 180
+          (image :class "album-art-img"
+            :path {player.art != "" ? player.art : ""}
+            :visible {player.art != ""}
+            :image-width 180
+            :image-height 180)
+          (label :class "album-art-icon"
+            :visible {player.art == ""}
+            :text "${icons.music}"))
         ;; Info + controls
         (box :class "player-info" :orientation "v" :space-evenly false :hexpand true
           ;; Source badge
@@ -895,18 +895,15 @@ in
     }
 
     .album-art {
-      background-size: cover;
-      background-repeat: no-repeat;
-      background-position: center;
       border-radius: 12px;
       min-width: 180px;
       min-height: 180px;
       margin-right: 22px;
-      box-shadow: 0 4px 20px ${rgba c.bg-dark 0.6};
+      background-color: ${rgba c.surface0 0.6};
     }
 
-    .album-art-placeholder {
-      background-color: ${rgba c.surface0 0.6};
+    .album-art-img {
+      border-radius: 12px;
     }
 
     .album-art-icon {
