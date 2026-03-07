@@ -166,6 +166,132 @@ let
     hyprctl keyword monitor "$CMD"
   '';
 
+  # Wallpaper picker — browse ~/Pictures/wallpapers with walker dmenu
+  hypr-wallpaper = pkgs.writeShellScriptBin "hypr-wallpaper" ''
+    WALLPAPER_DIR="$HOME/Pictures/wallpapers"
+    NOTIFY="${pkgs.libnotify}/bin/notify-send"
+    SWWW="${pkgs.swww}/bin/swww"
+
+    if [ ! -d "$WALLPAPER_DIR" ]; then
+      mkdir -p "$WALLPAPER_DIR"
+      $NOTIFY "Wallpaper Picker" "Created $WALLPAPER_DIR — add images there"
+      exit 0
+    fi
+
+    # List image files
+    IMAGES=$(find "$WALLPAPER_DIR" -maxdepth 2 -type f \( -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.webp' \) | sort)
+
+    if [ -z "$IMAGES" ]; then
+      $NOTIFY "Wallpaper Picker" "No images found in $WALLPAPER_DIR"
+      exit 0
+    fi
+
+    # Show filenames in walker, get full path back
+    SELECTION=$(echo "$IMAGES" | sed "s|$WALLPAPER_DIR/||" | walker -d)
+    [ -z "$SELECTION" ] && exit 0
+
+    FULL_PATH="$WALLPAPER_DIR/$SELECTION"
+    [ ! -f "$FULL_PATH" ] && exit 1
+
+    # Get monitors
+    MONITORS=$(hyprctl monitors -j | ${pkgs.jq}/bin/jq -r '.[].name')
+    MON_COUNT=$(echo "$MONITORS" | wc -l)
+
+    if [ "$MON_COUNT" -gt 1 ]; then
+      ALL_OPTION="All monitors"
+      TARGET=$(printf '%s\n%s' "$ALL_OPTION" "$MONITORS" | walker -d)
+      [ -z "$TARGET" ] && exit 0
+    else
+      TARGET=$(echo "$MONITORS" | head -1)
+    fi
+
+    # Apply with swww transition
+    if [ "$TARGET" = "All monitors" ]; then
+      $SWWW img "$FULL_PATH" --transition-type grow --transition-duration 1.5
+      $NOTIFY "Wallpaper" "Applied to all monitors"
+    else
+      $SWWW img -o "$TARGET" "$FULL_PATH" --transition-type grow --transition-duration 1.5
+      $NOTIFY "Wallpaper" "Applied to $TARGET"
+    fi
+  '';
+
+  # Bluetooth manager — toggle power, scan, connect/disconnect via walker dmenu
+  hypr-bluetooth = pkgs.writeShellScriptBin "hypr-bluetooth" ''
+    NOTIFY="${pkgs.libnotify}/bin/notify-send"
+    BT="${pkgs.bluez}/bin/bluetoothctl"
+
+    # Check if bluetooth is powered on
+    POWERED=$($BT show | grep -q "Powered: yes" && echo "yes" || echo "no")
+
+    if [ "$POWERED" = "no" ]; then
+      ACTION=$(printf 'Power On\nExit' | walker -d)
+      case "$ACTION" in
+        "Power On")
+          $BT power on
+          $NOTIFY "Bluetooth" "Powered on"
+          sleep 1
+          ;;
+        *) exit 0 ;;
+      esac
+    fi
+
+    # Get paired devices
+    PAIRED=$($BT devices Paired 2>/dev/null || $BT paired-devices 2>/dev/null)
+
+    # Build menu
+    MENU="Scan for devices"
+    if [ -n "$PAIRED" ]; then
+      DEVICES=$(echo "$PAIRED" | sed 's/^Device //' | while read -r mac name; do
+        CONNECTED=$($BT info "$mac" 2>/dev/null | grep -q "Connected: yes" && echo "[connected]" || echo "")
+        echo "$name $CONNECTED ($mac)"
+      done)
+      MENU=$(printf '%s\n%s\nPower Off' "$DEVICES" "$MENU")
+    else
+      MENU=$(printf '%s\nPower Off' "$MENU")
+    fi
+
+    CHOICE=$(echo "$MENU" | walker -d)
+    [ -z "$CHOICE" ] && exit 0
+
+    case "$CHOICE" in
+      "Scan for devices")
+        $NOTIFY "Bluetooth" "Scanning for 10 seconds..."
+        $BT --timeout 10 scan on &
+        sleep 10
+        FOUND=$($BT devices | sed 's/^Device //' | while read -r mac name; do
+          echo "$name ($mac)"
+        done)
+        if [ -z "$FOUND" ]; then
+          $NOTIFY "Bluetooth" "No devices found"
+          exit 0
+        fi
+        DEV=$(echo "$FOUND" | walker -d)
+        [ -z "$DEV" ] && exit 0
+        MAC=$(echo "$DEV" | grep -oP '\(([0-9A-F:]+)\)' | tr -d '()')
+        [ -z "$MAC" ] && exit 0
+        $BT pair "$MAC" 2>/dev/null
+        $BT connect "$MAC"
+        $NOTIFY "Bluetooth" "Connected to $DEV"
+        ;;
+      "Power Off")
+        $BT power off
+        $NOTIFY "Bluetooth" "Powered off"
+        ;;
+      *)
+        # Toggle connection on selected device
+        MAC=$(echo "$CHOICE" | grep -oP '\(([0-9A-F:]+)\)' | tr -d '()')
+        [ -z "$MAC" ] && exit 0
+        if echo "$CHOICE" | grep -q "\[connected\]"; then
+          $BT disconnect "$MAC"
+          $NOTIFY "Bluetooth" "Disconnected"
+        else
+          $BT connect "$MAC"
+          $NOTIFY "Bluetooth" "Connected"
+        fi
+        ;;
+    esac
+  '';
+
   # Daemon that keeps all monitors on the same logical workspace
   # Catches desync from Waybar clicks or any other non-synced source
   hypr-ws-sync-daemon = pkgs.writeShellScriptBin "hypr-ws-sync-daemon" ''
@@ -445,7 +571,7 @@ let
 
 in
 {
-  home.packages = [ hypr-autoname hypr-sync-ws hypr-ws-sync-daemon hypr-monitor-mgr usb-notify ];
+  home.packages = [ hypr-autoname hypr-sync-ws hypr-ws-sync-daemon hypr-monitor-mgr usb-notify hypr-wallpaper hypr-bluetooth ];
 
   systemd.user.services.hyprland-autoname-workspaces = {
     Unit = {

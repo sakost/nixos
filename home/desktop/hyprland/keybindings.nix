@@ -38,6 +38,8 @@
     #   SUPER + D            — lock screen (hyprlock)
     #   SUPER + Escape       — power menu (wlogout)
     #   SUPER + M            — monitor management (resolution/refresh)
+    #   SUPER + W            — wallpaper picker
+    #   SUPER + B            — bluetooth manager
     #
     # Notifications:
     #   SUPER + N            — toggle DND mode
@@ -69,6 +71,8 @@
       "$mainMod, P, pseudo"
       "$mainMod, J, togglesplit"
       "$mainMod, M, exec, hypr-monitor-mgr"
+      "$mainMod, W, exec, hypr-wallpaper"
+      "$mainMod, B, exec, hypr-bluetooth"
 
       # Focus movement
       "$mainMod, left, movefocus, l"
