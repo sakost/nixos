@@ -6,6 +6,9 @@ let
   # hyprlock uses rgb() without the # prefix
   rgb = color: "rgb(${builtins.substring 1 6 color})";
 
+  # Nerd Font SMP icon helper — produce actual Unicode char from surrogate pair
+  nfIconSMP = high: low: (builtins.fromJSON ("\"\\u" + high + "\\u" + low + "\""));
+
   # Script: get current keyboard layout
   hyprlock-layout = pkgs.writeShellScriptBin "hyprlock-layout" ''
     LAYOUT=$(hyprctl devices -j | ${pkgs.jq}/bin/jq -r '.keyboards[] | select(.main == true) | .active_keymap' | head -n 1)
@@ -87,7 +90,7 @@ in
           font_color = rgb c.fg;
           fade_on_empty = true;
           fade_timeout = 2000;
-          placeholder_text = "<span foreground=\"#${builtins.substring 1 6 c.muted}\">Password...</span>";
+          placeholder_text = "<i>Password...</i>";
           fail_color = rgb c.error;
           fail_text = "<i>$FAIL <b>($ATTEMPTS)</b></i>";
           fail_transition = 300;
@@ -153,7 +156,7 @@ in
         # Keyboard layout + power status (right side of dock)
         {
           monitor = "";
-          text = "cmd[update:1000] echo \"<span>\U0000f11c  $(${hyprlock-layout}/bin/hyprlock-layout)</span>   <span foreground='#${builtins.substring 1 6 c.muted}'>|</span>   <span>$(${hyprlock-power}/bin/hyprlock-power)</span>\"";
+          text = "cmd[update:1000] echo \"${nfIconSMP "DB80" "DD1C"}  $(${hyprlock-layout}/bin/hyprlock-layout)   |   $(${hyprlock-power}/bin/hyprlock-power)\"";
           color = rgb c.fg-dim;
           font_size = 12;
           font_family = theme.fonts.mono;
