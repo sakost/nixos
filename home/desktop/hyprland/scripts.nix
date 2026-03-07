@@ -88,12 +88,16 @@ let
       fi
     }
 
+    # Track current names to avoid redundant renames
+    declare -A CURRENT_NAMES
+
     rename_all() {
-      # Fetch clients once, pass to jq for each workspace
-      local clients
+      # Fetch clients and workspaces in minimal calls
+      local clients workspaces
       clients=$(hyprctl clients -j)
+      workspaces=$(hyprctl workspaces -j)
       local batch=""
-      while IFS= read -r ws_id; do
+      while IFS=$'\t' read -r ws_id ws_name; do
         [[ -z "$ws_id" ]] && continue
         [[ $ws_id -lt 1 ]] && continue
 
@@ -110,29 +114,39 @@ let
           fi
         done < <(echo "$clients" | ${pkgs.jq}/bin/jq -r ".[] | select(.workspace.id == $ws_id) | .class" | sort -u)
 
+        local new_name
         if [[ -n "$icons" ]]; then
-          batch+="dispatch renameworkspace $ws_id $logical_num $icons ; "
+          new_name="$logical_num $icons"
         else
-          batch+="dispatch renameworkspace $ws_id $logical_num ; "
+          new_name="$logical_num"
         fi
-      done < <(hyprctl workspaces -j | ${pkgs.jq}/bin/jq -r '.[].id')
+
+        # Only rename if the name actually changed
+        if [[ "''${CURRENT_NAMES[$ws_id]}" != "$new_name" ]]; then
+          batch+="dispatch renameworkspace $ws_id $new_name ; "
+          CURRENT_NAMES[$ws_id]="$new_name"
+        fi
+      done < <(echo "$workspaces" | ${pkgs.jq}/bin/jq -r '.[] | "\(.id)\t\(.name)"')
       [ -n "$batch" ] && hyprctl --batch "$batch"
     }
 
     sleep 1
     rename_all
 
-    DEBOUNCE_PID=""
-    ${pkgs.socat}/bin/socat -u "UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock" - | while IFS= read -r event; do
+    DEBOUNCE_LOCK="/tmp/hypr-autoname-debounce.$$"
+    trap "rm -f $DEBOUNCE_LOCK" EXIT
+
+    while IFS= read -r event; do
       case "$event" in
         openwindow*|closewindow*|movewindow*|workspace*)
-          # Kill pending debounce timer, start a new one
-          [[ -n "$DEBOUNCE_PID" ]] && kill "$DEBOUNCE_PID" 2>/dev/null
-          ( sleep 0.05; rename_all ) &
-          DEBOUNCE_PID=$!
+          # Debounce: mark pending, skip if already waiting
+          if [[ ! -f "$DEBOUNCE_LOCK" ]]; then
+            touch "$DEBOUNCE_LOCK"
+            ( sleep 0.15; rename_all; rm -f "$DEBOUNCE_LOCK" ) &
+          fi
           ;;
       esac
-    done
+    done < <(${pkgs.socat}/bin/socat -u "UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock" -)
   '';
 
   # Interactive monitor resolution/refresh-rate picker
