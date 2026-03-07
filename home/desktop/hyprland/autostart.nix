@@ -17,8 +17,8 @@ in
       "uwsm app -- swaync"
       "uwsm app -- eww open dashboard"
       "uwsm app -- spotify"
-      "uwsm app -- ${we} --assets-dir ${weAssets} --fps=60 --screen-root=DP-2 --bg ${weWorkshop}/3470915045"
-      "uwsm app -- ${we} --assets-dir ${weAssets} --fps=60 --screen-root=HDMI-A-1 --bg ${weWorkshop}/3166146804"
+      "uwsm app -- ${we} --assets-dir ${weAssets} --fps=60 --silent --screen-root=DP-2 --bg ${weWorkshop}/3470915045"
+      "uwsm app -- ${we} --assets-dir ${weAssets} --fps=60 --silent --screen-root=HDMI-A-1 --bg ${weWorkshop}/3166146804"
     ];
   };
 

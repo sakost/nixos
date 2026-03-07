@@ -252,7 +252,7 @@ let
       kill_mpv
 
       apply_we() {
-        $WE --assets-dir "$WE_ASSETS" --fps=60 --screen-root="$1" --bg "$WE_DIR/$WE_ID" &
+        $WE --assets-dir "$WE_ASSETS" --fps=60 --silent --screen-root="$1" --bg "$WE_DIR/$WE_ID" &
         disown
       }
 
