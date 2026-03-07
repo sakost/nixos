@@ -396,7 +396,7 @@ let
     FULL_PATH="$DOCS_DIR/$CHOICE"
     [ ! -f "$FULL_PATH" ] && exit 1
 
-    alacritty --class floating-cheatsheet -e ${pkgs.glow}/bin/glow -p "$FULL_PATH"
+    alacritty --class floating-cheatsheet -e ${pkgs.mdcat}/bin/mdcat -p "$FULL_PATH"
   '';
 
   # Daemon that keeps all monitors on the same logical workspace

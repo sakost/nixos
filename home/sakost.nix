@@ -92,7 +92,7 @@
       tldr
       fd
       ssh-to-age
-      glow
+      mdcat
     ];
   };
 
