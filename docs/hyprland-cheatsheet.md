@@ -2,22 +2,29 @@
 
 Mod key: **Super** (Windows key)
 
-## Apps
+## Apps & Session
 
 | Key | Action |
 |-----|--------|
 | `Super + Q` | Open terminal (Alacritty) |
 | `Super + Space` | App launcher (Walker) |
 | `Super + E` | File manager (Nautilus) |
-| `Super + Escape` | Power menu (wlogout: logout/suspend/reboot/shutdown) |
+| `Super + D` | Lock screen (hyprlock) |
+| `Super + Escape` | Power menu (wlogout) |
+| `Power Button` | Power menu (wlogout) |
+| `Super + M` | Monitor management (resolution/refresh rate) |
+| `Super + W` | Wallpaper picker (swww) |
+| `Super + B` | Bluetooth manager |
 
 ## Windows
 
 | Key | Action |
 |-----|--------|
 | `Super + C` | Close active window |
+| `Super + Shift + C` | Force-kill (click to pick window) |
+| `Super + Ctrl + C` | Hide window to hidden workspace |
+| `Super + Ctrl + V` | Toggle hidden workspace |
 | `Super + F` | Toggle floating mode |
-| `Super + V` | Clipboard history (Walker clipboard provider) |
 | `Super + P` | Toggle pseudo-tiling |
 | `Super + J` | Toggle split direction (dwindle) |
 
@@ -29,6 +36,15 @@ Mod key: **Super** (Windows key)
 | `Super + Right` | Focus right |
 | `Super + Up` | Focus up |
 | `Super + Down` | Focus down |
+
+## Resize (Keyboard)
+
+| Key | Action |
+|-----|--------|
+| `Super + Shift + Left` | Shrink width |
+| `Super + Shift + Right` | Grow width |
+| `Super + Shift + Up` | Shrink height |
+| `Super + Shift + Down` | Grow height |
 
 ## Move / Resize (Mouse)
 
@@ -48,7 +64,7 @@ Switching workspaces syncs all monitors to the same workspace number.
 | `Super + Shift + 1-9, 0` | Move window to workspace 1-10 (focused monitor) |
 | `Super + Ctrl + Right` | Next workspace (synced across monitors) |
 | `Super + Ctrl + Left` | Previous workspace (synced across monitors) |
-| `Super + Mouse Scroll` | Cycle workspaces (focused monitor only) |
+| `Super + Mouse Scroll` | Cycle workspaces (synced across monitors) |
 
 ## Special Workspace (Scratchpad)
 
@@ -61,15 +77,17 @@ Switching workspaces syncs all monitors to the same workspace number.
 
 | Key | Action |
 |-----|--------|
-| `Super + T` | File browser (Walker files provider) |
-| `Super + TAB` | Window switcher (Walker windows provider) |
+| `Super + Space` | App launcher |
+| `Super + TAB` | Window switcher |
+| `Super + V` | Clipboard history |
+| `Super + T` | File browser |
 
-## Notifications (mako)
+## Notifications (SwayNC)
 
 | Key | Action |
 |-----|--------|
-| `Super + N` | Toggle Do Not Disturb mode |
-| `Super + Shift + N` | Toggle Work mode (reduced notifications) |
+| `Super + N` | Toggle notification center |
+| `Super + Shift + N` | Toggle Do Not Disturb |
 
 ## Screenshot
 
@@ -79,20 +97,14 @@ Switching workspaces syncs all monitors to the same workspace number.
 | `Shift + Print` | Select region, edit in Satty |
 | `Super + Print` | Select region, save to ~/Pictures |
 
-## Keyboard Layout
+## Volume & Brightness
 
 | Key | Action |
 |-----|--------|
-| `Right Alt` | Toggle US / RU layout |
-
-## Volume
-
-| Key | Action |
-|-----|--------|
-| `Volume Up` | +5% |
-| `Volume Down` | -5% |
+| `Volume Up/Down` | Adjust volume (eww OSD on focused monitor) |
 | `Mute` | Toggle mute (speaker) |
 | `Mic Mute` | Toggle mute (microphone) |
+| `Brightness Up/Down` | Adjust brightness (DDC/CI via ddcutil) |
 
 ## Media
 
@@ -101,6 +113,12 @@ Switching workspaces syncs all monitors to the same workspace number.
 | `Play/Pause` | Toggle playback |
 | `Next` | Next track |
 | `Previous` | Previous track |
+
+## Keyboard Layout
+
+| Key | Action |
+|-----|--------|
+| `Right Alt` | Toggle US / RU layout (via XKB) |
 
 ## Wlogout Keys (inside power menu)
 
@@ -115,12 +133,11 @@ Switching workspaces syncs all monitors to the same workspace number.
 
 - **hyprsplit**: Per-monitor workspace sets with synchronized switching
 - **hyprwinwrap**: Use any window as desktop wallpaper
-- **Hyprspace**: Workspace overview panel — disabled (broken with Hyprland 0.53.3, LOG → Log rename)
 
 ## Layout Info
 
 - Layout: **dwindle** (binary split)
-- Gaps: 5px inner, 20px outer
-- Border: 2px, cyan-to-green gradient (active), grey (inactive)
-- Rounding: 10px
-- New splits open right/below
+- Gaps: 4px inner, 8px outer
+- Border: 2px, accent-to-magenta gradient (active), translucent (inactive)
+- Active window shadow with accent glow
+- Inactive windows at 95% opacity
