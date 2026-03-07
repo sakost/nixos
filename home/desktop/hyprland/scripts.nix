@@ -118,6 +118,54 @@ let
     done
   '';
 
+  # Interactive monitor resolution/refresh-rate picker
+  hypr-monitor-mgr = pkgs.writeShellScriptBin "hypr-monitor-mgr" ''
+    JQ="${pkgs.jq}/bin/jq"
+    NOTIFY="${pkgs.libnotify}/bin/notify-send"
+
+    # Get monitors
+    MONITORS=$(hyprctl monitors -j | $JQ -r '.[].name')
+    MON_COUNT=$(echo "$MONITORS" | wc -l)
+
+    if [ "$MON_COUNT" -gt 1 ]; then
+      MONITOR=$(echo "$MONITORS" | walker -d)
+    else
+      MONITOR=$(echo "$MONITORS" | head -1)
+    fi
+
+    [ -z "$MONITOR" ] && exit 0
+
+    # Resolution
+    RESOLUTIONS="3840x2160
+2560x1440
+1920x1080
+1600x900
+1366x768
+1280x720"
+
+    RES=$(echo "$RESOLUTIONS" | walker -d)
+    [ -z "$RES" ] && exit 0
+
+    # Refresh rate
+    RATES="240Hz
+165Hz
+144Hz
+120Hz
+100Hz
+75Hz
+60Hz
+30Hz"
+
+    RATE_LABEL=$(echo "$RATES" | walker -d)
+    [ -z "$RATE_LABEL" ] && exit 0
+
+    RATE=''${RATE_LABEL%Hz}
+
+    CMD="$MONITOR,''${RES}@''${RATE},auto,1"
+    $NOTIFY "Display Update" "Applying: $RES @ ''${RATE}Hz on $MONITOR"
+    hyprctl keyword monitor "$CMD"
+  '';
+
   # Daemon that keeps all monitors on the same logical workspace
   # Catches desync from Waybar clicks or any other non-synced source
   hypr-ws-sync-daemon = pkgs.writeShellScriptBin "hypr-ws-sync-daemon" ''
@@ -176,9 +224,228 @@ let
       esac
     done
   '';
+  # USB device notification popup — monitors udev events and shows eww popup
+  usb-notify = pkgs.writeShellScriptBin "usb-notify" ''
+    EWW="${pkgs.eww}/bin/eww"
+    AWK="${pkgs.gawk}/bin/awk"
+    NUMFMT="${pkgs.coreutils}/bin/numfmt"
+    LSBLK="${pkgs.util-linux}/bin/lsblk"
+
+    DEBOUNCE_DIR="/tmp/usb-notify-debounce"
+    mkdir -p "$DEBOUNCE_DIR"
+    CLOSE_PID_FILE="/tmp/usb-popup-pid"
+
+    # Icons (Nerd Font via printf to survive Nix interpolation)
+    ICON_STORAGE=$(printf '\U000f0449')
+    ICON_KEYBOARD=$(printf '\U000f030c')
+    ICON_MOUSE=$(printf '\U000f037d')
+    ICON_AUDIO=$(printf '\U000f036c')
+    ICON_CAMERA=$(printf '\U000f0100')
+    ICON_USB=$(printf '\U000f0618')
+
+    # Collect already-connected devices at startup
+    declare -A KNOWN_USB_DEVICES
+    for dev in /sys/bus/usb/devices/*/idVendor; do
+      [ -f "$dev" ] || continue
+      devdir="$(dirname "$dev")"
+      devname="$(basename "$devdir")"
+      KNOWN_USB_DEVICES["$devname"]=1
+    done
+
+    declare -A KNOWN_BLOCK_DEVICES
+    for dev in /sys/class/block/*/device; do
+      [ -d "$dev" ] || continue
+      devdir="$(dirname "$dev")"
+      devname="$(basename "$devdir")"
+      KNOWN_BLOCK_DEVICES["$devname"]=1
+    done
+
+    detect_type() {
+      local syspath="$1"
+      local devtype=""
+
+      # Check bInterfaceClass for USB interface type
+      for iface in "$syspath"/*/bInterfaceClass "$syspath"/bInterfaceClass; do
+        [ -f "$iface" ] || continue
+        local class
+        class=$(cat "$iface" 2>/dev/null)
+        case "$class" in
+          08) devtype="storage"; break ;;
+          03)
+            # HID — check bInterfaceProtocol: 1=keyboard, 2=mouse
+            local proto_file
+            proto_file="$(dirname "$iface")/bInterfaceProtocol"
+            local proto
+            proto=$(cat "$proto_file" 2>/dev/null)
+            case "$proto" in
+              01) devtype="keyboard"; break ;;
+              02) devtype="mouse"; break ;;
+              *)  devtype="hid"; break ;;
+            esac
+            ;;
+          01) devtype="audio"; break ;;
+          0e) devtype="camera"; break ;;
+        esac
+      done
+
+      echo "''${devtype:-generic}"
+    }
+
+    get_icon() {
+      case "$1" in
+        storage)  echo "$ICON_STORAGE" ;;
+        keyboard) echo "$ICON_KEYBOARD" ;;
+        mouse)    echo "$ICON_MOUSE" ;;
+        audio)    echo "$ICON_AUDIO" ;;
+        camera)   echo "$ICON_CAMERA" ;;
+        *)        echo "$ICON_USB" ;;
+      esac
+    }
+
+    get_device_info() {
+      local syspath="$1"
+      local vendor="" model=""
+
+      if [ -f "$syspath/manufacturer" ]; then
+        vendor=$(cat "$syspath/manufacturer" 2>/dev/null)
+      elif [ -f "$syspath/idVendor" ]; then
+        vendor=$(cat "$syspath/idVendor" 2>/dev/null)
+      fi
+
+      if [ -f "$syspath/product" ]; then
+        model=$(cat "$syspath/product" 2>/dev/null)
+      elif [ -f "$syspath/idProduct" ]; then
+        model=$(cat "$syspath/idProduct" 2>/dev/null)
+      fi
+
+      echo "$vendor" "$model"
+    }
+
+    get_storage_size() {
+      # Find block devices associated with this USB device
+      local syspath="$1"
+      local devname
+      for blk in "$syspath"/host*/target*/*/block/*; do
+        [ -d "$blk" ] || continue
+        devname=$(basename "$blk")
+        local size
+        size=$($LSBLK -bno SIZE "/dev/$devname" 2>/dev/null | head -1)
+        if [ -n "$size" ] && [ "$size" -gt 0 ] 2>/dev/null; then
+          $NUMFMT --to=iec-i --suffix=B "$size"
+          return
+        fi
+      done
+      echo ""
+    }
+
+    show_popup() {
+      local icon="$1" title="$2" desc="$3"
+
+      $EWW update usb_icon="$icon" usb_title="$title" usb_desc="$desc"
+      $EWW open usb_popup 2>/dev/null
+
+      # Kill previous auto-close timer
+      [ -f "$CLOSE_PID_FILE" ] && kill "$(cat "$CLOSE_PID_FILE")" 2>/dev/null
+      ( sleep 5; $EWW close usb_popup 2>/dev/null ) &
+      echo $! > "$CLOSE_PID_FILE"
+    }
+
+    debounce_check() {
+      local key="$1"
+      local stamp_file="$DEBOUNCE_DIR/$key"
+      local now
+      now=$(date +%s)
+
+      if [ -f "$stamp_file" ]; then
+        local prev
+        prev=$(cat "$stamp_file")
+        if [ $((now - prev)) -lt 3 ]; then
+          return 1  # debounced
+        fi
+      fi
+      echo "$now" > "$stamp_file"
+      return 0
+    }
+
+    handle_event() {
+      local action="$1" syspath="$2" subsystem="$3"
+
+      # Extract a stable device key from the syspath
+      local devkey
+      devkey=$(basename "$syspath")
+
+      if ! debounce_check "$devkey"; then
+        return
+      fi
+
+      if [ "$action" = "add" ]; then
+        local devtype
+        devtype=$(detect_type "$syspath")
+        local icon
+        icon=$(get_icon "$devtype")
+
+        local vendor="" model=""
+        read -r vendor model <<< "$(get_device_info "$syspath")"
+
+        local desc=""
+        if [ -n "$vendor" ] && [ -n "$model" ]; then
+          desc="$vendor $model"
+        elif [ -n "$vendor" ]; then
+          desc="$vendor"
+        elif [ -n "$model" ]; then
+          desc="$model"
+        else
+          desc="Unknown device"
+        fi
+
+        # For storage devices, try to get size
+        if [ "$devtype" = "storage" ]; then
+          # Wait briefly for block device to appear
+          sleep 1
+          local size
+          size=$(get_storage_size "$syspath")
+          [ -n "$size" ] && desc="$desc ($size)"
+        fi
+
+        local title="Device Connected"
+        case "$devtype" in
+          storage)  title="Storage Connected" ;;
+          keyboard) title="Keyboard Connected" ;;
+          mouse)    title="Mouse Connected" ;;
+          audio)    title="Audio Device Connected" ;;
+          camera)   title="Camera Connected" ;;
+        esac
+
+        show_popup "$icon" "$title" "$desc"
+
+      elif [ "$action" = "remove" ]; then
+        local icon="$ICON_USB"
+        show_popup "$icon" "Device Disconnected" "A USB device was removed"
+      fi
+    }
+
+    # Monitor udev events
+    ${pkgs.systemd}/bin/udevadm monitor --udev --subsystem-match=usb --subsystem-match=block \
+      | while IFS= read -r line; do
+        # Lines look like: UDEV  [timestamp] add  /devices/pci.../usb1/... (usb)
+        if echo "$line" | grep -qE '^UDEV'; then
+          action=$(echo "$line" | $AWK '{print $3}')
+          devpath=$(echo "$line" | $AWK '{print $4}')
+          subsys=$(echo "$line" | $AWK -F '[()]' '{print $2}')
+
+          if [ "$action" = "add" ] || [ "$action" = "remove" ]; then
+            # Only handle top-level USB devices, not interfaces
+            if [ "$subsys" = "usb" ] && [ -f "/sys$devpath/idVendor" ]; then
+              handle_event "$action" "/sys$devpath" "$subsys" &
+            fi
+          fi
+        fi
+      done
+  '';
+
 in
 {
-  home.packages = [ hypr-autoname hypr-sync-ws hypr-ws-sync-daemon ];
+  home.packages = [ hypr-autoname hypr-sync-ws hypr-ws-sync-daemon hypr-monitor-mgr usb-notify ];
 
   systemd.user.services.hyprland-autoname-workspaces = {
     Unit = {
@@ -204,6 +471,20 @@ in
       ExecStart = "${hypr-ws-sync-daemon}/bin/hypr-ws-sync-daemon";
       Restart = "on-failure";
       RestartSec = 2;
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
+  };
+
+  systemd.user.services.usb-notify = {
+    Unit = {
+      Description = "USB device notification daemon";
+      PartOf = [ "graphical-session.target" ];
+      After = [ "graphical-session.target" ];
+    };
+    Service = {
+      ExecStart = "${usb-notify}/bin/usb-notify";
+      Restart = "on-failure";
+      RestartSec = 3;
     };
     Install.WantedBy = [ "graphical-session.target" ];
   };

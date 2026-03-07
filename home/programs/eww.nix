@@ -578,6 +578,28 @@ in
       :namespace "brightness_osd"
       (osd-widget))
 
+    ;; ── USB Popup ──
+    (defvar usb_icon "")
+    (defvar usb_title "Device Connected")
+    (defvar usb_desc "")
+
+    (defwidget usb-popup-widget []
+      (box :class "usb-container" :orientation "h" :space-evenly false
+           :valign "center" :halign "center"
+        (label :class "usb-icon" :text usb_icon)
+        (box :orientation "v" :space-evenly false
+          (label :class "usb-title" :halign "start" :text usb_title)
+          (label :class "usb-desc" :halign "start" :text usb_desc))))
+
+    (defwindow usb_popup
+      :monitor "DP-2"
+      :geometry (geometry :x "0%" :y "5%" :width "380px" :height "70px" :anchor "top center")
+      :stacking "overlay"
+      :exclusive false
+      :focusable false
+      :namespace "usb_popup"
+      (usb-popup-widget))
+
     ;; ── Window ──
     (defwindow dashboard
       :monitor "HDMI-A-1"
@@ -1049,6 +1071,34 @@ in
       background-color: $yellow;
       border-radius: ${toString theme.border.radius.pill}px;
       min-height: 8px;
+    }
+
+    // ── USB Popup ──
+    .usb-container {
+      background-color: $glass-bg;
+      border: 1px solid $glass-border;
+      border-radius: ${toString theme.border.radius.large}px;
+      padding: 14px 22px;
+      box-shadow: 0 4px 16px ${rgba c.bg-dark 0.5};
+    }
+
+    .usb-icon {
+      font-size: 32px;
+      color: $teal;
+      margin-right: 16px;
+      min-width: 40px;
+    }
+
+    .usb-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: $fg;
+    }
+
+    .usb-desc {
+      font-size: 12px;
+      color: $fg-dim;
+      margin-top: 2px;
     }
 
     // ── Mako Status ──

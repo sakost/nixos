@@ -37,6 +37,7 @@
     # Session:
     #   SUPER + D            — lock screen (hyprlock)
     #   SUPER + Escape       — power menu (wlogout)
+    #   SUPER + M            — monitor management (resolution/refresh)
     #
     # Notifications:
     #   SUPER + N            — toggle DND mode
@@ -67,6 +68,7 @@
       "$mainMod, space, exec, $menu"
       "$mainMod, P, pseudo"
       "$mainMod, J, togglesplit"
+      "$mainMod, M, exec, hypr-monitor-mgr"
 
       # Focus movement
       "$mainMod, left, movefocus, l"

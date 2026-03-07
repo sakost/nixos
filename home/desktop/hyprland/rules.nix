@@ -13,6 +13,8 @@
       "ignore_alpha 0.3, match:namespace volume_osd"
       "blur on, match:namespace brightness_osd"
       "ignore_alpha 0.3, match:namespace brightness_osd"
+      "blur on, match:namespace usb_popup"
+      "ignore_alpha 0.3, match:namespace usb_popup"
       "no_anim on, match:namespace usb_popup"
       "no_anim on, match:namespace bluetooth_popup"
     ];
