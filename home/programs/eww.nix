@@ -221,25 +221,33 @@ let
     MIC_VOL=$(echo "$SOURCE_INFO" | ${pkgs.gawk}/bin/awk '{printf "%.0f", $2 * 100}')
     MIC_MUTED=$(echo "$SOURCE_INFO" | grep -q MUTED && echo "true" || echo "false")
 
-    # Pick icon
+    # Pick icon (use printf for Nerd Font glyphs to survive Nix string interpolation)
+    ICON_VOL_HIGH=$(printf '\U000f057e')   # 󰕾
+    ICON_VOL_MED=$(printf '\U000f0580')    # 󰖀
+    ICON_VOL_LOW=$(printf '\U000f057f')    # 󰕿
+    ICON_VOL_MUTE=$(printf '\U000f0581')   # 󰖁
+    ICON_VOL_OFF=$(printf '\U000f0e08')    # 󰸈
+    ICON_MIC=$(printf '\U000f036c')        # 󰍬
+    ICON_MIC_OFF=$(printf '\U000f036d')    # 󰍭
+
     if [[ "$1" == "mic-mute" ]]; then
       if [[ "$MIC_MUTED" == "true" ]]; then
-        ICON=""; OSD_VAL=$MIC_VOL
+        ICON="$ICON_MIC_OFF"; OSD_VAL=$MIC_VOL
       else
-        ICON=""; OSD_VAL=$MIC_VOL
+        ICON="$ICON_MIC"; OSD_VAL=$MIC_VOL
       fi
       OSD_CLASS="osd-mic"
     else
       if [[ "$MUTED" == "true" ]]; then
-        ICON=""; OSD_VAL=$VOL
+        ICON="$ICON_VOL_MUTE"; OSD_VAL=$VOL
       elif ((VOL >= 66)); then
-        ICON=""; OSD_VAL=$VOL
+        ICON="$ICON_VOL_HIGH"; OSD_VAL=$VOL
       elif ((VOL >= 33)); then
-        ICON=""; OSD_VAL=$VOL
+        ICON="$ICON_VOL_MED"; OSD_VAL=$VOL
       elif ((VOL > 0)); then
-        ICON=""; OSD_VAL=$VOL
+        ICON="$ICON_VOL_LOW"; OSD_VAL=$VOL
       else
-        ICON=""; OSD_VAL=0
+        ICON="$ICON_VOL_OFF"; OSD_VAL=0
       fi
       OSD_CLASS="osd-vol"
     fi
@@ -384,7 +392,7 @@ in
         :visible {player.status != "Stopped"}
         ;; Album art
         (box :class "album-art"
-          :style "background-image: url('''''${player.art}');"
+          :style {player.art != "" ? "background-image: url('''''${player.art}');" : ""}
           :visible {player.art != ""}
           :width 180 :height 180)
         ;; No art placeholder
@@ -524,8 +532,7 @@ in
       border: 1px solid $glass-border;
       padding: 22px 26px;
       margin-bottom: 14px;
-      box-shadow: inset 0 1px 0 0 ${rgba c.white 0.06},
-                  0 8px 32px ${rgba c.bg-dark 0.4};
+      box-shadow: 0 8px 32px ${rgba c.bg-dark 0.4};
     }
 
     .card-title {
@@ -533,13 +540,11 @@ in
       font-weight: bold;
       color: $accent;
       margin-bottom: 12px;
-      letter-spacing: 0.5px;
     }
 
     .card-content {
       font-size: 13px;
       color: $fg;
-      line-height: 1.5;
     }
 
     // ── Clock ──
@@ -563,7 +568,6 @@ in
       font-size: 72px;
       font-weight: 900;
       color: $fg;
-      letter-spacing: -2px;
     }
 
     .time-sec {
@@ -659,8 +663,6 @@ in
       color: $fg-dark;
       min-width: 40px;
       font-weight: bold;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
 
     .metric-text {
@@ -685,25 +687,25 @@ in
     // Per-metric colors
     .metric-cpu .metric-icon { color: $red; }
     .metric-cpu .metric-scale trough highlight {
-      background-image: linear-gradient(to right, $red, $orange);
+      background-color: $red;
       border-radius: 4px; min-height: 6px;
     }
 
     .metric-ram .metric-icon { color: $green; }
     .metric-ram .metric-scale trough highlight {
-      background-image: linear-gradient(to right, $green, $teal);
+      background-color: $green;
       border-radius: 4px; min-height: 6px;
     }
 
     .metric-sys .metric-icon { color: $blue; }
     .metric-sys .metric-scale trough highlight {
-      background-image: linear-gradient(to right, $blue, $cyan);
+      background-color: $blue;
       border-radius: 4px; min-height: 6px;
     }
 
     .metric-data .metric-icon { color: $magenta; }
     .metric-data .metric-scale trough highlight {
-      background-image: linear-gradient(to right, $magenta, $blue);
+      background-color: $magenta;
       border-radius: 4px; min-height: 6px;
     }
 
@@ -760,8 +762,6 @@ in
       font-size: 10px;
       color: $yellow;
       font-weight: bold;
-      text-transform: uppercase;
-      letter-spacing: 1px;
       margin-bottom: 6px;
     }
 
@@ -789,7 +789,7 @@ in
     }
 
     .player-scale trough highlight {
-      background-image: linear-gradient(to right, $magenta, $blue);
+      background-color: $magenta;
       border-radius: 4px;
       min-height: 5px;
     }
@@ -857,7 +857,7 @@ in
 
     .calendar-text {
       font-size: 12px;
-      line-height: 1.6;
+      /* line-height not supported in GTK CSS */
     }
 
     // ── News ──
@@ -867,13 +867,12 @@ in
 
     .news-text {
       font-size: 12px;
-      line-height: 1.7;
+      /* line-height not supported in GTK CSS */
     }
 
     // ── Volume/Mic OSD ──
     .osd-container {
       background-color: ${rgba c.bg-light 0.88};
-      background-image: linear-gradient(to bottom right, ${rgba c.bg-light 0.92}, ${rgba c.bg-dark 0.82});
       border: 1px solid ${rgba c.white 0.05};
       border-radius: ${toString theme.border.radius.pill}px;
       padding: 0px 25px;
@@ -887,12 +886,10 @@ in
 
     .osd-vol .osd-icon {
       color: $accent;
-      text-shadow: 0 0 5px ${rgba c.accent 0.3};
     }
 
     .osd-mic .osd-icon {
       color: $red;
-      text-shadow: 0 0 5px ${rgba c.red 0.3};
     }
 
     .osd-text {
@@ -914,7 +911,6 @@ in
       min-height: 8px;
       margin-top: 26px;
       margin-bottom: 26px;
-      box-shadow: inset 0 0 5px ${rgba c.bg-dark 0.4};
     }
 
     .osd-vol .osd-scale trough highlight {
@@ -922,7 +918,6 @@ in
       background-color: $accent;
       border-radius: ${toString theme.border.radius.pill}px;
       min-height: 8px;
-      box-shadow: 0 0 8px ${rgba c.accent 0.5};
     }
 
     .osd-mic .osd-scale trough highlight {
@@ -930,7 +925,6 @@ in
       background-color: $red;
       border-radius: ${toString theme.border.radius.pill}px;
       min-height: 8px;
-      box-shadow: 0 0 8px ${rgba c.red 0.5};
     }
 
     // ── Mako Status ──
