@@ -160,7 +160,14 @@ let
     ARTIST=$(${pkgs.playerctl}/bin/playerctl metadata artist 2>/dev/null || echo "")
     ALBUM=$(${pkgs.playerctl}/bin/playerctl metadata album 2>/dev/null || echo "")
     ART_URL=$(${pkgs.playerctl}/bin/playerctl metadata mpris:artUrl 2>/dev/null || echo "")
-    ART_URL=''${ART_URL/file:\/\//}
+    ART_CACHE="/tmp/eww-player-art"
+    if [[ "$ART_URL" == file://* ]]; then
+      ART_URL=''${ART_URL/file:\/\//}
+    elif [[ "$ART_URL" == http://* || "$ART_URL" == https://* ]]; then
+      # Download remote art (Spotify uses https URLs)
+      ${pkgs.curl}/bin/curl -s -L --max-time 5 -o "$ART_CACHE" "$ART_URL" 2>/dev/null
+      ART_URL="$ART_CACHE"
+    fi
     PLAYER=$(${pkgs.playerctl}/bin/playerctl metadata --format '{{playerName}}' 2>/dev/null || echo "")
     PLAYER_NICE="''${PLAYER^}"
 
