@@ -474,12 +474,12 @@ in
 
       # Layer rules — blur behind translucent layers
       layerrule = [
-        "blur, waybar"
-        "ignorezero, waybar"
-        "blur, walker"
-        "ignorezero, walker"
-        "blur, notifications"
-        "ignorezero, notifications"
+        "blur on, match:namespace waybar"
+        "ignore_alpha 0.3, match:namespace waybar"
+        "blur on, match:namespace walker"
+        "ignore_alpha 0.3, match:namespace walker"
+        "blur on, match:namespace notifications"
+        "ignore_alpha 0.3, match:namespace notifications"
       ];
 
       # Window rules
