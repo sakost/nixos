@@ -186,11 +186,16 @@ let
       exit 0
     fi
 
-    # List image files
-    IMAGES=$(find "$WALLPAPER_DIR" -maxdepth 2 -type f \( -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.webp' \) | sort)
+    MPVPAPER="${pkgs.mpvpaper}/bin/mpvpaper"
+
+    # List image files (png, jpg, webp, gif) and video files (mp4, webm, mkv)
+    IMAGES=$(find "$WALLPAPER_DIR" -maxdepth 2 -type f \( \
+      -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.webp' -o -name '*.gif' \
+      -o -name '*.mp4' -o -name '*.webm' -o -name '*.mkv' \
+    \) | sort)
 
     if [ -z "$IMAGES" ]; then
-      $NOTIFY "Wallpaper Picker" "No images found in $WALLPAPER_DIR"
+      $NOTIFY "Wallpaper Picker" "No wallpapers found in $WALLPAPER_DIR"
       exit 0
     fi
 
@@ -200,6 +205,12 @@ let
 
     FULL_PATH="$WALLPAPER_DIR/$SELECTION"
     [ ! -f "$FULL_PATH" ] && exit 1
+
+    # Determine if this is a video file
+    IS_VIDEO=false
+    case "$FULL_PATH" in
+      *.mp4|*.webm|*.mkv) IS_VIDEO=true ;;
+    esac
 
     # Get monitors
     MONITORS=$(hyprctl monitors -j | ${pkgs.jq}/bin/jq -r '.[].name')
@@ -213,13 +224,34 @@ let
       TARGET=$(echo "$MONITORS" | head -1)
     fi
 
-    # Apply with swww transition
-    if [ "$TARGET" = "All monitors" ]; then
-      $SWWW img "$FULL_PATH" --transition-type grow --transition-duration 1.5
-      $NOTIFY "Wallpaper" "Applied to all monitors"
+    if [ "$IS_VIDEO" = true ]; then
+      # Kill any existing mpvpaper instances
+      pkill -x mpvpaper 2>/dev/null
+      sleep 0.3
+
+      apply_video() {
+        $MPVPAPER -o "no-audio loop" "$1" "$FULL_PATH" &
+        disown
+      }
+
+      if [ "$TARGET" = "All monitors" ]; then
+        while IFS= read -r MON; do
+          apply_video "$MON"
+        done <<< "$MONITORS"
+        $NOTIFY "Wallpaper" "Video applied to all monitors"
+      else
+        apply_video "$TARGET"
+        $NOTIFY "Wallpaper" "Video applied to $TARGET"
+      fi
     else
-      $SWWW img -o "$TARGET" "$FULL_PATH" --transition-type grow --transition-duration 1.5
-      $NOTIFY "Wallpaper" "Applied to $TARGET"
+      # Static images and GIFs — use swww (native GIF support)
+      if [ "$TARGET" = "All monitors" ]; then
+        $SWWW img "$FULL_PATH" --transition-type grow --transition-duration 1.5
+        $NOTIFY "Wallpaper" "Applied to all monitors"
+      else
+        $SWWW img -o "$TARGET" "$FULL_PATH" --transition-type grow --transition-duration 1.5
+        $NOTIFY "Wallpaper" "Applied to $TARGET"
+      fi
     fi
   '';
 
