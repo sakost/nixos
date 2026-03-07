@@ -21,6 +21,7 @@
     ./programs/wallpaper-engine.nix
     ./programs/mako.nix
     ./programs/eww.nix
+    ./programs/cava.nix
     ./programs/starship.nix
     ./programs/atuin.nix
     ./programs/yazi.nix

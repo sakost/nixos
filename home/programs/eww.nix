@@ -302,6 +302,68 @@ let
     ( sleep 2; $EWW close volume_osd 2>/dev/null ) &
     echo $! > "$PID_FILE"
   '';
+
+  # Brightness OSD script — called from Hyprland keybindings
+  # Usage: eww-brightness-osd [raise|lower]
+  # Uses ddcutil for external monitors (no backlight on desktop)
+  brightness-osd-script = pkgs.writeShellScriptBin "eww-brightness-osd" ''
+    EWW="${pkgs.eww}/bin/eww"
+    DDC="${pkgs.ddcutil}/bin/ddcutil"
+
+    ICON_HIGH=$(printf '\U000f00df')   # 󰃟 brightness-high
+    ICON_MED=$(printf '\U000f00de')    # 󰃞 brightness-medium
+    ICON_LOW=$(printf '\U000f00dd')    # 󰃝 brightness-low
+
+    # Try laptop backlight first
+    if [ -d /sys/class/backlight ]; then
+      BL=$(ls /sys/class/backlight/ 2>/dev/null | head -1)
+      if [ -n "$BL" ]; then
+        case "$1" in
+          raise) ${pkgs.brightnessctl}/bin/brightnessctl set 5%+ ;;
+          lower) ${pkgs.brightnessctl}/bin/brightnessctl set 5%- ;;
+        esac
+        BRIGHTNESS=$(${pkgs.brightnessctl}/bin/brightnessctl -m | cut -d, -f4 | tr -d %)
+      fi
+    fi
+
+    # Fallback: DDC/CI for external monitors (VCP feature 0x10 = brightness)
+    if [ -z "$BRIGHTNESS" ]; then
+      case "$1" in
+        raise)
+          CURRENT=$($DDC getvcp 10 2>/dev/null | grep -oP 'current value =\s*\K\d+' || echo 50)
+          NEW=$(( CURRENT + 5 > 100 ? 100 : CURRENT + 5 ))
+          $DDC setvcp 10 "$NEW" 2>/dev/null
+          BRIGHTNESS=$NEW
+          ;;
+        lower)
+          CURRENT=$($DDC getvcp 10 2>/dev/null | grep -oP 'current value =\s*\K\d+' || echo 50)
+          NEW=$(( CURRENT - 5 < 0 ? 0 : CURRENT - 5 ))
+          $DDC setvcp 10 "$NEW" 2>/dev/null
+          BRIGHTNESS=$NEW
+          ;;
+      esac
+    fi
+
+    [ -z "$BRIGHTNESS" ] && exit 1
+
+    # Pick icon
+    if [ "$BRIGHTNESS" -ge 66 ]; then
+      ICON="$ICON_HIGH"
+    elif [ "$BRIGHTNESS" -ge 33 ]; then
+      ICON="$ICON_MED"
+    else
+      ICON="$ICON_LOW"
+    fi
+
+    $EWW update osd_icon="$ICON" osd_value="$BRIGHTNESS" osd_class="osd-bright"
+    $EWW open brightness_osd 2>/dev/null
+
+    # Auto-hide after 2s
+    PID_FILE="/tmp/eww-bright-osd-pid"
+    [[ -f "$PID_FILE" ]] && kill "$(cat "$PID_FILE")" 2>/dev/null
+    ( sleep 2; $EWW close brightness_osd 2>/dev/null ) &
+    echo $! > "$PID_FILE"
+  '';
 in
 {
   home.packages = [
@@ -318,6 +380,8 @@ in
     greeting-script
     toggle-script
     volume-osd-script
+    brightness-osd-script
+    pkgs.ddcutil
   ];
 
   xdg.configFile."eww/eww.yuck".text = ''
@@ -503,6 +567,15 @@ in
       :exclusive false
       :focusable false
       :namespace "volume_osd"
+      (osd-widget))
+
+    (defwindow brightness_osd
+      :monitor "DP-2"
+      :geometry (geometry :x "0%" :y "85%" :width "320px" :height "60px" :anchor "top center")
+      :stacking "overlay"
+      :exclusive false
+      :focusable false
+      :namespace "brightness_osd"
       (osd-widget))
 
     ;; ── Window ──
@@ -963,6 +1036,17 @@ in
     .osd-mic .osd-scale trough highlight {
       all: unset;
       background-color: $red;
+      border-radius: ${toString theme.border.radius.pill}px;
+      min-height: 8px;
+    }
+
+    .osd-bright .osd-icon {
+      color: $yellow;
+    }
+
+    .osd-bright .osd-scale trough highlight {
+      all: unset;
+      background-color: $yellow;
       border-radius: ${toString theme.border.radius.pill}px;
       min-height: 8px;
     }

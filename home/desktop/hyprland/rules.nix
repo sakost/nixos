@@ -11,8 +11,8 @@
       "ignore_alpha 0.3, match:namespace notifications"
       "blur on, match:namespace volume_osd"
       "ignore_alpha 0.3, match:namespace volume_osd"
-      # Future OSD/popup layers (no animation for instant feedback)
-      "no_anim on, match:namespace brightness_osd"
+      "blur on, match:namespace brightness_osd"
+      "ignore_alpha 0.3, match:namespace brightness_osd"
       "no_anim on, match:namespace usb_popup"
       "no_anim on, match:namespace bluetooth_popup"
     ];

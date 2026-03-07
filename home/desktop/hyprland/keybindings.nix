@@ -117,12 +117,14 @@
       "$mainMod, mouse:273, resizewindow"
     ];
 
-    # Media keys (with volume OSD)
+    # Media keys (with volume/brightness OSD)
     bindel = [
       ", XF86AudioRaiseVolume, exec, eww-volume-osd raise"
       ", XF86AudioLowerVolume, exec, eww-volume-osd lower"
       ", XF86AudioMute, exec, eww-volume-osd mute"
       ", XF86AudioMicMute, exec, eww-volume-osd mic-mute"
+      ", XF86MonBrightnessUp, exec, eww-brightness-osd raise"
+      ", XF86MonBrightnessDown, exec, eww-brightness-osd lower"
     ];
 
     bindl = [
