@@ -16,6 +16,7 @@
     #   SUPER + P            — pseudo-tile
     #   SUPER + J            — toggle split direction
     #   SUPER + arrows       — move focus (left/right/up/down)
+    #   SUPER + SHIFT + arrows — resize window
     #   SUPER + left-click   — drag to move window
     #   SUPER + right-click  — drag to resize window
     #
@@ -128,6 +129,9 @@
       "$mainMod, TAB, exec, walker -m windows"
       "$mainMod, V, exec, walker -m clipboard"
 
+      # Power button
+      ", XF86PowerOff, exec, uwsm app -- wlogout"
+
       # Screenshot
       '', Print, exec, grim -g "$(slurp)" - | wl-copy -t image/png''
       ''SHIFT, Print, exec, grim -g "$(slurp)" - | satty -f -''
@@ -138,6 +142,14 @@
     bindm = [
       "$mainMod, mouse:272, movewindow"
       "$mainMod, mouse:273, resizewindow"
+    ];
+
+    # Repeatable: window resize with keyboard
+    binde = [
+      "$mainMod SHIFT, left, resizeactive, -50 0"
+      "$mainMod SHIFT, right, resizeactive, 50 0"
+      "$mainMod SHIFT, up, resizeactive, 0 -50"
+      "$mainMod SHIFT, down, resizeactive, 0 50"
     ];
 
     # Media keys (with volume/brightness OSD)

@@ -292,9 +292,13 @@ let
       OSD_CLASS="osd-vol"
     fi
 
-    # Update eww and show OSD
+    # Detect focused monitor for OSD placement
+    FOCUSED_MON=$(hyprctl monitors -j | ${pkgs.jq}/bin/jq -r '.[] | select(.focused == true) | .name')
+
+    # Update eww and show OSD on focused monitor
     $EWW update osd_icon="$ICON" osd_value="$OSD_VAL" osd_class="$OSD_CLASS"
-    $EWW open volume_osd 2>/dev/null
+    $EWW close volume_osd 2>/dev/null
+    $EWW open volume_osd --screen "$FOCUSED_MON" 2>/dev/null
 
     # Auto-hide after 2s (kill previous timer)
     PID_FILE="/tmp/eww-osd-pid"
@@ -309,39 +313,47 @@ let
   brightness-osd-script = pkgs.writeShellScriptBin "eww-brightness-osd" ''
     EWW="${pkgs.eww}/bin/eww"
     DDC="${pkgs.ddcutil}/bin/ddcutil"
+    CACHE="/tmp/eww-brightness-cache"
 
     ICON_HIGH=$(printf '\U000f00df')   # 󰃟 brightness-high
     ICON_MED=$(printf '\U000f00de')    # 󰃞 brightness-medium
     ICON_LOW=$(printf '\U000f00dd')    # 󰃝 brightness-low
 
-    # Try laptop backlight first
-    if [ -d /sys/class/backlight ]; then
-      BL=$(ls /sys/class/backlight/ 2>/dev/null | head -1)
-      if [ -n "$BL" ]; then
-        case "$1" in
-          raise) ${pkgs.brightnessctl}/bin/brightnessctl set 5%+ ;;
-          lower) ${pkgs.brightnessctl}/bin/brightnessctl set 5%- ;;
-        esac
-        BRIGHTNESS=$(${pkgs.brightnessctl}/bin/brightnessctl -m | cut -d, -f4 | tr -d %)
-      fi
+    BRIGHTNESS=""
+
+    # Try laptop backlight first (only if actual backlight device exists, not just LEDs)
+    BL=$(${pkgs.brightnessctl}/bin/brightnessctl -c backlight -l 2>/dev/null | grep -oP "Device '\K[^']+")
+    if [ -n "$BL" ]; then
+      case "$1" in
+        raise) ${pkgs.brightnessctl}/bin/brightnessctl -c backlight set 5%+ ;;
+        lower) ${pkgs.brightnessctl}/bin/brightnessctl -c backlight set 5%- ;;
+      esac
+      BRIGHTNESS=$(${pkgs.brightnessctl}/bin/brightnessctl -c backlight -m | cut -d, -f4 | tr -d %)
     fi
 
-    # Fallback: DDC/CI for external monitors (VCP feature 0x10 = brightness)
+    # DDC/CI for external monitors (VCP feature 0x10 = brightness)
     if [ -z "$BRIGHTNESS" ]; then
+      # Read cached value or query DDC (slow ~0.5s)
+      CURRENT=""
+      DDC_VAL=$($DDC getvcp 10 2>/dev/null | grep -oP 'current value =\s*\K\d+')
+      if [ -n "$DDC_VAL" ]; then
+        CURRENT=$DDC_VAL
+      elif [ -f "$CACHE" ]; then
+        CURRENT=$(cat "$CACHE")
+      fi
+
+      # If we still can't read it, nothing we can do
+      [ -z "$CURRENT" ] && exit 1
+
       case "$1" in
-        raise)
-          CURRENT=$($DDC getvcp 10 2>/dev/null | grep -oP 'current value =\s*\K\d+' || echo 50)
-          NEW=$(( CURRENT + 5 > 100 ? 100 : CURRENT + 5 ))
-          $DDC setvcp 10 "$NEW" 2>/dev/null
-          BRIGHTNESS=$NEW
-          ;;
-        lower)
-          CURRENT=$($DDC getvcp 10 2>/dev/null | grep -oP 'current value =\s*\K\d+' || echo 50)
-          NEW=$(( CURRENT - 5 < 0 ? 0 : CURRENT - 5 ))
-          $DDC setvcp 10 "$NEW" 2>/dev/null
-          BRIGHTNESS=$NEW
-          ;;
+        raise) NEW=$(( CURRENT + 5 > 100 ? 100 : CURRENT + 5 )) ;;
+        lower) NEW=$(( CURRENT - 5 < 0 ? 0 : CURRENT - 5 )) ;;
+        *)     NEW=$CURRENT ;;
       esac
+
+      $DDC setvcp 10 "$NEW" 2>/dev/null
+      echo "$NEW" > "$CACHE"
+      BRIGHTNESS=$NEW
     fi
 
     [ -z "$BRIGHTNESS" ] && exit 1
@@ -355,8 +367,12 @@ let
       ICON="$ICON_LOW"
     fi
 
+    # Detect focused monitor for OSD placement
+    FOCUSED_MON=$(hyprctl monitors -j | ${pkgs.jq}/bin/jq -r '.[] | select(.focused == true) | .name')
+
     $EWW update osd_icon="$ICON" osd_value="$BRIGHTNESS" osd_class="osd-bright"
-    $EWW open brightness_osd 2>/dev/null
+    $EWW close brightness_osd 2>/dev/null
+    $EWW open brightness_osd --screen "$FOCUSED_MON" 2>/dev/null
 
     # Auto-hide after 2s
     PID_FILE="/tmp/eww-bright-osd-pid"

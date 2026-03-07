@@ -41,6 +41,7 @@
     ./programs/nvtop.nix
     ./programs/onefetch.nix
     ./programs/openclaw.nix
+    ./programs/hypridle.nix
     ./desktop/hyprland
   ];
 
