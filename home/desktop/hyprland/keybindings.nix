@@ -43,7 +43,7 @@
       # Apps
       "$mainMod, Q, exec, $terminal"
       "$mainMod, C, killactive"
-      "$mainMod SHIFT, C, exec, hyprctl kill"  # force-kill: click to pick window
+      "$mainMod SHIFT, C, exec, hyprctl kill"
       "$mainMod, D, exec, hyprlock"
       "$mainMod, escape, exec, uwsm app -- wlogout"
       "$mainMod, E, exec, $fileManager"
