@@ -15,6 +15,7 @@ Mod key: **Super** (Windows key)
 | `Super + M` | Monitor management (resolution/refresh rate) |
 | `Super + W` | Wallpaper picker (swww) |
 | `Super + B` | Bluetooth manager |
+| `Super + F1` | Open cheatsheet (this file!) |
 
 ## Windows
 

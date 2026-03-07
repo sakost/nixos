@@ -41,6 +41,7 @@
     #   SUPER + M            — monitor management (resolution/refresh)
     #   SUPER + W            — wallpaper picker
     #   SUPER + B            — bluetooth manager
+    #   SUPER + F1           — open cheatsheet
     #
     # Notifications:
     #   SUPER + N            — toggle notification center
@@ -73,6 +74,7 @@
       "$mainMod, J, togglesplit"
       "$mainMod, M, exec, hypr-monitor-mgr"
       "$mainMod, W, exec, hypr-wallpaper"
+      "$mainMod, F1, exec, hypr-cheatsheet"
       "$mainMod, B, exec, hypr-bluetooth"
 
       # Focus movement

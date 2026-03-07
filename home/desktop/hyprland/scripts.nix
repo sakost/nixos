@@ -300,6 +300,23 @@ let
     esac
   '';
 
+  # Open cheatsheet markdown files in a floating terminal
+  hypr-cheatsheet = pkgs.writeShellScriptBin "hypr-cheatsheet" ''
+    DOCS_DIR="$HOME/nixos-config/docs"
+    [ ! -d "$DOCS_DIR" ] && exit 1
+
+    FILES=$(find "$DOCS_DIR" -name '*.md' -type f | sort)
+    [ -z "$FILES" ] && exit 0
+
+    CHOICE=$(echo "$FILES" | sed "s|$DOCS_DIR/||" | walker -d)
+    [ -z "$CHOICE" ] && exit 0
+
+    FULL_PATH="$DOCS_DIR/$CHOICE"
+    [ ! -f "$FULL_PATH" ] && exit 1
+
+    alacritty --class floating-cheatsheet -e ${pkgs.glow}/bin/glow -p "$FULL_PATH"
+  '';
+
   # Daemon that keeps all monitors on the same logical workspace
   # Catches desync from Waybar clicks or any other non-synced source
   hypr-ws-sync-daemon = pkgs.writeShellScriptBin "hypr-ws-sync-daemon" ''
@@ -579,7 +596,7 @@ let
 
 in
 {
-  home.packages = [ hypr-autoname hypr-sync-ws hypr-ws-sync-daemon hypr-monitor-mgr usb-notify hypr-wallpaper hypr-bluetooth ];
+  home.packages = [ hypr-autoname hypr-sync-ws hypr-ws-sync-daemon hypr-monitor-mgr usb-notify hypr-wallpaper hypr-bluetooth hypr-cheatsheet ];
 
   systemd.user.services.hyprland-autoname-workspaces = {
     Unit = {

@@ -25,6 +25,11 @@
     windowrule = [
       "suppress_event maximize, match:class .*"
 
+      # ── Cheatsheet viewer ──
+      "float on, match:class floating-cheatsheet"
+      "size 900 700, match:class floating-cheatsheet"
+      "center 1, match:class floating-cheatsheet"
+
       # ── Utilities ──
       "float on, match:class com.gabm.satty"
       "float on, match:class gsimplecal"
