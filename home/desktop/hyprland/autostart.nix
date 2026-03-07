@@ -1,5 +1,11 @@
 # Hyprland autostart programs and user services
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
+
+let
+  we = "${pkgs.linux-wallpaperengine}/bin/linux-wallpaperengine";
+  weAssets = "$HOME/games/SteamLibrary/steamapps/common/wallpaper_engine/assets";
+  weWorkshop = "$HOME/games/SteamLibrary/steamapps/workshop/content/431960";
+in
 
 {
   wayland.windowManager.hyprland.settings = {
@@ -11,6 +17,8 @@
       "uwsm app -- swaync"
       "uwsm app -- eww open dashboard"
       "uwsm app -- spotify"
+      "uwsm app -- ${we} --assets-dir ${weAssets} --fps=60 --screen-root=DP-2 --bg ${weWorkshop}/3470915045"
+      "uwsm app -- ${we} --assets-dir ${weAssets} --fps=60 --screen-root=HDMI-A-1 --bg ${weWorkshop}/3166146804"
     ];
   };
 
