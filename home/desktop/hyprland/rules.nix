@@ -29,11 +29,11 @@
       # ── Chromium-based browser notifications (open as separate tiled windows) ──
       # These have empty title or title like the site name, but window type is "notification"
       # Use initialTitle empty match and specific browser classes
-      "float on, match:initialTitle ^$, match:class ^(google-chrome|chromium|yandex-browser|brave-browser|microsoft-edge).*"
-      "no_focus on, match:initialTitle ^$, match:class ^(google-chrome|chromium|yandex-browser|brave-browser|microsoft-edge).*"
-      "pin on, match:initialTitle ^$, match:class ^(google-chrome|chromium|yandex-browser|brave-browser|microsoft-edge).*"
-      "move 100%-420 48, match:initialTitle ^$, match:class ^(google-chrome|chromium|yandex-browser|brave-browser|microsoft-edge).*"
-      "size 400 120, match:initialTitle ^$, match:class ^(google-chrome|chromium|yandex-browser|brave-browser|microsoft-edge).*"
+      "float on, match:title ^$, match:class ^(google-chrome|chromium|yandex-browser|brave-browser|microsoft-edge).*"
+      "no_focus on, match:title ^$, match:class ^(google-chrome|chromium|yandex-browser|brave-browser|microsoft-edge).*"
+      "pin on, match:title ^$, match:class ^(google-chrome|chromium|yandex-browser|brave-browser|microsoft-edge).*"
+      "move 100%-420 48, match:title ^$, match:class ^(google-chrome|chromium|yandex-browser|brave-browser|microsoft-edge).*"
+      "size 400 120, match:title ^$, match:class ^(google-chrome|chromium|yandex-browser|brave-browser|microsoft-edge).*"
 
       # ── Common floating dialogs ──
       "float on, match:class pavucontrol"
