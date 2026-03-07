@@ -7,6 +7,7 @@
     # GUI apps use "uwsm app --" to get proper systemd scope isolation
     # (prevents NOTIFY_SOCKET hijacking that can crash Hyprland)
     exec-once = [
+      "swww-daemon"
       "uwsm app -- eww open dashboard"
       "uwsm app -- spotify"
     ];

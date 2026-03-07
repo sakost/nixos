@@ -56,6 +56,7 @@ in
       general = {
         hide_cursor = true;
         grace = 3;
+        ignore_empty_input = true;
       };
 
       background = [

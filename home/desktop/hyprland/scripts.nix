@@ -83,7 +83,7 @@ let
         [[ -z "$class" ]] && continue
         local icon
         icon=$(get_icon "$class")
-        if [[ -n "$icon" && ! " $seen " == *" $icon "* ]]; then
+        if [[ -n "$icon" && " $seen " != *" $icon "* ]]; then
           icons="''${icons:+$icons }$icon"
           seen="$seen $icon"
         fi
@@ -119,12 +119,15 @@ let
   '';
 
   # Interactive monitor resolution/refresh-rate picker
+  # Preserves current position, scale, and extra flags (HDR, bitdepth, etc.)
   hypr-monitor-mgr = pkgs.writeShellScriptBin "hypr-monitor-mgr" ''
     JQ="${pkgs.jq}/bin/jq"
     NOTIFY="${pkgs.libnotify}/bin/notify-send"
 
+    MON_JSON=$(hyprctl monitors -j)
+
     # Get monitors
-    MONITORS=$(hyprctl monitors -j | $JQ -r '.[].name')
+    MONITORS=$(echo "$MON_JSON" | $JQ -r '.[].name')
     MON_COUNT=$(echo "$MONITORS" | wc -l)
 
     if [ "$MON_COUNT" -gt 1 ]; then
@@ -134,6 +137,11 @@ let
     fi
 
     [ -z "$MONITOR" ] && exit 0
+
+    # Get current settings to preserve them
+    CUR_SCALE=$(echo "$MON_JSON" | $JQ -r ".[] | select(.name == \"$MONITOR\") | .scale")
+    CUR_X=$(echo "$MON_JSON" | $JQ -r ".[] | select(.name == \"$MONITOR\") | .x")
+    CUR_Y=$(echo "$MON_JSON" | $JQ -r ".[] | select(.name == \"$MONITOR\") | .y")
 
     # Resolution
     RESOLUTIONS="3840x2160
@@ -161,8 +169,8 @@ let
 
     RATE=''${RATE_LABEL%Hz}
 
-    CMD="$MONITOR,''${RES}@''${RATE},auto,1"
-    $NOTIFY "Display Update" "Applying: $RES @ ''${RATE}Hz on $MONITOR"
+    CMD="$MONITOR,''${RES}@''${RATE},''${CUR_X}x''${CUR_Y},''${CUR_SCALE}"
+    $NOTIFY "Display Update" "Applying: $RES @ ''${RATE}Hz on $MONITOR (scale ''${CUR_SCALE})"
     hyprctl keyword monitor "$CMD"
   '';
 
@@ -267,7 +275,7 @@ let
         fi
         DEV=$(echo "$FOUND" | walker -d)
         [ -z "$DEV" ] && exit 0
-        MAC=$(echo "$DEV" | grep -oP '\(([0-9A-F:]+)\)' | tr -d '()')
+        MAC=$(echo "$DEV" | grep -oiP '\(([0-9A-Fa-f:]+)\)' | tr -d '()')
         [ -z "$MAC" ] && exit 0
         $BT pair "$MAC" 2>/dev/null
         $BT connect "$MAC"
@@ -279,7 +287,7 @@ let
         ;;
       *)
         # Toggle connection on selected device
-        MAC=$(echo "$CHOICE" | grep -oP '\(([0-9A-F:]+)\)' | tr -d '()')
+        MAC=$(echo "$CHOICE" | grep -oiP '\(([0-9A-Fa-f:]+)\)' | tr -d '()')
         [ -z "$MAC" ] && exit 0
         if echo "$CHOICE" | grep -q "\[connected\]"; then
           $BT disconnect "$MAC"
