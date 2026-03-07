@@ -177,57 +177,101 @@ let
   # Wallpaper picker — browse ~/Pictures/wallpapers with walker dmenu
   hypr-wallpaper = pkgs.writeShellScriptBin "hypr-wallpaper" ''
     WALLPAPER_DIR="$HOME/Pictures/wallpapers"
+    WE_DIR="$HOME/games/SteamLibrary/steamapps/workshop/content/431960"
+    WE_ASSETS="$HOME/games/SteamLibrary/steamapps/common/wallpaper_engine/assets"
     NOTIFY="${pkgs.libnotify}/bin/notify-send"
     SWWW="${pkgs.swww}/bin/swww"
-
-    if [ ! -d "$WALLPAPER_DIR" ]; then
-      mkdir -p "$WALLPAPER_DIR"
-      $NOTIFY "Wallpaper Picker" "Created $WALLPAPER_DIR — add images there"
-      exit 0
-    fi
-
     MPVPAPER="${pkgs.mpvpaper}/bin/mpvpaper"
+    WE="${pkgs.linux-wallpaperengine}/bin/linux-wallpaperengine"
+    JQ="${pkgs.jq}/bin/jq"
 
-    # List image files (png, jpg, webp, gif) and video files (mp4, webm, mkv)
-    IMAGES=$(find "$WALLPAPER_DIR" -maxdepth 2 -type f \( \
+    [ ! -d "$WALLPAPER_DIR" ] && mkdir -p "$WALLPAPER_DIR"
+
+    # Build picker list: regular files + Wallpaper Engine scenes
+    ENTRIES=""
+
+    # Regular wallpaper files
+    FILES=$(find "$WALLPAPER_DIR" -maxdepth 2 -type f \( \
       -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.webp' -o -name '*.gif' \
       -o -name '*.mp4' -o -name '*.webm' -o -name '*.mkv' \
-    \) | sort)
+    \) 2>/dev/null | sort)
+    if [ -n "$FILES" ]; then
+      ENTRIES=$(echo "$FILES" | sed "s|$WALLPAPER_DIR/||")
+    fi
 
-    if [ -z "$IMAGES" ]; then
-      $NOTIFY "Wallpaper Picker" "No wallpapers found in $WALLPAPER_DIR"
+    # Wallpaper Engine scenes
+    if [ -d "$WE_DIR" ]; then
+      for dir in "$WE_DIR"/*/; do
+        [ ! -d "$dir" ] && continue
+        id=$(basename "$dir")
+        title=$($JQ -r '.title // empty' "$dir/project.json" 2>/dev/null)
+        [ -z "$title" ] && title="WE #$id"
+        ENTRIES=$(printf '%s\n[WE] %s' "$ENTRIES" "$title")
+      done
+    fi
+
+    ENTRIES=$(echo "$ENTRIES" | sed '/^$/d')
+
+    if [ -z "$ENTRIES" ]; then
+      $NOTIFY "Wallpaper Picker" "No wallpapers found"
       exit 0
     fi
 
-    # Show filenames in walker, get full path back
-    SELECTION=$(echo "$IMAGES" | sed "s|$WALLPAPER_DIR/||" | walker -d)
+    SELECTION=$(echo "$ENTRIES" | walker -d)
     [ -z "$SELECTION" ] && exit 0
 
-    FULL_PATH="$WALLPAPER_DIR/$SELECTION"
-    [ ! -f "$FULL_PATH" ] && exit 1
-
-    # Determine if this is a video file
-    IS_VIDEO=false
-    case "$FULL_PATH" in
-      *.mp4|*.webm|*.mkv) IS_VIDEO=true ;;
-    esac
-
     # Get monitors
-    MONITORS=$(hyprctl monitors -j | ${pkgs.jq}/bin/jq -r '.[].name')
+    MONITORS=$(hyprctl monitors -j | $JQ -r '.[].name')
     MON_COUNT=$(echo "$MONITORS" | wc -l)
 
     if [ "$MON_COUNT" -gt 1 ]; then
-      ALL_OPTION="All monitors"
-      TARGET=$(printf '%s\n%s' "$ALL_OPTION" "$MONITORS" | walker -d)
+      TARGET=$(printf 'All monitors\n%s' "$MONITORS" | walker -d)
       [ -z "$TARGET" ] && exit 0
     else
       TARGET=$(echo "$MONITORS" | head -1)
     fi
 
-    if [ "$IS_VIDEO" = true ]; then
-      # Kill any existing mpvpaper instances
-      pkill -x mpvpaper 2>/dev/null
-      sleep 0.3
+    # Kill conflicting wallpaper backends before applying
+    kill_we() { pkill -x linux-wallpapere 2>/dev/null; sleep 0.3; }
+    kill_mpv() { pkill -x mpvpaper 2>/dev/null; sleep 0.3; }
+
+    if [[ "$SELECTION" == "[WE] "* ]]; then
+      # Wallpaper Engine scene
+      WE_TITLE="''${SELECTION#\[WE\] }"
+      WE_ID=""
+      for dir in "$WE_DIR"/*/; do
+        title=$($JQ -r '.title // empty' "$dir/project.json" 2>/dev/null)
+        if [ "$title" = "$WE_TITLE" ]; then
+          WE_ID=$(basename "$dir")
+          break
+        fi
+      done
+      [ -z "$WE_ID" ] && { $NOTIFY "Wallpaper" "Could not find WE scene"; exit 1; }
+
+      kill_we
+      kill_mpv
+
+      apply_we() {
+        $WE --assets-dir "$WE_ASSETS" --fps=60 --screen-root="$1" --bg "$WE_DIR/$WE_ID" &
+        disown
+      }
+
+      if [ "$TARGET" = "All monitors" ]; then
+        while IFS= read -r MON; do
+          apply_we "$MON"
+        done <<< "$MONITORS"
+        $NOTIFY "Wallpaper" "WE: $WE_TITLE → all monitors"
+      else
+        apply_we "$TARGET"
+        $NOTIFY "Wallpaper" "WE: $WE_TITLE → $TARGET"
+      fi
+
+    elif [[ "$SELECTION" == *.mp4 || "$SELECTION" == *.webm || "$SELECTION" == *.mkv ]]; then
+      # Video wallpaper
+      FULL_PATH="$WALLPAPER_DIR/$SELECTION"
+      [ ! -f "$FULL_PATH" ] && exit 1
+      kill_mpv
+      kill_we
 
       apply_video() {
         $MPVPAPER -o "no-audio loop" "$1" "$FULL_PATH" &
@@ -243,8 +287,14 @@ let
         apply_video "$TARGET"
         $NOTIFY "Wallpaper" "Video applied to $TARGET"
       fi
+
     else
-      # Static images and GIFs — use swww (native GIF support)
+      # Static images and GIFs — use swww
+      FULL_PATH="$WALLPAPER_DIR/$SELECTION"
+      [ ! -f "$FULL_PATH" ] && exit 1
+      kill_we
+      kill_mpv
+
       if [ "$TARGET" = "All monitors" ]; then
         $SWWW img "$FULL_PATH" --transition-type grow --transition-duration 1.5
         $NOTIFY "Wallpaper" "Applied to all monitors"

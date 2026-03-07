@@ -11,12 +11,13 @@
 
 **Setup:** Add files to `~/Pictures/wallpapers/` (up to 2 levels deep).
 
-**Supported formats:** PNG, JPG, JPEG, WebP, GIF, MP4, WebM, MKV
+**Supported formats:** PNG, JPG, JPEG, WebP, GIF, MP4, WebM, MKV, Wallpaper Engine
 
 **Notes:**
 - GIFs are animated natively by swww
 - Videos loop infinitely with no audio via mpvpaper
-- Selecting a new video wallpaper kills any existing mpvpaper instances
+- Wallpaper Engine scenes (from Steam Workshop) appear as `[WE] Title` entries
+- Selecting a new wallpaper automatically kills conflicting backends (swww/mpvpaper/WE)
 
 ## Bluetooth Manager (`Super + B`)
 
