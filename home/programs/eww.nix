@@ -7,6 +7,46 @@ let
   c = theme.colors;
   rgba = theme.rgba;
 
+  # Nerd Font icon helper — converts Unicode codepoint to UTF-8 string
+  # Usage: nfIcon "F017" → the timer icon
+  nfIcon = hex: (builtins.fromJSON ("\"\\u" + hex + "\""));
+
+  # Icons used across widgets (Nerd Font codepoints)
+  icons = {
+    timer     = nfIcon "F017";  #
+    temp      = nfIcon "F2C9";  #
+    water     = nfIcon "F043";  #
+    wind      = nfIcon "F72E";  #
+    sun       = nfIcon "E30D";  #
+    cloud     = nfIcon "F0C2";  #
+    cloud-sun = nfIcon "F6C4";  #
+    fog       = nfIcon "F74E";  #
+    rain      = nfIcon "F740";  #
+    snow      = nfIcon "F742";  #
+    bolt      = nfIcon "F0E7";  #
+    drizzle   = nfIcon "F738";  #
+    question  = nfIcon "F128";  #
+    cpu       = nfIcon "F2DB";  #
+    memory    = nfIcon "F538";  #
+    disk      = nfIcon "F0A0";  #
+    database  = nfIcon "F1C0";  #
+    net-up    = nfIcon "F062";  #
+    net-down  = nfIcon "F063";  #
+    music     = nfIcon "F001";  #
+    backward  = nfIcon "F04A";  #
+    forward   = nfIcon "F04E";  #
+    play      = nfIcon "F04B";  #
+    pause     = nfIcon "F04C";  #
+    lock      = nfIcon "F023";  #
+    sign-out  = nfIcon "F08B";  #
+    redo      = nfIcon "F01E";  #
+    power     = nfIcon "F011";  #
+    calendar  = nfIcon "F073";  #
+    newspaper = nfIcon "F1EA";  #
+    bell      = nfIcon "F0F3";  #
+    gear      = nfIcon "F013";  #
+  };
+
   # ── Scripts ──────────────────────────────────────────────────────────────
 
   weather-script = pkgs.writeShellScriptBin "eww-weather" ''
@@ -21,20 +61,20 @@ let
     CODE=$(echo "$DATA" | ${pkgs.jq}/bin/jq -r '.current.weather_code')
 
     case "$CODE" in
-      0) ICON="" DESC="Clear sky" ;;
-      1) ICON="" DESC="Mainly clear" ;;
-      2) ICON="" DESC="Partly cloudy" ;;
-      3) ICON="" DESC="Overcast" ;;
-      45|48) ICON="" DESC="Fog" ;;
-      51|53|55) ICON="" DESC="Drizzle" ;;
-      61|63|65) ICON="" DESC="Rain" ;;
-      66|67) ICON="" DESC="Freezing rain" ;;
-      71|73|75) ICON="" DESC="Snow" ;;
-      77) ICON="" DESC="Snow grains" ;;
-      80|81|82) ICON="" DESC="Showers" ;;
-      85|86) ICON="" DESC="Snow showers" ;;
-      95|96|99) ICON="" DESC="Thunderstorm" ;;
-      *) ICON="" DESC="Unknown" ;;
+      0) ICON=$(printf '\uE30D') DESC="Clear sky" ;;
+      1) ICON=$(printf '\uF6C4') DESC="Mainly clear" ;;
+      2) ICON=$(printf '\uF6C4') DESC="Partly cloudy" ;;
+      3) ICON=$(printf '\uF0C2') DESC="Overcast" ;;
+      45|48) ICON=$(printf '\uF74E') DESC="Fog" ;;
+      51|53|55) ICON=$(printf '\uF738') DESC="Drizzle" ;;
+      61|63|65) ICON=$(printf '\uF740') DESC="Rain" ;;
+      66|67) ICON=$(printf '\uF740') DESC="Freezing rain" ;;
+      71|73|75) ICON=$(printf '\uF742') DESC="Snow" ;;
+      77) ICON=$(printf '\uF742') DESC="Snow grains" ;;
+      80|81|82) ICON=$(printf '\uF740') DESC="Showers" ;;
+      85|86) ICON=$(printf '\uF742') DESC="Snow showers" ;;
+      95|96|99) ICON=$(printf '\uF0E7') DESC="Thunderstorm" ;;
+      *) ICON=$(printf '\uF128') DESC="Unknown" ;;
     esac
 
     ${pkgs.jq}/bin/jq -nc \
@@ -345,7 +385,7 @@ in
           (label :class "time-sec" :text time_sec))
         (label :class "date" :halign "start" :text date_val)
         (box :class "uptime-row" :orientation "h" :space-evenly false :halign "start"
-          (label :class "uptime-icon" :text "")
+          (label :class "uptime-icon" :text "${icons.timer}")
           (label :class "uptime-text" :text uptime_val))))
 
     ;; ── Weather ──
@@ -358,32 +398,32 @@ in
             (label :class "weather-desc" :halign "start" :text {weather.desc})))
         (box :class "weather-details" :orientation "h" :space-evenly true
           (box :orientation "h" :space-evenly false :halign "center"
-            (label :class "weather-detail-icon" :text "")
+            (label :class "weather-detail-icon" :text "${icons.temp}")
             (label :class "weather-detail-text" :text "feels ''${weather.feels}"))
           (box :orientation "h" :space-evenly false :halign "center"
-            (label :class "weather-detail-icon" :text "")
+            (label :class "weather-detail-icon" :text "${icons.water}")
             (label :class "weather-detail-text" :text {weather.humidity}))
           (box :orientation "h" :space-evenly false :halign "center"
-            (label :class "weather-detail-icon" :text "")
+            (label :class "weather-detail-icon" :text "${icons.wind}")
             (label :class "weather-detail-text" :text {weather.wind})))))
 
     ;; ── System Info ──
     (defwidget sysinfo-widget []
       (box :class "card sysinfo-card" :orientation "v" :space-evenly false
-        (label :class "card-title" :halign "start" :text "  System")
-        (metric :label "CPU" :value {sysinfo.cpu} :text "''${sysinfo.cpu}%" :icon "" :css-class "metric-cpu")
-        (metric :label "RAM" :value {sysinfo.ram} :text "''${sysinfo.ram_used}G / ''${sysinfo.ram_total}G" :icon "" :css-class "metric-ram")
-        (metric :label "SYS" :value {sysinfo.sys} :text "''${sysinfo.sys_used} / ''${sysinfo.sys_total}" :icon "" :css-class "metric-sys")
-        (metric :label "DATA" :value {sysinfo.data} :text "''${sysinfo.data_used} / ''${sysinfo.data_total}" :icon "" :css-class "metric-data")
+        (label :class "card-title" :halign "start" :text "${icons.gear}  System")
+        (metric :label "CPU" :value {sysinfo.cpu} :text "''${sysinfo.cpu}%" :icon "${icons.cpu}" :css-class "metric-cpu")
+        (metric :label "RAM" :value {sysinfo.ram} :text "''${sysinfo.ram_used}G / ''${sysinfo.ram_total}G" :icon "${icons.memory}" :css-class "metric-ram")
+        (metric :label "SYS" :value {sysinfo.sys} :text "''${sysinfo.sys_used} / ''${sysinfo.sys_total}" :icon "${icons.disk}" :css-class "metric-sys")
+        (metric :label "DATA" :value {sysinfo.data} :text "''${sysinfo.data_used} / ''${sysinfo.data_total}" :icon "${icons.database}" :css-class "metric-data")
         (box :class "sys-footer" :orientation "h" :space-evenly true
           (box :orientation "h" :space-evenly false :halign "center"
             (label :class "sys-footer-icon gpu-icon" :text "󰢮")
             (label :class "sys-footer-text" :text "''${sysinfo.gpu}°C"))
           (box :orientation "h" :space-evenly false :halign "center"
-            (label :class "sys-footer-icon net-icon" :text "")
+            (label :class "sys-footer-icon net-icon" :text "${icons.net-up}")
             (label :class "sys-footer-text" :text "↑''${sysinfo.net_up}"))
           (box :orientation "h" :space-evenly false :halign "center"
-            (label :class "sys-footer-icon net-icon" :text "")
+            (label :class "sys-footer-icon net-icon" :text "${icons.net-down}")
             (label :class "sys-footer-text" :text "↓''${sysinfo.net_down}")))))
 
     ;; ── Media Player (with album art & controls) ──
@@ -399,7 +439,7 @@ in
         (box :class "album-art album-art-placeholder"
           :visible {player.art == ""}
           :width 180 :height 180
-          (label :class "album-art-icon" :text ""))
+          (label :class "album-art-icon" :text "${icons.music}"))
         ;; Info + controls
         (box :class "player-info" :orientation "v" :space-evenly false :hexpand true
           ;; Source badge
@@ -417,35 +457,35 @@ in
               (label :class "player-time" :halign "end" :text {player.length})))
           ;; Controls
           (box :class "player-controls" :orientation "h" :space-evenly true :halign "center"
-            (button :class "ctrl-btn" :onclick "${pkgs.playerctl}/bin/playerctl previous" "")
+            (button :class "ctrl-btn" :onclick "${pkgs.playerctl}/bin/playerctl previous" "${icons.backward}")
             (button :class "play-btn" :onclick "${pkgs.playerctl}/bin/playerctl play-pause"
-              {player.status == "Playing" ? "" : ""})
-            (button :class "ctrl-btn" :onclick "${pkgs.playerctl}/bin/playerctl next" "")))))
+              {player.status == "Playing" ? "${icons.pause}" : "${icons.play}"})
+            (button :class "ctrl-btn" :onclick "${pkgs.playerctl}/bin/playerctl next" "${icons.forward}")))))
 
     ;; ── Power Buttons ──
     (defwidget power-widget []
       (box :class "card power-card" :orientation "h" :space-evenly true
-        (button :class "power-btn lock-btn" :onclick "${pkgs.hyprlock}/bin/hyprlock &" "")
-        (button :class "power-btn logout-btn" :onclick "loginctl terminate-user sakost" "")
-        (button :class "power-btn reboot-btn" :onclick "systemctl reboot" "")
-        (button :class "power-btn shutdown-btn" :onclick "systemctl poweroff" "")))
+        (button :class "power-btn lock-btn" :onclick "${pkgs.hyprlock}/bin/hyprlock &" "${icons.lock}")
+        (button :class "power-btn logout-btn" :onclick "loginctl terminate-user sakost" "${icons.sign-out}")
+        (button :class "power-btn reboot-btn" :onclick "systemctl reboot" "${icons.redo}")
+        (button :class "power-btn shutdown-btn" :onclick "systemctl poweroff" "${icons.power}")))
 
     ;; ── Calendar ──
     (defwidget calendar-widget []
       (box :class "card calendar-card" :orientation "v" :space-evenly false
-        (label :class "card-title" :halign "start" :text "  Calendar")
+        (label :class "card-title" :halign "start" :text "${icons.calendar}  Calendar")
         (label :class "card-content calendar-text" :text calendar_val :wrap true)))
 
     ;; ── News ──
     (defwidget news-widget []
       (box :class "card news-card" :orientation "v" :space-evenly false
-        (label :class "card-title" :halign "start" :text "  Hacker News")
+        (label :class "card-title" :halign "start" :text "${icons.newspaper}  Hacker News")
         (label :class "card-content news-text" :text news_val :wrap true)))
 
     ;; ── Mako Status ──
     (defwidget mako-widget []
       (box :class "mako-status" :orientation "h" :space-evenly false :halign "center"
-        (label :class "mako-icon" :text "")
+        (label :class "mako-icon" :text "${icons.bell}")
         (label :class "mako-text" :text mako_val)))
 
     ;; ── Volume/Mic OSD ──
