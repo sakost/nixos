@@ -30,83 +30,104 @@ in
     enable = true;
     systemd.enable = true;
 
-    settings = [{
-      layer = "top";
-      position = "top";
-      height = 40;
-      spacing = 0;
-      margin-top = 4;
-      margin-left = 6;
-      margin-right = 6;
-
-      modules-left = [ "hyprland/workspaces" "hyprland/window" ];
-      modules-center = [ "clock" ];
-      modules-right = [
-        "hyprland/language"
-        "pulseaudio"
-        "network"
-        "cpu"
-        "memory"
-        "tray"
-      ];
-
-      "hyprland/workspaces" = {
-        format = "{name}";
-        on-click = "activate";
-        sort-by-number = true;
-        separate-outputs = true;
-      };
-
-      "hyprland/window" = {
-        max-length = 50;
-        separate-outputs = true;
-      };
-
-      clock = {
-        format = "${icons.clock} {:%H:%M}";
-        format-alt = "${icons.calendar} {:%A, %d %B %Y   %H:%M:%S}";
-        on-click-right = "env GTK_THEME=Adwaita:dark gsimplecal";
-        tooltip = false;
-        locale = "ru_RU.UTF-8";
-        interval = 1;
-      };
-
-      "hyprland/language" = {
-        format = "{}";
-        format-en = "EN";
-        format-ru = "RU";
-      };
-
-      pulseaudio = {
-        format = "{icon} {volume}%";
-        format-muted = "${icons.vol-mute} muted";
-        format-icons = {
-          default = [ "${icons.vol-low}" "${icons.vol-med}" "${icons.vol-high}" ];
+    settings =
+    let
+      # Shared module configs reused across both bars
+      commonModules = {
+        "hyprland/workspaces" = {
+          format = "{name}";
+          on-click = "activate";
+          sort-by-number = true;
+          separate-outputs = true;
         };
-        on-click = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
+
+        "hyprland/window" = {
+          max-length = 50;
+          separate-outputs = true;
+        };
+
+        "hyprland/language" = {
+          format = "{}";
+          format-en = "EN";
+          format-ru = "RU";
+        };
+
+        pulseaudio = {
+          format = "{icon} {volume}%";
+          format-muted = "${icons.vol-mute} muted";
+          format-icons = {
+            default = [ "${icons.vol-low}" "${icons.vol-med}" "${icons.vol-high}" ];
+          };
+          on-click = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
+        };
+
+        network = {
+          format-wifi = "${icons.wifi} {essid}";
+          format-ethernet = "${icons.ethernet} {ipaddr}";
+          format-disconnected = "${icons.no-net} disconnected";
+          tooltip-format = "{ifname}: {ipaddr}/{cidr} via {gwaddr}";
+        };
+
+        cpu = {
+          format = "${icons.cpu} {usage}%";
+          interval = 5;
+        };
+
+        memory = {
+          format = "${icons.memory} {percentage}%";
+          interval = 5;
+        };
+
+        tray = {
+          spacing = 8;
+        };
       };
 
-      network = {
-        format-wifi = "${icons.wifi} {essid}";
-        format-ethernet = "${icons.ethernet} {ipaddr}";
-        format-disconnected = "${icons.no-net} disconnected";
-        tooltip-format = "{ifname}: {ipaddr}/{cidr} via {gwaddr}";
-      };
+      commonBar = {
+        layer = "top";
+        position = "top";
+        height = 40;
+        spacing = 0;
+        margin-top = 4;
+        margin-left = 6;
+        margin-right = 6;
 
-      cpu = {
-        format = "${icons.cpu} {usage}%";
-        interval = 5;
+        modules-left = [ "hyprland/workspaces" "hyprland/window" ];
+        modules-center = [ "clock" ];
+        modules-right = [
+          "hyprland/language"
+          "pulseaudio"
+          "network"
+          "cpu"
+          "memory"
+          "tray"
+        ];
       };
+    in [
+      # Primary monitor (DP-2) — time only, calendar on left-click
+      (commonBar // commonModules // {
+        output = "DP-2";
+        clock = {
+          format = "${icons.clock} {:%H:%M}";
+          on-click = "env GTK_THEME=Adwaita:dark gsimplecal";
+          tooltip = false;
+          locale = "ru_RU.UTF-8";
+          interval = 1;
+        };
+      })
 
-      memory = {
-        format = "${icons.memory} {percentage}%";
-        interval = 5;
-      };
-
-      tray = {
-        spacing = 8;
-      };
-    }];
+      # Secondary monitor (HDMI-A-1) — full datetime, calendar on left-click
+      (commonBar // commonModules // {
+        output = "HDMI-A-1";
+        clock = {
+          format = "${icons.calendar} {:%A, %d %B %Y   %H:%M:%S}";
+          on-click = "env GTK_THEME=Adwaita:dark gsimplecal";
+          tooltip = false;
+          locale = "ru_RU.UTF-8";
+          interval = 1;
+        };
+      })
+    ];
 
     style = ''
       /* ── Reset & base typography ── */

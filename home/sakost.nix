@@ -40,7 +40,7 @@
     ./programs/nvtop.nix
     ./programs/onefetch.nix
     ./programs/openclaw.nix
-    ./desktop/hyprland.nix
+    ./desktop/hyprland
   ];
 
   home = {
