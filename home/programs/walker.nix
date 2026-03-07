@@ -7,20 +7,21 @@ let
 
   themeCss = ''
     .box-wrapper {
-      background: ${rgba c.bg 0.92};
-      border: ${toString theme.border.width}px solid ${rgba c.accent 0.6};
-      border-radius: ${toString theme.border.radius.large}px;
-      padding: 8px;
+      background: ${rgba c.bg 0.95};
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
       font-family: "${theme.fonts.mono}", monospace;
       font-size: ${toString theme.fonts.size.medium}px;
       color: ${c.fg};
     }
 
     .input {
-      background: ${rgba c.bg-light 0.9};
-      border: 1px solid ${rgba c.accent 0.4};
-      border-radius: ${toString theme.border.radius.medium}px;
-      padding: 10px 16px;
+      background: ${rgba c.surface0 0.8};
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 12px 18px;
       margin: 4px 8px;
       color: ${c.fg};
       caret-color: ${c.accent};
@@ -28,7 +29,7 @@ let
     }
 
     .input:focus {
-      border-color: ${rgba c.accent 0.8};
+      border-color: ${rgba c.accent 0.5};
     }
 
     .item-box {
@@ -41,7 +42,8 @@ let
 
     child:selected .item-box,
     row:selected .item-box {
-      background: ${rgba c.accent 0.2};
+      background: linear-gradient(135deg, ${rgba c.surface1 0.8}, ${rgba c.surface0 0.6});
+      border: 1px solid ${rgba c.magenta 0.3};
       color: ${c.white};
     }
 
@@ -61,7 +63,7 @@ let
     }
 
     child:hover .item-box {
-      background: ${rgba c.accent 0.1};
+      background: ${rgba c.surface0 0.5};
     }
 
     .item-subtext {
@@ -107,8 +109,8 @@ in
       };
 
       providers = {
-        default = [ "desktopapplications" "calc" "websearch" ];
-        empty = [ "desktopapplications" ];
+        default = [ "desktopapplications" "custom_commands" "calc" "websearch" ];
+        empty = [ "desktopapplications" "custom_commands" ];
         max_results = 10;
 
         prefixes = [
@@ -120,7 +122,19 @@ in
           { prefix = "@"; provider = "websearch"; }
           { prefix = ":"; provider = "clipboard"; }
           { prefix = "$"; provider = "windows"; }
+          { prefix = "!"; provider = "custom_commands"; }
         ];
+
+        custom_commands = {
+          entries = [
+            { name = "GitHub"; cmd = "xdg-open https://github.com"; icon = "web-browser"; }
+            { name = "GitLab"; cmd = "xdg-open https://gitlab.com"; icon = "web-browser"; }
+            { name = "NixOS Search"; cmd = "xdg-open https://search.nixos.org/packages"; icon = "system-search"; }
+            { name = "Home Manager Options"; cmd = "xdg-open https://nix-community.github.io/home-manager/options.xhtml"; icon = "preferences-system"; }
+            { name = "NixOS Wiki"; cmd = "xdg-open https://wiki.nixos.org"; icon = "help-browser"; }
+            { name = "YouTube"; cmd = "xdg-open https://youtube.com"; icon = "video-display"; }
+          ];
+        };
       };
 
       keybinds = {

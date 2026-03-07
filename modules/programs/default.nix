@@ -13,5 +13,6 @@
     ./cryptopro.nix
     ./virt-manager.nix
     ./veracrypt.nix
+    ./plymouth.nix
   ];
 }

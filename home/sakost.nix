@@ -19,8 +19,9 @@
     ./programs/flutter.nix
     ./programs/steam.nix
     ./programs/wallpaper-engine.nix
-    ./programs/mako.nix
+    ./programs/swaync.nix
     ./programs/eww.nix
+    ./programs/cava.nix
     ./programs/starship.nix
     ./programs/atuin.nix
     ./programs/yazi.nix
@@ -40,7 +41,7 @@
     ./programs/nvtop.nix
     ./programs/onefetch.nix
     ./programs/openclaw.nix
-    ./desktop/hyprland.nix
+    ./desktop/hyprland
   ];
 
   home = {
@@ -91,6 +92,7 @@
       tldr
       fd
       ssh-to-age
+      glow
     ];
   };
 

@@ -77,13 +77,19 @@ sudo nixos-rebuild switch --flake .#sakost-pc
 - TPM 2.0 with systemd-initrd auto-unlock (sakost-pc)
 
 ### Desktop
-- Hyprland Wayland compositor with HDR (4K@144Hz)
-- Waybar status bar with calendar tooltip
+- Hyprland Wayland compositor with HDR (4K@144Hz on DP-2, 1080p@60 on HDMI-A-1)
+- Waybar status bar (per-monitor clock formats, media player, glassmorphic pills)
+- Eww dashboard overlay (clock, weather, system stats, media player with album art, calendar, news)
 - greetd display manager with ReGreet (GTK4 graphical greeter)
-- hyprlock lock screen
-- XDG desktop portals
-- swww wallpaper daemon
-- Walker clipboard provider (built-in, no separate cliphist needed)
+- hyprlock lock screen (screenshot blur, keyboard layout, power status)
+- SwayNC notification center (notification history, DND toggle, MPRIS media)
+- Plymouth boot splash (catppuccin-mocha theme, silent boot)
+- swww wallpaper daemon with wallpaper picker (`Super+W`)
+- Walker launcher (apps, clipboard, files, windows, calculator, custom quicklinks)
+- Bluetooth manager (`Super+B`) and monitor management (`Super+M`)
+- Volume/brightness OSD (eww, follows focused monitor, DDC/CI for external displays)
+- USB device notification popup (auto-detect type with icons)
+- Cava audio visualizer (TokyoNight gradient)
 - Telegram Desktop (autostart minimized to tray)
 
 ### Programs
@@ -100,7 +106,7 @@ sudo nixos-rebuild switch --flake .#sakost-pc
 
 ### Theme
 
-TokyoNight dark theme defined in `lib/theme.nix` and shared across all components (alacritty, waybar, mako, eww, wlogout, hyprlock, walker, starship, fzf, zathura, yazi, hyprland, greetd). All colors, fonts, opacity, and border values are centralized — edit one file to retheme everything.
+TokyoNight dark theme defined in `lib/theme.nix` and shared across all components (alacritty, waybar, swaync, eww, wlogout, hyprlock, walker, starship, fzf, zathura, yazi, hyprland, greetd, cava, plymouth). All colors, fonts, opacity, and border values are centralized — edit one file to retheme everything.
 
 ### Services
 - OpenSSH (key-only auth)
@@ -169,6 +175,10 @@ sudo nix-collect-garbage -d
 | `K` | Hover documentation |
 | `<leader>rn` | Rename symbol |
 | `<leader>ca` | Code action |
+
+## Inspiration
+
+Desktop rice (eww dashboard, USB popup, scripts, swaync styling) inspired by [ilyamiro's NixOS config](https://github.com/ilyamiro/nixos-configuration).
 
 ## License
 

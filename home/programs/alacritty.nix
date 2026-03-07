@@ -18,10 +18,11 @@ in
       };
 
       window = {
+        decorations = "None";
         opacity = theme.opacity.terminal;
         padding = {
-          x = 10;
-          y = 10;
+          x = 14;
+          y = 14;
         };
       };
 
