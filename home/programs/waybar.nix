@@ -4,6 +4,26 @@
 let
   c = theme.colors;
   rgba = theme.rgba;
+
+  # Nerd Font icon helpers — produce actual Unicode chars from hex codepoints
+  # BMP icons (U+0000–U+FFFF): 4 hex digits
+  nfIcon = hex: (builtins.fromJSON ("\"\\u" + hex + "\""));
+  # SMP icons (U+10000+): JSON surrogate pair from high+low hex strings
+  nfIconSMP = high: low: (builtins.fromJSON ("\"\\u" + high + "\\u" + low + "\""));
+
+  icons = {
+    clock     = nfIcon "f017";                 # nf-fa-clock_o
+    calendar  = nfIcon "f073";                 # nf-fa-calendar
+    vol-low   = nfIconSMP "DB81" "DD7F";       # nf-md-volume_low      U+F057F
+    vol-med   = nfIconSMP "DB81" "DD80";       # nf-md-volume_medium   U+F0580
+    vol-high  = nfIconSMP "DB81" "DD7E";       # nf-md-volume_high     U+F057E
+    vol-mute  = nfIconSMP "DB81" "DF5F";       # nf-md-volume_mute     U+F075F
+    wifi      = nfIcon "f1eb";                 # nf-fa-wifi
+    ethernet  = nfIconSMP "DB80" "DE00";       # nf-md-ethernet        U+F0200
+    no-net    = nfIcon "f127";                 # nf-fa-unlink
+    cpu       = nfIcon "f2db";                 # nf-fa-microchip
+    memory    = nfIconSMP "DB80" "DF5B";       # nf-md-memory          U+F035B
+  };
 in
 {
   programs.waybar = {
@@ -43,8 +63,8 @@ in
       };
 
       clock = {
-        format = " {:%H:%M}";
-        format-alt = " {:%A, %d %B %Y   %H:%M:%S}";
+        format = "${icons.clock} {:%H:%M}";
+        format-alt = "${icons.calendar} {:%A, %d %B %Y   %H:%M:%S}";
         on-click-right = "env GTK_THEME=Adwaita:dark gsimplecal";
         tooltip = false;
         locale = "ru_RU.UTF-8";
@@ -59,27 +79,27 @@ in
 
       pulseaudio = {
         format = "{icon} {volume}%";
-        format-muted = " muted";
+        format-muted = "${icons.vol-mute} muted";
         format-icons = {
-          default = [ "" "" "" ];
+          default = [ "${icons.vol-low}" "${icons.vol-med}" "${icons.vol-high}" ];
         };
         on-click = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
       };
 
       network = {
-        format-wifi = " {essid}";
-        format-ethernet = " {ipaddr}";
-        format-disconnected = " disconnected";
+        format-wifi = "${icons.wifi} {essid}";
+        format-ethernet = "${icons.ethernet} {ipaddr}";
+        format-disconnected = "${icons.no-net} disconnected";
         tooltip-format = "{ifname}: {ipaddr}/{cidr} via {gwaddr}";
       };
 
       cpu = {
-        format = " {usage}%";
+        format = "${icons.cpu} {usage}%";
         interval = 5;
       };
 
       memory = {
-        format = " {percentage}%";
+        format = "${icons.memory} {percentage}%";
         interval = 5;
       };
 
