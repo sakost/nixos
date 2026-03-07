@@ -61,36 +61,6 @@ let
       esac
     }
 
-    rename_workspace() {
-      local ws_id=$1
-      [[ $ws_id -lt 1 ]] && return 0
-
-      # Display logical workspace number (1-N) instead of internal ID
-      local logical_num=$(( ((ws_id - 1) % NUM_WS) + 1 ))
-
-      # Build icon string from client classes (deduplicated)
-      local icons=""
-      local seen=""
-      while IFS= read -r class; do
-        [[ -z "$class" ]] && continue
-        local icon
-        icon=$(get_icon "$class")
-        if [[ -n "$icon" && " $seen " != *" $icon "* ]]; then
-          icons="''${icons:+$icons }$icon"
-          seen="$seen $icon"
-        fi
-      done < <(hyprctl clients -j | ${pkgs.jq}/bin/jq -r ".[] | select(.workspace.id == $ws_id) | .class" | sort -u)
-
-      if [[ -n "$icons" ]]; then
-        hyprctl dispatch renameworkspace "$ws_id" "$logical_num $icons"
-      else
-        hyprctl dispatch renameworkspace "$ws_id" "$logical_num"
-      fi
-    }
-
-    # Track current names to avoid redundant renames
-    declare -A CURRENT_NAMES
-
     rename_all() {
       # Fetch clients and workspaces in minimal calls
       local clients workspaces
@@ -121,10 +91,9 @@ let
           new_name="$logical_num"
         fi
 
-        # Only rename if the name actually changed
-        if [[ "''${CURRENT_NAMES[$ws_id]}" != "$new_name" ]]; then
+        # Only rename if the name actually changed (compare to current from hyprctl)
+        if [[ "$ws_name" != "$new_name" ]]; then
           batch+="dispatch renameworkspace $ws_id $new_name ; "
-          CURRENT_NAMES[$ws_id]="$new_name"
         fi
       done < <(echo "$workspaces" | ${pkgs.jq}/bin/jq -r '.[] | "\(.id)\t\(.name)"')
       [ -n "$batch" ] && hyprctl --batch "$batch"
@@ -435,7 +404,6 @@ let
   hypr-ws-sync-daemon = pkgs.writeShellScriptBin "hypr-ws-sync-daemon" ''
     NUM_WS=${toString numWorkspaces}
     LOCK="/tmp/hypr-ws-sync-$$.lock"
-    trap "rm -f $LOCK" EXIT
 
     sync_if_needed() {
       # Cooldown: skip if we just synced (prevents loops from our own events)
@@ -478,15 +446,20 @@ let
       fi
     }
 
+    DEBOUNCE_LOCK="/tmp/hypr-ws-sync-debounce.$$"
+    trap "rm -f $LOCK $DEBOUNCE_LOCK" EXIT
+
     sleep 2
-    ${pkgs.socat}/bin/socat -u "UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock" - | while IFS= read -r event; do
+    while IFS= read -r event; do
       case "$event" in
         workspace*)
-          sleep 0.1
-          sync_if_needed
+          if [[ ! -f "$DEBOUNCE_LOCK" ]]; then
+            touch "$DEBOUNCE_LOCK"
+            ( sleep 0.3; sync_if_needed; rm -f "$DEBOUNCE_LOCK" ) &
+          fi
           ;;
       esac
-    done
+    done < <(${pkgs.socat}/bin/socat -u "UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock" -)
   '';
   # USB device notification popup — monitors udev events and shows eww popup
   usb-notify = pkgs.writeShellScriptBin "usb-notify" ''
