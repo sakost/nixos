@@ -232,8 +232,8 @@ let
     fi
 
     # Kill conflicting wallpaper backends before applying
-    kill_we() { pkill -x linux-wallpapere 2>/dev/null; sleep 0.3; }
-    kill_mpv() { pkill -x mpvpaper 2>/dev/null; sleep 0.3; }
+    kill_we() { pkill -f linux-wallpaperengine 2>/dev/null; sleep 0.3; }
+    kill_mpv() { pkill -f mpvpaper 2>/dev/null; sleep 0.3; }
 
     if [[ "$SELECTION" == "[WE] "* ]]; then
       # Wallpaper Engine scene
