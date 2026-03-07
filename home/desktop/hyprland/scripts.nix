@@ -33,14 +33,6 @@ let
     BATCH+="dispatch focusmonitor $FOCUSED_MON ; dispatch split:workspace $TARGET"
 
     hyprctl --batch "$BATCH"
-
-    # Immediately rename active workspaces to prevent brief display of internal IDs (e.g. 11 instead of 1)
-    RENAME_BATCH=""
-    for WS_ID in $(hyprctl -j monitors | ${pkgs.jq}/bin/jq -r '.[].activeWorkspace.id'); do
-      LOGICAL=$(( ((WS_ID - 1) % NUM_WS) + 1 ))
-      RENAME_BATCH+="dispatch renameworkspace $WS_ID $LOGICAL ; "
-    done
-    [ -n "$RENAME_BATCH" ] && hyprctl --batch "$RENAME_BATCH"
   '';
 
   # Custom workspace auto-namer: adds app icons next to workspace numbers
@@ -97,22 +89,47 @@ let
     }
 
     rename_all() {
-      local ws_ids
-      ws_ids=$(hyprctl workspaces -j | ${pkgs.jq}/bin/jq -r '.[].id')
+      # Fetch clients once, pass to jq for each workspace
+      local clients
+      clients=$(hyprctl clients -j)
+      local batch=""
       while IFS= read -r ws_id; do
         [[ -z "$ws_id" ]] && continue
-        rename_workspace "$ws_id"
-      done <<< "$ws_ids"
+        [[ $ws_id -lt 1 ]] && continue
+
+        local logical_num=$(( ((ws_id - 1) % NUM_WS) + 1 ))
+        local icons=""
+        local seen=""
+        while IFS= read -r class; do
+          [[ -z "$class" ]] && continue
+          local icon
+          icon=$(get_icon "$class")
+          if [[ -n "$icon" && " $seen " != *" $icon "* ]]; then
+            icons="''${icons:+$icons }$icon"
+            seen="$seen $icon"
+          fi
+        done < <(echo "$clients" | ${pkgs.jq}/bin/jq -r ".[] | select(.workspace.id == $ws_id) | .class" | sort -u)
+
+        if [[ -n "$icons" ]]; then
+          batch+="dispatch renameworkspace $ws_id $logical_num $icons ; "
+        else
+          batch+="dispatch renameworkspace $ws_id $logical_num ; "
+        fi
+      done < <(hyprctl workspaces -j | ${pkgs.jq}/bin/jq -r '.[].id')
+      [ -n "$batch" ] && hyprctl --batch "$batch"
     }
 
     sleep 1
     rename_all
 
+    DEBOUNCE_PID=""
     ${pkgs.socat}/bin/socat -u "UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock" - | while IFS= read -r event; do
       case "$event" in
         openwindow*|closewindow*|movewindow*|workspace*)
-          sleep 0.15
-          rename_all
+          # Kill pending debounce timer, start a new one
+          [[ -n "$DEBOUNCE_PID" ]] && kill "$DEBOUNCE_PID" 2>/dev/null
+          ( sleep 0.05; rename_all ) &
+          DEBOUNCE_PID=$!
           ;;
       esac
     done
