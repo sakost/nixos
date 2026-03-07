@@ -197,6 +197,63 @@ let
       ${pkgs.eww}/bin/eww update dashboard_open=true
     fi
   '';
+
+  # Volume OSD script — called from Hyprland keybindings
+  # Usage: eww-volume-osd [raise|lower|mute|mic-mute]
+  volume-osd-script = pkgs.writeShellScriptBin "eww-volume-osd" ''
+    EWW="${pkgs.eww}/bin/eww"
+    WPCTL="${pkgs.wireplumber}/bin/wpctl"
+    LOCK="/tmp/eww-osd-timer.lock"
+
+    case "$1" in
+      raise)   $WPCTL set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+ ;;
+      lower)   $WPCTL set-volume @DEFAULT_AUDIO_SINK@ 5%- ;;
+      mute)    $WPCTL set-mute @DEFAULT_AUDIO_SINK@ toggle ;;
+      mic-mute) $WPCTL set-mute @DEFAULT_AUDIO_SOURCE@ toggle ;;
+    esac
+
+    # Read current state
+    SINK_INFO=$($WPCTL get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null)
+    VOL=$(echo "$SINK_INFO" | ${pkgs.gawk}/bin/awk '{printf "%.0f", $2 * 100}')
+    MUTED=$(echo "$SINK_INFO" | grep -q MUTED && echo "true" || echo "false")
+
+    SOURCE_INFO=$($WPCTL get-volume @DEFAULT_AUDIO_SOURCE@ 2>/dev/null)
+    MIC_VOL=$(echo "$SOURCE_INFO" | ${pkgs.gawk}/bin/awk '{printf "%.0f", $2 * 100}')
+    MIC_MUTED=$(echo "$SOURCE_INFO" | grep -q MUTED && echo "true" || echo "false")
+
+    # Pick icon
+    if [[ "$1" == "mic-mute" ]]; then
+      if [[ "$MIC_MUTED" == "true" ]]; then
+        ICON=""; OSD_VAL=$MIC_VOL
+      else
+        ICON=""; OSD_VAL=$MIC_VOL
+      fi
+      OSD_CLASS="osd-mic"
+    else
+      if [[ "$MUTED" == "true" ]]; then
+        ICON=""; OSD_VAL=$VOL
+      elif ((VOL >= 66)); then
+        ICON=""; OSD_VAL=$VOL
+      elif ((VOL >= 33)); then
+        ICON=""; OSD_VAL=$VOL
+      elif ((VOL > 0)); then
+        ICON=""; OSD_VAL=$VOL
+      else
+        ICON=""; OSD_VAL=0
+      fi
+      OSD_CLASS="osd-vol"
+    fi
+
+    # Update eww and show OSD
+    $EWW update osd_icon="$ICON" osd_value="$OSD_VAL" osd_class="$OSD_CLASS"
+    $EWW open volume_osd 2>/dev/null
+
+    # Auto-hide after 2s (kill previous timer)
+    PID_FILE="/tmp/eww-osd-pid"
+    [[ -f "$PID_FILE" ]] && kill "$(cat "$PID_FILE")" 2>/dev/null
+    ( sleep 2; $EWW close volume_osd 2>/dev/null ) &
+    echo $! > "$PID_FILE"
+  '';
 in
 {
   home.packages = [
@@ -212,11 +269,15 @@ in
     uptime-script
     greeting-script
     toggle-script
+    volume-osd-script
   ];
 
   xdg.configFile."eww/eww.yuck".text = ''
     ;; ── State ──
     (defvar dashboard_open false)
+    (defvar osd_icon "")
+    (defvar osd_value 0)
+    (defvar osd_class "osd-vol")
 
     ;; ── Polled variables ──
     (defpoll time_val :interval "1s" :initial "00:00" `date '+%H:%M'`)
@@ -378,6 +439,23 @@ in
       (box :class "mako-status" :orientation "h" :space-evenly false :halign "center"
         (label :class "mako-icon" :text "")
         (label :class "mako-text" :text mako_val)))
+
+    ;; ── Volume/Mic OSD ──
+    (defwidget osd-widget []
+      (box :class "osd-container ''${osd_class}" :orientation "h" :space-evenly false
+           :valign "center" :halign "center"
+        (label :class "osd-icon" :text osd_icon)
+        (scale :class "osd-scale" :min 0 :max 100 :value osd_value :active false :orientation "h")
+        (label :class "osd-text" :text "''${osd_value}%")))
+
+    (defwindow volume_osd
+      :monitor "DP-2"
+      :geometry (geometry :x "0%" :y "85%" :width "320px" :height "60px" :anchor "top center")
+      :stacking "overlay"
+      :exclusive false
+      :focusable false
+      :namespace "volume_osd"
+      (osd-widget))
 
     ;; ── Window ──
     (defwindow dashboard
@@ -790,6 +868,69 @@ in
     .news-text {
       font-size: 12px;
       line-height: 1.7;
+    }
+
+    // ── Volume/Mic OSD ──
+    .osd-container {
+      background-color: ${rgba c.bg-light 0.88};
+      background-image: linear-gradient(to bottom right, ${rgba c.bg-light 0.92}, ${rgba c.bg-dark 0.82});
+      border: 1px solid ${rgba c.white 0.05};
+      border-radius: ${toString theme.border.radius.pill}px;
+      padding: 0px 25px;
+      box-shadow: 0 4px 16px ${rgba c.bg-dark 0.5};
+    }
+
+    .osd-icon {
+      font-size: 24px;
+      margin-right: 15px;
+    }
+
+    .osd-vol .osd-icon {
+      color: $accent;
+      text-shadow: 0 0 5px ${rgba c.accent 0.3};
+    }
+
+    .osd-mic .osd-icon {
+      color: $red;
+      text-shadow: 0 0 5px ${rgba c.red 0.3};
+    }
+
+    .osd-text {
+      font-weight: 800;
+      font-size: 16px;
+      color: $fg;
+      margin-left: 15px;
+      min-width: 45px;
+    }
+
+    .osd-scale {
+      min-width: 180px;
+    }
+
+    .osd-scale trough {
+      all: unset;
+      background-color: ${rgba c.bg-dark 0.6};
+      border-radius: ${toString theme.border.radius.pill}px;
+      min-height: 8px;
+      margin-top: 26px;
+      margin-bottom: 26px;
+      box-shadow: inset 0 0 5px ${rgba c.bg-dark 0.4};
+    }
+
+    .osd-vol .osd-scale trough highlight {
+      all: unset;
+      background-color: $accent;
+      border-radius: ${toString theme.border.radius.pill}px;
+      min-height: 8px;
+      box-shadow: 0 0 8px ${rgba c.accent 0.5};
+    }
+
+    .osd-mic .osd-scale trough highlight {
+      all: unset;
+      background-color: $red;
+      border-radius: ${toString theme.border.radius.pill}px;
+      min-height: 8px;
+      box-shadow: 0 0 8px ${rgba c.red 0.5};
     }
 
     // ── Mako Status ──

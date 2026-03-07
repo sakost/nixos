@@ -445,12 +445,12 @@ in
         "$mainMod, mouse:273, resizewindow"
       ];
 
-      # Media keys
+      # Media keys (with volume OSD)
       bindel = [
-        ", XF86AudioRaiseVolume, exec, wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"
-        ", XF86AudioLowerVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
-        ", XF86AudioMute, exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
-        ", XF86AudioMicMute, exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
+        ", XF86AudioRaiseVolume, exec, eww-volume-osd raise"
+        ", XF86AudioLowerVolume, exec, eww-volume-osd lower"
+        ", XF86AudioMute, exec, eww-volume-osd mute"
+        ", XF86AudioMicMute, exec, eww-volume-osd mic-mute"
       ];
 
       bindl = [
@@ -480,6 +480,8 @@ in
         "ignore_alpha 0.3, match:namespace walker"
         "blur on, match:namespace notifications"
         "ignore_alpha 0.3, match:namespace notifications"
+        "blur on, match:namespace volume_osd"
+        "ignore_alpha 0.3, match:namespace volume_osd"
       ];
 
       # Window rules
