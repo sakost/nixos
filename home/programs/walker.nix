@@ -109,8 +109,8 @@ in
       };
 
       providers = {
-        default = [ "desktopapplications" "calc" "websearch" ];
-        empty = [ "desktopapplications" ];
+        default = [ "desktopapplications" "custom_commands" "calc" "websearch" ];
+        empty = [ "desktopapplications" "custom_commands" ];
         max_results = 10;
 
         prefixes = [
@@ -122,7 +122,19 @@ in
           { prefix = "@"; provider = "websearch"; }
           { prefix = ":"; provider = "clipboard"; }
           { prefix = "$"; provider = "windows"; }
+          { prefix = "!"; provider = "custom_commands"; }
         ];
+
+        custom_commands = {
+          entries = [
+            { name = "GitHub"; cmd = "xdg-open https://github.com"; icon = "web-browser"; }
+            { name = "GitLab"; cmd = "xdg-open https://gitlab.com"; icon = "web-browser"; }
+            { name = "NixOS Search"; cmd = "xdg-open https://search.nixos.org/packages"; icon = "system-search"; }
+            { name = "Home Manager Options"; cmd = "xdg-open https://nix-community.github.io/home-manager/options.xhtml"; icon = "preferences-system"; }
+            { name = "NixOS Wiki"; cmd = "xdg-open https://wiki.nixos.org"; icon = "help-browser"; }
+            { name = "YouTube"; cmd = "xdg-open https://youtube.com"; icon = "video-display"; }
+          ];
+        };
       };
 
       keybinds = {
