@@ -62,8 +62,7 @@
       "no_initial_focus on, match:class ^(music_vis)$"
       "size 700 350, match:class ^(music_vis)$"
       "move 12 720, match:class ^(music_vis)$"
-      "no_border on, match:class ^(music_vis)$"
-      "no_shadow on, match:class ^(music_vis)$"
+      "bordersize 0, match:class ^(music_vis)$"
       "opacity 0.8, match:class ^(music_vis)$"
 
       # ── Picture-in-picture ──
