@@ -696,7 +696,7 @@ in
     }
 
     .card-title {
-      font-size: 14px;
+      font-size: 16px;
       font-weight: bold;
       color: $accent;
       margin-bottom: 12px;
@@ -793,7 +793,7 @@ in
     }
 
     .weather-detail-icon {
-      font-size: 14px;
+      font-size: 16px;
       color: $cyan;
       margin-right: 6px;
     }
@@ -813,9 +813,9 @@ in
     }
 
     .metric-icon {
-      font-size: 14px;
-      min-width: 22px;
-      margin-right: 4px;
+      font-size: 18px;
+      min-width: 24px;
+      margin-right: 6px;
     }
 
     .metric-label {
