@@ -1,5 +1,5 @@
 # XDG Base Directory configuration
-{ config, ... }:
+{ config, pkgs, ... }:
 
 let
   cacheBase = "${config.home.homeDirectory}/dev/cache";
@@ -28,6 +28,7 @@ in
     UV_CACHE_DIR = "${cacheBase}/uv";
     PIP_CACHE_DIR = "${cacheBase}/pip";
     CARGO_HOME = "${cacheBase}/cargo";
+    SUDO_ASKPASS = "${pkgs.seahorse}/libexec/seahorse/ssh-askpass";
   };
 
   xdg = {

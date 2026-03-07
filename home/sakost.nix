@@ -111,6 +111,15 @@
     gtk.enable = true;
   };
 
+  # GTK theme — TokyoNight Dark to match the rice
+  gtk = {
+    enable = true;
+    theme = {
+      name = "Tokyonight-Dark";
+      package = pkgs.tokyonight-gtk-theme;
+    };
+  };
+
   # Let home-manager manage itself
   programs.home-manager.enable = true;
 

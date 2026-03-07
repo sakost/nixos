@@ -1,5 +1,5 @@
 # Waybar — glassmorphic pill-based status bar for Hyprland
-{ theme, ... }:
+{ theme, pkgs, ... }:
 
 let
   c = theme.colors;
@@ -25,6 +25,8 @@ let
     no-net    = nfIcon "f127";                 # nf-fa-unlink
     cpu       = nfIcon "f2db";                 # nf-fa-microchip
     memory    = nfIconSMP "DB80" "DF5B";       # nf-md-memory          U+F035B
+    bell      = nfIconSMP "DB80" "DCF3";       # nf-md-bell            U+F00F3
+    bell-off  = nfIconSMP "DB80" "DDA4";       # nf-md-bell_off        U+F01A4
   };
 in
 {
@@ -84,6 +86,18 @@ in
           spacing = 8;
         };
 
+        "custom/notification" = {
+          format = "{}";
+          return-type = "json";
+          exec = let
+            swaync = "${pkgs.swaynotificationcenter}/bin/swaync-client";
+            jq = "${pkgs.jq}/bin/jq";
+          in ''${swaync} -swb | ${jq} -Rc --unbuffered 'fromjson // {} | .text as $count | .alt as $alt | { text: (if ($alt | test("dnd")) then "${icons.bell-off}" elif ($count | tonumber) > 0 then "${icons.bell} \($count)" else "${icons.bell}" end), tooltip: .tooltip, class: .class }' '';
+          on-click = "${pkgs.swaynotificationcenter}/bin/swaync-client -t -sw";
+          on-click-right = "${pkgs.swaynotificationcenter}/bin/swaync-client -d -sw";
+          tooltip = true;
+        };
+
         "custom/media" = {
           format = "{}";
           return-type = "json";
@@ -112,6 +126,7 @@ in
           "network"
           "cpu"
           "memory"
+          "custom/notification"
           "tray"
         ];
       };
@@ -182,6 +197,7 @@ in
       #network,
       #cpu,
       #memory,
+      #custom-notification,
       #tray {
         background: ${rgba c.bg 0.85};
         border: 1px solid ${rgba c.white 0.06};
@@ -282,6 +298,19 @@ in
         color: ${c.magenta};
       }
 
+      #custom-notification {
+        color: ${c.teal};
+      }
+
+      #custom-notification.notification {
+        color: ${c.yellow};
+      }
+
+      #custom-notification.dnd-notification,
+      #custom-notification.dnd-none {
+        color: ${c.muted};
+      }
+
       #tray {
         padding: 2px 8px;
       }
@@ -304,6 +333,7 @@ in
       #network:hover,
       #cpu:hover,
       #memory:hover,
+      #custom-notification:hover,
       #tray:hover {
         background: ${rgba c.bg-light 0.95};
         border-color: ${rgba c.white 0.1};
