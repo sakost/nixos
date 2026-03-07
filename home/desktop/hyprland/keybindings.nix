@@ -43,8 +43,8 @@
     #   SUPER + B            — bluetooth manager
     #
     # Notifications:
-    #   SUPER + N            — toggle DND mode
-    #   SUPER + SHIFT + N    — toggle work mode
+    #   SUPER + N            — toggle notification center
+    #   SUPER + SHIFT + N    — toggle DND mode
     #
     # Media:
     #   Volume keys          — volume OSD (eww)
@@ -120,9 +120,9 @@
       "$mainMod, mouse_down, exec, hypr-sync-ws next"
       "$mainMod, mouse_up, exec, hypr-sync-ws prev"
 
-      # Notification profiles (mako modes)
-      "$mainMod, N, exec, makoctl mode | grep -q dnd && makoctl mode -r dnd || makoctl mode -a dnd"
-      "$mainMod SHIFT, N, exec, makoctl mode | grep -q work && makoctl mode -r work || makoctl mode -a work"
+      # Notification center (swaync)
+      "$mainMod, N, exec, swaync-client -t -sw"
+      "$mainMod SHIFT, N, exec, swaync-client -d -sw"
 
       # Walker providers
       "$mainMod, T, exec, walker -m files"

@@ -8,6 +8,7 @@
     # (prevents NOTIFY_SOCKET hijacking that can crash Hyprland)
     exec-once = [
       "swww-daemon"
+      "uwsm app -- swaync"
       "uwsm app -- eww open dashboard"
       "uwsm app -- spotify"
     ];

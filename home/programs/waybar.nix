@@ -14,6 +14,8 @@ let
   icons = {
     clock     = nfIcon "f017";                 # nf-fa-clock_o
     calendar  = nfIcon "f073";                 # nf-fa-calendar
+    music     = nfIcon "f001";                 # nf-fa-music
+    pause     = nfIcon "f04c";                 # nf-fa-pause
     vol-low   = nfIconSMP "DB81" "DD7F";       # nf-md-volume_low      U+F057F
     vol-med   = nfIconSMP "DB81" "DD80";       # nf-md-volume_medium   U+F0580
     vol-high  = nfIconSMP "DB81" "DD7E";       # nf-md-volume_high     U+F057E
@@ -81,6 +83,16 @@ in
         tray = {
           spacing = 8;
         };
+
+        "custom/media" = {
+          format = "{}";
+          return-type = "json";
+          max-length = 40;
+          exec = "playerctl -F metadata --format '{\"text\": \"${icons.music} {{artist}} — {{title}}\", \"tooltip\": \"{{playerName}}: {{artist}} — {{title}}\", \"alt\": \"{{status}}\", \"class\": \"{{status}}\"}' 2>/dev/null";
+          on-click = "playerctl play-pause";
+          on-scroll-up = "playerctl next";
+          on-scroll-down = "playerctl previous";
+        };
       };
 
       commonBar = {
@@ -93,7 +105,7 @@ in
         margin-right = 6;
 
         modules-left = [ "hyprland/workspaces" "hyprland/window" ];
-        modules-center = [ "clock" ];
+        modules-center = [ "clock" "custom/media" ];
         modules-right = [
           "hyprland/language"
           "pulseaudio"
@@ -164,6 +176,7 @@ in
       #workspaces,
       #window,
       #clock,
+      #custom-media,
       #language,
       #pulseaudio,
       #network,
@@ -229,6 +242,16 @@ in
         padding: 2px 18px;
       }
 
+      /* ── Media pill ── */
+      #custom-media {
+        color: ${c.magenta};
+        font-style: italic;
+      }
+
+      #custom-media.Paused {
+        color: ${c.muted};
+      }
+
       /* ── Right-side module pills with individual accent colors ── */
       #language {
         color: ${c.teal};
@@ -275,6 +298,7 @@ in
       #workspaces button:hover,
       #window:hover,
       #clock:hover,
+      #custom-media:hover,
       #language:hover,
       #pulseaudio:hover,
       #network:hover,

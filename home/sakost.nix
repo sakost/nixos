@@ -19,7 +19,7 @@
     ./programs/flutter.nix
     ./programs/steam.nix
     ./programs/wallpaper-engine.nix
-    ./programs/mako.nix
+    ./programs/swaync.nix
     ./programs/eww.nix
     ./programs/cava.nix
     ./programs/starship.nix

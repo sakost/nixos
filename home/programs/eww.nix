@@ -203,12 +203,14 @@ let
     fi
   '';
 
-  mako-status-script = pkgs.writeShellScriptBin "eww-mako-status" ''
-    MODES=$(${pkgs.mako}/bin/makoctl mode 2>/dev/null)
-    DND="off"; WORK="off"
-    echo "$MODES" | grep -q "dnd" && DND="on"
-    echo "$MODES" | grep -q "work" && WORK="on"
-    echo "DND: $DND  |  Work: $WORK"
+  notif-status-script = pkgs.writeShellScriptBin "eww-notif-status" ''
+    COUNT=$(${pkgs.swaynotificationcenter}/bin/swaync-client -c 2>/dev/null || echo "0")
+    DND=$(${pkgs.swaynotificationcenter}/bin/swaync-client -D 2>/dev/null)
+    if [ "$DND" = "true" ]; then
+      echo "DND on  |  $COUNT notifications"
+    else
+      echo "$COUNT notifications"
+    fi
   '';
 
   news-script = pkgs.writeShellScriptBin "eww-news" ''
@@ -398,7 +400,7 @@ in
     sysinfo-script
     player-script
     calendar-script
-    mako-status-script
+    notif-status-script
     uptime-script
     greeting-script
     toggle-script
@@ -435,7 +437,7 @@ in
 
     (defpoll calendar_val :interval "300s" :initial "Loading..." `${calendar-script}/bin/eww-calendar`)
     (defpoll news_val :interval "600s" :initial "Loading..." `${news-script}/bin/eww-news`)
-    (defpoll mako_val :interval "5s" :initial "DND: off  |  Work: off" `${mako-status-script}/bin/eww-mako-status`)
+    (defpoll notif_val :interval "5s" :initial "0 notifications" `${notif-status-script}/bin/eww-notif-status`)
 
     ;; ── Reusable metric bar ──
     (defwidget metric [label value text ?icon ?css-class]
@@ -461,7 +463,7 @@ in
         (box :class "col col-right" :orientation "v" :space-evenly false
           (calendar-widget)
           (news-widget)
-          (mako-widget))))
+          (notif-widget))))
 
     ;; ── Clock ──
     (defwidget clock-widget []
@@ -569,11 +571,11 @@ in
         (label :class "card-title" :halign "start" :text "${icons.newspaper}  Hacker News")
         (label :class "card-content news-text" :text news_val :wrap true)))
 
-    ;; ── Mako Status ──
-    (defwidget mako-widget []
-      (box :class "mako-status" :orientation "h" :space-evenly false :halign "center"
-        (label :class "mako-icon" :text "${icons.bell}")
-        (label :class "mako-text" :text mako_val)))
+    ;; ── Notification Status ──
+    (defwidget notif-widget []
+      (box :class "notif-status" :orientation "h" :space-evenly false :halign "center"
+        (label :class "notif-icon" :text "${icons.bell}")
+        (label :class "notif-text" :text notif_val)))
 
     ;; ── Volume/Mic OSD ──
     (defwidget osd-widget []
@@ -1124,18 +1126,18 @@ in
       margin-top: 2px;
     }
 
-    // ── Mako Status ──
-    .mako-status {
+    // ── Notification Status ──
+    .notif-status {
       padding: 8px 0;
     }
 
-    .mako-icon {
+    .notif-icon {
       font-size: 14px;
       color: $fg-dark;
       margin-right: 8px;
     }
 
-    .mako-text {
+    .notif-text {
       font-size: 12px;
       color: $fg-dark;
     }
