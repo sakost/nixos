@@ -6,9 +6,11 @@
     # Windows:
     #   SUPER + Q            — open terminal
     #   SUPER + C            — close window
+    #   SUPER + SHIFT + C    — force-kill (click to pick window)
+    #   SUPER + CTRL + C     — hide window to hidden workspace
+    #   SUPER + CTRL + V     — toggle hidden workspace
     #   SUPER + Escape       — power menu (wlogout)
     #   SUPER + E            — file manager
-    #   SUPER + V            — clipboard history (walker)
     #   SUPER + F            — toggle floating
     #   SUPER + Space        — app launcher (walker)
     #   SUPER + P            — pseudo-tile
@@ -26,17 +28,29 @@
     #   SUPER + SHIFT + S    — move window to scratchpad
     #   SUPER + mouse scroll — cycle workspaces (focused monitor only)
     #
-    # Overview:
-    #   SUPER + TAB          — window switcher (walker)
+    # Walker:
+    #   SUPER + Space        — app launcher
+    #   SUPER + TAB          — window switcher
+    #   SUPER + V            — clipboard history
+    #   SUPER + T            — file browser
     #
     # Session:
     #   SUPER + D            — lock screen (hyprlock)
     #   SUPER + Escape       — power menu (wlogout)
     #
-    # Media / misc:
-    #   Print                — screenshot (region -> clipboard)
-    #   Right Alt            — switch keyboard layout (via XKB)
-    #   Volume/media keys    — audio & player control
+    # Notifications:
+    #   SUPER + N            — toggle DND mode
+    #   SUPER + SHIFT + N    — toggle work mode
+    #
+    # Media:
+    #   Volume keys          — volume OSD (eww)
+    #   Brightness keys      — brightness OSD (eww)
+    #   Media play/next/prev — playerctl
+    #
+    # Screenshots:
+    #   Print                — region to clipboard
+    #   SHIFT + Print        — region to satty (annotate)
+    #   SUPER + Print        — region to file
     # ─────────────────────────────────────────────────────────────
 
     bind = [
