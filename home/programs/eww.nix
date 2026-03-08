@@ -288,7 +288,7 @@ let
       OSD_CLASS="osd-mic"
     else
       if [[ "$MUTED" == "true" ]]; then
-        ICON="$ICON_VOL_MUTE"; OSD_VAL=$VOL
+        ICON="$ICON_VOL_MUTE"; OSD_VAL=$VOL; OSD_CLASS="osd-muted"
       elif ((VOL >= 66)); then
         ICON="$ICON_VOL_HIGH"; OSD_VAL=$VOL
       elif ((VOL >= 33)); then
@@ -1047,6 +1047,17 @@ in
 
     .osd-mic .osd-icon {
       color: $red;
+    }
+
+    .osd-muted .osd-icon {
+      color: $muted;
+    }
+
+    .osd-muted .osd-scale trough highlight {
+      all: unset;
+      background-color: $muted;
+      border-radius: ${toString theme.border.radius.pill}px;
+      min-height: 8px;
     }
 
     .osd-text {
