@@ -255,8 +255,8 @@ let
     LOCK="/tmp/eww-osd-timer.lock"
 
     case "$1" in
-      raise)   $WPCTL set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+ ;;
-      lower)   $WPCTL set-volume @DEFAULT_AUDIO_SINK@ 5%- ;;
+      raise)   $WPCTL set-mute @DEFAULT_AUDIO_SINK@ 0; $WPCTL set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+ ;;
+      lower)   $WPCTL set-mute @DEFAULT_AUDIO_SINK@ 0; $WPCTL set-volume @DEFAULT_AUDIO_SINK@ 5%- ;;
       mute)    $WPCTL set-mute @DEFAULT_AUDIO_SINK@ toggle ;;
       mic-mute) $WPCTL set-mute @DEFAULT_AUDIO_SOURCE@ toggle ;;
     esac
