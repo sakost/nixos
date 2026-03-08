@@ -71,7 +71,7 @@
       "$mainMod, F, togglefloating"
       "$mainMod, space, exec, $menu"
       "$mainMod, P, pseudo"
-      "$mainMod, J, togglesplit"
+      "$mainMod, J, layoutmsg, togglesplit"
       "$mainMod, M, exec, hypr-monitor-mgr"
       "$mainMod, W, exec, hypr-wallpaper"
       "$mainMod, F1, exec, hypr-cheatsheet"
