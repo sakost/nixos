@@ -34,8 +34,8 @@ let
     # Session discovery for ReGreet
     env = XDG_DATA_DIRS,${config.services.displayManager.sessionData.desktops}/share:/run/current-system/sw/share
 
-    # Launch ReGreet then exit Hyprland when done
-    exec-once = ${pkgs.dbus}/bin/dbus-run-session ${lib.getExe config.programs.regreet.package}; ${pkgs.hyprland}/bin/hyprctl dispatch exit
+    # Focus main monitor so ReGreet appears there, then launch greeter
+    exec-once = ${pkgs.hyprland}/bin/hyprctl dispatch focusmonitor DP-2 && ${pkgs.dbus}/bin/dbus-run-session ${lib.getExe config.programs.regreet.package}; ${pkgs.hyprland}/bin/hyprctl dispatch exit
   '';
 in {
   options.custom.desktop.greetd = {
