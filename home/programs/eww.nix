@@ -793,7 +793,7 @@ in
     }
 
     .weather-detail-icon {
-      font-size: 16px;
+      font-size: 22px;
       color: $cyan;
       margin-right: 6px;
     }
@@ -813,8 +813,8 @@ in
     }
 
     .metric-icon {
-      font-size: 18px;
-      min-width: 24px;
+      font-size: 24px;
+      min-width: 30px;
       margin-right: 6px;
     }
 
