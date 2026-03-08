@@ -290,15 +290,14 @@ let
       if [[ "$MUTED" == "true" ]]; then
         ICON="$ICON_VOL_MUTE"; OSD_VAL=$VOL; OSD_CLASS="osd-muted"
       elif ((VOL >= 66)); then
-        ICON="$ICON_VOL_HIGH"; OSD_VAL=$VOL
+        ICON="$ICON_VOL_HIGH"; OSD_VAL=$VOL; OSD_CLASS="osd-vol"
       elif ((VOL >= 33)); then
-        ICON="$ICON_VOL_MED"; OSD_VAL=$VOL
+        ICON="$ICON_VOL_MED"; OSD_VAL=$VOL; OSD_CLASS="osd-vol"
       elif ((VOL > 0)); then
-        ICON="$ICON_VOL_LOW"; OSD_VAL=$VOL
+        ICON="$ICON_VOL_LOW"; OSD_VAL=$VOL; OSD_CLASS="osd-vol"
       else
-        ICON="$ICON_VOL_OFF"; OSD_VAL=0
+        ICON="$ICON_VOL_OFF"; OSD_VAL=0; OSD_CLASS="osd-vol"
       fi
-      OSD_CLASS="osd-vol"
     fi
 
     # Detect focused monitor for OSD placement
