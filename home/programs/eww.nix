@@ -876,7 +876,7 @@ in
     }
 
     .sys-footer-icon {
-      font-size: 14px;
+      font-size: 22px;
       margin-right: 6px;
     }
 
