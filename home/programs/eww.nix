@@ -61,20 +61,20 @@ let
     CODE=$(echo "$DATA" | ${pkgs.jq}/bin/jq -r '.current.weather_code')
 
     case "$CODE" in
-      0) ICON=$(printf '\uE30D') DESC="Clear sky" ;;
-      1) ICON=$(printf '\uF6C4') DESC="Mainly clear" ;;
-      2) ICON=$(printf '\uF6C4') DESC="Partly cloudy" ;;
-      3) ICON=$(printf '\uF0C2') DESC="Overcast" ;;
-      45|48) ICON=$(printf '\uF74E') DESC="Fog" ;;
-      51|53|55) ICON=$(printf '\uF738') DESC="Drizzle" ;;
-      61|63|65) ICON=$(printf '\uF740') DESC="Rain" ;;
-      66|67) ICON=$(printf '\uF740') DESC="Freezing rain" ;;
-      71|73|75) ICON=$(printf '\uF742') DESC="Snow" ;;
-      77) ICON=$(printf '\uF742') DESC="Snow grains" ;;
-      80|81|82) ICON=$(printf '\uF740') DESC="Showers" ;;
-      85|86) ICON=$(printf '\uF742') DESC="Snow showers" ;;
-      95|96|99) ICON=$(printf '\uF0E7') DESC="Thunderstorm" ;;
-      *) ICON=$(printf '\uF128') DESC="Unknown" ;;
+      0)       ICON="${icons.sun}"       DESC="Clear sky" ;;
+      1)       ICON="${icons.sun}"       DESC="Mainly clear" ;;
+      2)       ICON="${icons.cloud-sun}" DESC="Partly cloudy" ;;
+      3)       ICON="${icons.cloud}"     DESC="Overcast" ;;
+      45|48)   ICON="${icons.fog}"       DESC="Fog" ;;
+      51|53|55) ICON="${icons.drizzle}"  DESC="Drizzle" ;;
+      61|63|65) ICON="${icons.rain}"     DESC="Rain" ;;
+      66|67)   ICON="${icons.rain}"      DESC="Freezing rain" ;;
+      71|73|75) ICON="${icons.snow}"     DESC="Snow" ;;
+      77)      ICON="${icons.snow}"      DESC="Snow grains" ;;
+      80|81|82) ICON="${icons.rain}"     DESC="Showers" ;;
+      85|86)   ICON="${icons.snow}"      DESC="Snow showers" ;;
+      95|96|99) ICON="${icons.bolt}"     DESC="Thunderstorm" ;;
+      *)       ICON="${icons.question}"  DESC="Unknown" ;;
     esac
 
     ${pkgs.jq}/bin/jq -nc \

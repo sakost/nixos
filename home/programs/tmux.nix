@@ -43,6 +43,9 @@ in
       # Reload config
       bind r source-file ~/.config/tmux/tmux.conf \; display "Config reloaded"
 
+      # Brief pause after split to let shell initialize
+      set-hook -g after-split-window "run-shell 'sleep 0.3'"
+
       # ── TokyoNight theme ────────────────────────────────────────────────────
 
       # Pane borders
