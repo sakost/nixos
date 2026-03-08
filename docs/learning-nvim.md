@@ -209,15 +209,52 @@ qa A;<jk> j q   → record: append semicolon, move down
 
 ---
 
-## Windows & Splits
+## Windows, Buffers & Tabs
+
+Neovim has three distinct layout concepts — often confused with each other:
+
+- **Buffer** — an open file in memory (like a PyCharm tab)
+- **Window** — a viewport displaying a buffer (like a split pane)
+- **Tab** — a full layout of windows (rarely used; more like a workspace)
+
+The typical workflow is: many buffers, a few windows, rarely tabs.
+
+### Buffers
+
+| Key | Action |
+|-----|--------|
+| `Shift+H` / `Shift+L` | Previous / next buffer (config binding) |
+| `Space bd` | Delete (close) current buffer |
+| `Space fb` | Fuzzy search open buffers (Telescope) |
+| `:b name` | Switch to buffer by name (Tab completes) |
+| `:ls` | List all open buffers |
+| `:bd` | Close current buffer |
+| `:ba` | Open all buffers in splits |
+
+Buffers are shown in the **bufferline** at the top of the screen.
+
+### Windows (Splits)
 
 | Key | Action |
 |-----|--------|
 | `:sp` / `:vsp` | Horizontal / vertical split |
-| `Ctrl+h/j/k/l` | Move between windows (config binding) |
-| `Ctrl+↑/↓/←/→` | Resize window (config binding) |
+| `Ctrl+h/j/k/l` | Move focus between windows (config) |
+| `Ctrl+↑/↓/←/→` | Resize window (config) |
 | `:only` | Close all splits except current |
+| `Ctrl+w =` | Equalize all window sizes |
+| `Ctrl+w r` | Rotate windows |
 | `ZZ` | Save and close current window |
+
+Each window can show any buffer. Same buffer can appear in multiple windows.
+
+### Tabs (workspaces — use sparingly)
+
+| Key | Action |
+|-----|--------|
+| `:tabnew` | Open new tab |
+| `gt` / `gT` | Next / previous tab |
+| `:tabclose` | Close current tab |
+| `:tabonly` | Close all other tabs |
 
 ---
 
