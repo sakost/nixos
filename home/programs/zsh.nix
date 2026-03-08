@@ -134,10 +134,12 @@ in
       bindkey -M vicmd '^[[1;5D' backward-word
       bindkey -M vicmd '^[[1;5C' forward-word
 
-      # Also fix Home / End / Delete which break in vi mode
+      # Also fix Home / End / Delete / Ctrl+A / Ctrl+E which break in vi mode
       bindkey -M viins '^[[H'  beginning-of-line
       bindkey -M viins '^[[F'  end-of-line
       bindkey -M viins '^[[3~' delete-char
+      bindkey -M viins '^A'    beginning-of-line
+      bindkey -M viins '^E'    end-of-line
     '';
 
     history = {
