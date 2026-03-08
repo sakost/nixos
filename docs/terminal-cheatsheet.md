@@ -53,6 +53,28 @@ STARSHIP_KUBERNETES_DISABLED=false starship prompt
 # Or edit home/programs/starship.nix: kubernetes.disabled = false
 ```
 
+## zsh keybindings
+
+Shell runs in **vi mode** automatically (because `EDITOR=nvim` contains "vi").
+Prompt shows `❯` (insert mode) / `❮` (command mode).
+
+| Key | Action |
+|-----|--------|
+| `Ctrl + Left` | Jump word backward |
+| `Ctrl + Right` | Jump word forward |
+| `Ctrl + W` | Delete word backward |
+| `Ctrl + A` | Beginning of line |
+| `Ctrl + E` | End of line |
+| `Ctrl + L` | Clear screen |
+| `Ctrl + R` | History search (atuin) |
+| `Home` / `End` | Beginning / end of line |
+| `Delete` | Delete character forward |
+| `ESC` | Switch to vi command mode |
+| `i` | Return to vi insert mode |
+
+> `KEYTIMEOUT=1` (10ms) is set so escape sequences like `Ctrl+Left` are not
+> misinterpreted as a lone ESC (which would switch vi mode).
+
 ## atuin (shell history)
 
 Config: `home/programs/atuin.nix`

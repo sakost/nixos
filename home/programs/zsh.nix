@@ -122,6 +122,22 @@ in
 
       # Ctrl+L to clear screen
       bindkey '^L' clear-screen
+
+      # EDITOR=nvim triggers zsh vi mode automatically (nvim contains "vi").
+      # Fix: shorten ESC ambiguity timeout so Ctrl+Left/Right escape sequences
+      # (e.g. \e[1;5D) are not split into ESC + garbage at the vi mode boundary.
+      KEYTIMEOUT=1
+
+      # Word navigation with Ctrl+Left / Ctrl+Right in both vi keymaps
+      bindkey -M viins '^[[1;5D' backward-word
+      bindkey -M viins '^[[1;5C' forward-word
+      bindkey -M vicmd '^[[1;5D' backward-word
+      bindkey -M vicmd '^[[1;5C' forward-word
+
+      # Also fix Home / End / Delete which break in vi mode
+      bindkey -M viins '^[[H'  beginning-of-line
+      bindkey -M viins '^[[F'  end-of-line
+      bindkey -M viins '^[[3~' delete-char
     '';
 
     history = {
