@@ -655,6 +655,7 @@ in
     $orange: ${c.orange};
     $teal: ${c.teal};
     $white: ${c.white};
+    $muted: ${c.muted};
 
     // Glass mixins
     $glass-bg: ${rgba c.bg-light 0.55};
