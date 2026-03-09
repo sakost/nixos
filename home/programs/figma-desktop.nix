@@ -6,4 +6,8 @@
     figma-linux
     figma-agent
   ];
+
+  xdg.mimeApps.defaultApplications = {
+    "x-scheme-handler/figma" = "figma-linux.desktop";
+  };
 }
