@@ -43,6 +43,7 @@
     ./programs/nvtop.nix
     ./programs/onefetch.nix
     ./programs/openclaw.nix
+    ./programs/figma-desktop.nix
     ./desktop/hyprland
   ];
 
