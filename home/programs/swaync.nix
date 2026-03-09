@@ -8,6 +8,23 @@ in
 {
   home.packages = [ pkgs.swaynotificationcenter ];
 
+  # Enable swaync systemd service (starts with graphical-session, restarts on failure)
+  systemd.user.services.swaync = {
+    Unit = {
+      Description = "Swaync notification daemon";
+      PartOf = [ "graphical-session.target" ];
+      After = [ "graphical-session.target" ];
+    };
+    Service = {
+      Type = "dbus";
+      BusName = "org.freedesktop.Notifications";
+      ExecStart = "${pkgs.swaynotificationcenter}/bin/swaync";
+      ExecReload = "${pkgs.swaynotificationcenter}/bin/swaync-client --reload-config ; ${pkgs.swaynotificationcenter}/bin/swaync-client --reload-css";
+      Restart = "on-failure";
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
+  };
+
   xdg.configFile."swaync/config.json".text = builtins.toJSON {
     "$schema" = "/etc/xdg/swaync/configSchema.json";
     positionX = "right";
@@ -22,6 +39,9 @@ in
     notification-2fa-action = true;
     notification-inline-replies = false;
     notification-window-width = 400;
+    max-visible = 5;
+    notification-body-image-height = 100;
+    notification-body-image-width = 200;
     keyboard-shortcuts = true;
     image-visibility = "when-available";
     transition-time = 200;

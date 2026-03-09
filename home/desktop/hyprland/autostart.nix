@@ -14,7 +14,6 @@ in
     # (prevents NOTIFY_SOCKET hijacking that can crash Hyprland)
     exec-once = [
       "swww-daemon"
-      "uwsm app -- swaync"
       "uwsm app -- eww open dashboard"
       "uwsm app -- spotify"
       "uwsm app -- ${we} --assets-dir ${weAssets} --fps=60 --silent --screen-root=DP-2 --bg ${weWorkshop}/3470915045"

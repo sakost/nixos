@@ -51,7 +51,6 @@ in {
       # Desktop utilities
       nautilus
       gvfs # Virtual filesystem (trash, mtp, network shares, etc.)
-      mako
       libnotify
       networkmanagerapplet
       brightnessctl
