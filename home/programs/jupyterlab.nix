@@ -17,7 +17,7 @@ in
 
     Service = {
       Type = "simple";
-      ExecStart = "${python}/bin/jupyter-lab --no-browser --port=8888 --notebook-dir=%h/dev/projects --ip=localhost --IdentityProvider.token='' --ServerApp.password=''";
+      ExecStart = "${python}/bin/jupyter-lab --no-browser --port=8888 --notebook-dir=%h/dev/projects --ip=localhost --IdentityProvider.token='' --ServerApp.password='' --ContentsManager.allow_hidden=True";
       Restart = "on-failure";
       RestartSec = 5;
     };
