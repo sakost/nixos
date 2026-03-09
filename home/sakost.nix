@@ -17,6 +17,7 @@
     ./programs/nixvim
     ./programs/cargo-cross.nix
     ./programs/flutter.nix
+    ./programs/systemctl-tui.nix
     ./programs/steam.nix
     ./programs/wallpaper-engine.nix
     ./programs/swaync.nix
@@ -27,6 +28,7 @@
     ./programs/yazi.nix
     ./programs/zathura.nix
     ./programs/onlyoffice.nix
+    ./programs/jupyterlab.nix
     ./programs/gdb.nix
     ./programs/ollama.nix
     ./programs/obs-studio.nix
