@@ -17,17 +17,16 @@ in {
       };
     };
 
-    # Fix hardcoded /usr/bin/sh in libvirt's virt-secret-init-encryption.service
-    # The upstream libvirt package ships this unit with /usr/bin/sh which doesn't exist on NixOS
+    # Fix nixpkgs libvirt postPatch: it tries to substitute /usr/bin/sh in
+    # virt-secret-init-encryption.service.in, but upstream libvirt 12.1.0 no longer
+    # has that pattern. Remove the failing substituteInPlace from postPatch.
     nixpkgs.overlays = [
       (final: prev: {
         libvirt = prev.libvirt.overrideAttrs (old: {
-          postInstall = (old.postInstall or "") + ''
-            if [ -f $out/lib/systemd/system/virt-secret-init-encryption.service ]; then
-              substituteInPlace $out/lib/systemd/system/virt-secret-init-encryption.service \
-                --replace-fail '/usr/bin/sh' '${prev.bash}/bin/bash'
-            fi
-          '';
+          postPatch = builtins.replaceStrings
+            [ "--replace-fail /usr/bin/sh" ]
+            [ "--replace-warn /usr/bin/sh" ]
+            (old.postPatch or "");
         });
       })
     ];
