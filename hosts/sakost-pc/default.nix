@@ -61,8 +61,6 @@
   ];
   nixpkgs.config.allowUnfree = true;
   nixpkgs.config.android_sdk.accept_license = true;
-  nixpkgs.config.permittedInsecurePackages =
-    lib.optional (pkgs.openclaw.meta.insecure or false) pkgs.openclaw.name;
 
   # Automatic garbage collection
   nix.gc = {
