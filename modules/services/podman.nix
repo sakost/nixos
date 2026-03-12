@@ -2,6 +2,9 @@
 { config, pkgs, ... }:
 
 {
+  # Native overlayfs for podman (much faster than fuse-overlayfs)
+  boot.kernelModules = [ "overlay" ];
+
   virtualisation.podman = {
     enable = true;
     dockerCompat = true;

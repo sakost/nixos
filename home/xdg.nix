@@ -56,11 +56,7 @@ in
       driver = "overlay"
       graphroot = "${cacheBase}/podman/storage"
       runroot = "/run/user/1000/containers"
-
-      [storage.options.overlay]
-      mount_program = "/run/current-system/sw/bin/fuse-overlayfs"
     '';
-
 
     # NPM configuration for XDG compliance
     configFile."npm/npmrc".text = ''
