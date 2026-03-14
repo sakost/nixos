@@ -120,15 +120,15 @@
     };
   };
 
-  # claudecode.nvim - Claude Code integration
+  # claudecode.nvim - Claude Code integration (pinned to main for post-v0.3.0 fixes)
   programs.nixvim.extraPlugins = [
     (pkgs.vimUtils.buildVimPlugin {
       name = "claudecode-nvim";
       src = pkgs.fetchFromGitHub {
         owner = "coder";
         repo = "claudecode.nvim";
-        rev = "v0.3.0";
-        hash = "sha256-sOBY2y/buInf+SxLwz6uYlUouDULwebY/nmDlbFbGa8=";
+        rev = "432121f0f5b9bda041030d1e9e83b7ba3a93dd8f";
+        hash = "sha256-r8hAUpSsr8zNm+av8Mu5oILaTfEsXEnJmkzRmvi9pF8=";
       };
     })
   ];
@@ -136,14 +136,35 @@
   programs.nixvim.extraConfigLua = ''
     require("claudecode").setup({
       auto_start = true,
+      track_selection = true,
+
       terminal = {
         split_side = "right",
         split_width_percentage = 0.30,
         provider = "snacks",
+        auto_close = true,
+        -- Ctrl+, toggles a floating overlay (alternative to side split)
+        snacks_win_opts = {
+          position = "float",
+          width = 0.85,
+          height = 0.85,
+          keys = {
+            claude_hide = {
+              "<C-,>",
+              function(self) self:hide() end,
+              mode = "t",
+              desc = "Hide Claude float",
+            },
+          },
+        },
       },
+
       diff_opts = {
         auto_close_on_accept = true,
         vertical_split = true,
+        open_in_current_tab = true,
+        show_diff_stats = true,
+        keep_terminal_focus = false,
       },
     })
   '';
@@ -157,12 +178,15 @@
     # Claude Code
     { mode = "n"; key = "<leader>ac"; action = "<cmd>ClaudeCode<CR>"; options.desc = "Toggle Claude"; }
     { mode = "n"; key = "<leader>af"; action = "<cmd>ClaudeCodeFocus<CR>"; options.desc = "Focus Claude"; }
+    { mode = ["n" "x"]; key = "<C-,>"; action = "<cmd>ClaudeCodeFocus<CR>"; options.desc = "Toggle Claude float"; }
     { mode = "n"; key = "<leader>ar"; action = "<cmd>ClaudeCode --resume<CR>"; options.desc = "Resume Claude"; }
     { mode = "n"; key = "<leader>aC"; action = "<cmd>ClaudeCode --continue<CR>"; options.desc = "Continue Claude"; }
     { mode = "n"; key = "<leader>am"; action = "<cmd>ClaudeCodeSelectModel<CR>"; options.desc = "Select model"; }
     { mode = "n"; key = "<leader>ab"; action = "<cmd>ClaudeCodeAdd %<CR>"; options.desc = "Add current buffer"; }
+    { mode = "n"; key = "<leader>at"; action = "<cmd>ClaudeCodeTreeAdd<CR>"; options.desc = "Add tree selection"; }
     { mode = "v"; key = "<leader>as"; action = "<cmd>ClaudeCodeSend<CR>"; options.desc = "Send selection to Claude"; }
     { mode = "n"; key = "<leader>aa"; action = "<cmd>ClaudeCodeDiffAccept<CR>"; options.desc = "Accept diff"; }
     { mode = "n"; key = "<leader>ad"; action = "<cmd>ClaudeCodeDiffDeny<CR>"; options.desc = "Deny diff"; }
+    { mode = "n"; key = "<leader>aS"; action = "<cmd>ClaudeCodeStatus<CR>"; options.desc = "Claude status"; }
   ];
 }
