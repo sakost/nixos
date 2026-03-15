@@ -16,7 +16,6 @@
     ./programs/gh.nix
     ./programs/nixvim
     ./programs/cargo-cross.nix
-    ./programs/flutter.nix
     ./programs/systemctl-tui.nix
     ./programs/steam.nix
     ./programs/wallpaper-engine.nix

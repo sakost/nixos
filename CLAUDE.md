@@ -2,7 +2,7 @@
 
 ## Repository overview
 
-Multi-host NixOS flake for user **sakost**. Uses nixpkgs unstable, home-manager, nixvim, sops-nix, lanzaboote (secure boot), android-nixpkgs, claude-code, claude-desktop, and yandex-browser.
+Multi-host NixOS flake for user **sakost**. Uses nixpkgs unstable, home-manager, nixvim, sops-nix, lanzaboote (secure boot), claude-code, claude-desktop, and yandex-browser.
 
 Two hosts defined via `mkHost` in `flake.nix`:
 - `sakost-pc` — main desktop (Intel CPU, NVIDIA GPU)

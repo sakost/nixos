@@ -60,8 +60,6 @@
     "flakes"
   ];
   nixpkgs.config.allowUnfree = true;
-  nixpkgs.config.android_sdk.accept_license = true;
-
   # Automatic garbage collection
   nix.gc = {
     automatic = true;

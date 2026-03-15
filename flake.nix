@@ -39,14 +39,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    android-nixpkgs = {
-      url = "github:tadfisher/android-nixpkgs";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
   };
 
-  outputs = { self, nixpkgs, home-manager, nixvim, sops-nix, claude-code, claude-desktop, lanzaboote, yandex-browser, android-nixpkgs, ... }@inputs:
+  outputs = { self, nixpkgs, home-manager, nixvim, sops-nix, claude-code, claude-desktop, lanzaboote, yandex-browser, ... }@inputs:
   let
     system = "x86_64-linux";
 
@@ -62,7 +57,6 @@
         lanzaboote.nixosModules.lanzaboote
         home-manager.nixosModules.home-manager
         { nixpkgs.overlays = [
-            android-nixpkgs.overlays.default
             (import ./overlays/argocd-fix.nix)
             (import ./overlays/hyprland-plugins-fix.nix)
           ];
