@@ -261,15 +261,16 @@ let
         os.rename(tmp_path, OUTBOUNDS_PATH)
         print(f"Updated outbounds.json with {len(proxy_outbounds)} proxy outbound(s)")
 
-        # Restart sing-box to pick up new outbounds
+        # Restart sing-box to pick up new outbounds (--no-block avoids deadlock
+        # when fetcher runs Before sing-box-proxy on boot)
         result = subprocess.run(
-            [SYSTEMCTL, "try-restart", "sing-box-proxy.service"],
-            capture_output=True, text=True, timeout=30,
+            [SYSTEMCTL, "try-restart", "--no-block", "sing-box-proxy.service"],
+            capture_output=True, text=True, timeout=10,
         )
         if result.returncode != 0:
             print(f"Warning: failed to restart sing-box-proxy: {result.stderr}", file=sys.stderr)
         else:
-            print("sing-box-proxy restarted successfully")
+            print("sing-box-proxy restart queued")
 
     if __name__ == "__main__":
         main()
