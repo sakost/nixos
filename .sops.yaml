@@ -5,8 +5,8 @@ keys:
   - &sakost-pc age1hctl9v9qq7fcp3qltmxlndhk24d60calvn962ykm4fwkw8d7j4pqushe0g
 
 creation_rules:
-  # sing-box proxy configuration (stored as binary for simplicity)
-  - path_regex: secrets/sing-box\.json$
+  # sing-box subscription URL (stored as binary)
+  - path_regex: secrets/sing-box-sub-url$
     key_groups:
       - age:
           - *sakost-pc
