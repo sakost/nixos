@@ -31,6 +31,11 @@ in {
       })
     ];
 
+    # swtpm_localca needs this directory writable by tss user for vTPM cert storage
+    systemd.tmpfiles.rules = [
+      "d /var/lib/swtpm-localca 0750 tss tss -"
+    ];
+
     # SPICE USB redirection — lets you pass USB devices into the VM
     virtualisation.spiceUSBRedirection.enable = true;
 
