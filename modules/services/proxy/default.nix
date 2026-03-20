@@ -1,6 +1,11 @@
 # Proxy service module (sing-box with subscription fetcher + TUI selector)
 # Static config in /etc/sing-box/config.json, dynamic outbounds in /var/lib/sing-box/outbounds.json
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   cfg = config.custom.services.proxy;
@@ -57,18 +62,54 @@ let
     ];
 
     outbounds = [
-      { type = "direct"; tag = "direct"; }
-      { type = "block"; tag = "block"; }
+      {
+        type = "direct";
+        tag = "direct";
+      }
+      {
+        type = "block";
+        tag = "block";
+      }
     ];
 
     route = {
       rules = [
         { action = "sniff"; }
-        { action = "hijack-dns"; protocol = "dns"; }
-        { ip_is_private = true; outbound = "direct"; }
-        { domain_suffix = [ ".local" ".lan" ".localhost" ]; outbound = "direct"; }
-        { rule_set = [ "geosite-category-ru" "geoip-ru" ]; outbound = "direct"; }
-        { rule_set = "geosite-category-ads-all"; outbound = "block"; }
+        {
+          action = "hijack-dns";
+          protocol = "dns";
+        }
+        {
+          ip_is_private = true;
+          outbound = "direct";
+        }
+        {
+          domain_suffix = [
+            ".local"
+            ".lan"
+            ".localhost"
+          ];
+          outbound = "direct";
+        }
+        {
+          domain_suffix = [
+            ".ru"
+            ".рф"
+            ".su"
+          ];
+          outbound = "direct";
+        }
+        {
+          rule_set = [
+            "geosite-category-ru"
+            "geoip-ru"
+          ];
+          outbound = "direct";
+        }
+        {
+          rule_set = "geosite-category-ads-all";
+          outbound = "block";
+        }
       ];
       rule_set = [
         {
@@ -211,7 +252,7 @@ let
                 {
                     "type": "selector",
                     "tag": "proxy",
-                    "outbounds": ["auto"] + tags,
+                    "outbounds": ["auto"] + tags + ["direct"],
                     "interrupt_exist_connections": True,
                 },
                 {
@@ -279,7 +320,11 @@ let
   # TUI selector script for switching proxy chains via Clash API
   selectorScript = pkgs.writeShellApplication {
     name = "sing-box-select";
-    runtimeInputs = [ pkgs.curl pkgs.jq pkgs.fzf ];
+    runtimeInputs = [
+      pkgs.curl
+      pkgs.jq
+      pkgs.fzf
+    ];
     text = ''
       API="http://127.0.0.1:${toString cfg.clashApiPort}"
       SELECTOR="proxy"
@@ -296,7 +341,8 @@ let
     '';
   };
 
-in {
+in
+{
   options.custom.services.proxy = {
     enable = lib.mkEnableOption "sing-box proxy service";
 
@@ -340,7 +386,10 @@ in {
     # Main sing-box proxy service — reads static config + dynamic outbounds
     systemd.services.sing-box-proxy = {
       description = "sing-box Proxy Service";
-      after = [ "network-online.target" "sing-box-fetch-subscription.service" ];
+      after = [
+        "network-online.target"
+        "sing-box-fetch-subscription.service"
+      ];
       wants = [ "network-online.target" ];
       wantedBy = [ "multi-user.target" ];
 
@@ -352,8 +401,16 @@ in {
 
         # Security hardening
         DynamicUser = false; # Need root for TUN
-        AmbientCapabilities = [ "CAP_NET_ADMIN" "CAP_NET_BIND_SERVICE" "CAP_NET_RAW" ];
-        CapabilityBoundingSet = [ "CAP_NET_ADMIN" "CAP_NET_BIND_SERVICE" "CAP_NET_RAW" ];
+        AmbientCapabilities = [
+          "CAP_NET_ADMIN"
+          "CAP_NET_BIND_SERVICE"
+          "CAP_NET_RAW"
+        ];
+        CapabilityBoundingSet = [
+          "CAP_NET_ADMIN"
+          "CAP_NET_BIND_SERVICE"
+          "CAP_NET_RAW"
+        ];
         NoNewPrivileges = true;
         ProtectSystem = "strict";
         ProtectHome = true;
@@ -366,7 +423,10 @@ in {
     # Subscription fetcher — oneshot service that updates outbounds.json
     systemd.services.sing-box-fetch-subscription = {
       description = "Fetch sing-box subscription outbounds";
-      after = [ "network-online.target" "sops-nix.service" ];
+      after = [
+        "network-online.target"
+        "sops-nix.service"
+      ];
       wants = [ "network-online.target" ];
       before = [ "sing-box-proxy.service" ];
 
