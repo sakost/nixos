@@ -14,6 +14,8 @@ in {
       qemu = {
         # swtpm — software TPM emulator, required for Windows 11
         swtpm.enable = true;
+        # virtiofsd — host-guest shared folders via virtiofs
+        vhostUserPackages = [ pkgs.virtiofsd ];
       };
     };
 
