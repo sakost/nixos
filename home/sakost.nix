@@ -41,6 +41,7 @@
     ./programs/virt-manager.nix
     ./programs/nvtop.nix
     ./programs/onefetch.nix
+    ./programs/rtk.nix
 
     ./programs/figma-desktop.nix
     ./desktop/hyprland
