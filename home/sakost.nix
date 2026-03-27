@@ -120,6 +120,10 @@
       name = "Tokyonight-Dark";
       package = pkgs.tokyonight-gtk-theme;
     };
+    gtk4.theme = {
+      name = "Tokyonight-Dark";
+      package = pkgs.tokyonight-gtk-theme;
+    };
   };
 
   # Let home-manager manage itself
