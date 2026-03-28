@@ -92,6 +92,7 @@
   custom.programs.veracrypt.enable = true;
   custom.programs.gnome-keyring.enable = true;
   custom.programs.plymouth.enable = true;
+  custom.programs.powerline-fonts.enable = true;
   custom.programs.cryptopro = {
     enable = true;
     archiveHash = "sha256-oM/0hvv2D3a2HTUnSUWzAuUyfQ8SY+RlrU09Kj1f+rQ=";

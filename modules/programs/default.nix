@@ -5,6 +5,7 @@
   imports = [
     ./zsh.nix
     ./fonts.nix
+    ./powerline-fonts.nix
     ./git.nix
     ./nix-ld.nix
     ./android.nix
