@@ -63,6 +63,7 @@
       sqlite
       uv
       nodejs
+      pandoc
       yarn
       cargo-deny
       btop
@@ -95,6 +96,11 @@
       tldr
       fd
       ssh-to-age
+      (texliveSmall.withPackages (ps: [
+        ps.cyrillic
+        ps.babel-russian
+        ps.hyphen-russian
+      ]))
       mdcat
     ];
   };

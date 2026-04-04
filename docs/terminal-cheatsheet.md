@@ -168,6 +168,22 @@ tldr -l                       # List all available pages
 
 Community-maintained cheat sheets with practical examples.
 
+## pandoc (document converter)
+
+Universal document converter — converts between Markdown, HTML, LaTeX, PDF, DOCX, and many more.
+
+```bash
+pandoc file.md -o file.html       # Markdown → HTML
+pandoc file.md -o file.pdf --pdf-engine=xelatex  # Markdown → PDF (Russian/Unicode via XeLaTeX)
+pandoc file.md -o file.docx       # Markdown → Word
+pandoc file.md -o file.rst        # Markdown → reStructuredText
+pandoc -f html -t markdown page.html  # HTML → Markdown
+pandoc file.md --pdf-engine=xelatex -o file.pdf  # Use XeLaTeX engine
+pandoc --list-output-formats      # List all supported output formats
+```
+
+Also available as `:Pandoc <format>` inside Neovim markdown buffers (see nvim-cheatsheet).
+
 ## direnv
 
 Config: `home/sakost.nix` (programs.direnv)

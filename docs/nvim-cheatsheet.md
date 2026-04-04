@@ -232,11 +232,25 @@ sqlite:path/to/db.sqlite
 
 For Cloud SQL via proxy: start `cloud-sql-proxy` first, then connect to `postgresql://user:pass@127.0.0.1:5432/dbname`.
 
-## Markdown
+## Terminal (snacks.nvim)
 
 | Key | Mode | Action |
 |-----|------|--------|
+| `Ctrl+/` | n | Toggle bottom terminal |
+| `Ctrl+/` | t | Hide terminal (from inside) |
+
+Terminal persists across toggles — shell session stays alive.
+
+## Markdown
+
+| Key / Command | Mode | Action |
+|---------------|------|--------|
 | `Space mp` | n | Preview in Chrome |
+| `:Pandoc html` | n | Convert to HTML (output next to source) |
+| `:Pandoc pdf` | n | Convert to PDF (via XeLaTeX, supports Russian) |
+| `:Pandoc docx` | n | Convert to DOCX |
+
+`:Pandoc <format>` is available only in markdown buffers. Output file is placed next to the source with the new extension.
 
 ## Tips
 

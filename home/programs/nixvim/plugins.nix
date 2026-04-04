@@ -105,9 +105,14 @@
       enable = true;
     };
 
-    # Snacks.nvim (required by claudecode.nvim)
+    # Snacks.nvim (required by claudecode.nvim, also provides terminal)
     snacks = {
       enable = true;
+      settings.terminal = {
+        win = {
+          style = "terminal";
+        };
+      };
     };
 
     # Markdown preview
@@ -134,6 +139,27 @@
   ];
 
   programs.nixvim.extraConfigLua = ''
+    -- :Pandoc <format> — convert current Markdown file (e.g. :Pandoc html, :Pandoc pdf)
+    vim.api.nvim_create_autocmd("FileType", {
+      pattern = "markdown",
+      callback = function()
+        vim.api.nvim_buf_create_user_command(0, "Pandoc", function(args)
+          local fmt = args.args
+          local extra = ""
+          if fmt == "pdf" then
+            extra = " --pdf-engine=xelatex"
+          end
+          vim.cmd(
+            "!pandoc -i "
+              .. vim.fn.fnameescape(vim.fn.expand("%"))
+              .. " -o "
+              .. vim.fn.fnameescape(vim.fn.expand("%:r") .. "." .. fmt)
+              .. extra
+          )
+        end, { nargs = 1 })
+      end,
+    })
+
     require("claudecode").setup({
       auto_start = true,
       track_selection = true,
@@ -174,6 +200,10 @@
     { mode = "n"; key = "<leader>xx"; action = ":Trouble diagnostics toggle<CR>"; options.desc = "Toggle Trouble"; }
     { mode = "n"; key = "<leader>xd"; action = ":Trouble diagnostics toggle filter.buf=0<CR>"; options.desc = "Buffer diagnostics"; }
     { mode = "n"; key = "<leader>mp"; action = ":MarkdownPreview<CR>"; options.desc = "Markdown preview"; }
+
+    # Snacks terminal
+    { mode = "n"; key = "<C-/>"; action.__raw = "function() Snacks.terminal.toggle() end"; options.desc = "Toggle terminal"; }
+    { mode = "t"; key = "<C-/>"; action.__raw = "function() Snacks.terminal.toggle() end"; options.desc = "Hide terminal"; }
 
     # Claude Code
     { mode = "n"; key = "<leader>ac"; action = "<cmd>ClaudeCode<CR>"; options.desc = "Toggle Claude"; }
