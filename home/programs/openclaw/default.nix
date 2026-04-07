@@ -19,6 +19,15 @@ in
 
   programs.openclaw = {
     enable = true;
+
+    # pkgs.openclaw ships its own bin/node (bundled TypeScript runtime),
+    # which collides with pkgs.nodejs in home/sakost.nix at the
+    # buildEnv merge step. lowPrio tags openclaw as priority 10 (default
+    # is 5, lower wins), so nodejs wins bin/node on PATH while all other
+    # openclaw binaries are still installed normally. No rebuild — this
+    # is a pure meta.priority wrapper, the derivation hash is unchanged.
+    package = lib.lowPrio pkgs.openclaw;
+
     documents = ./documents;
 
     bundledPlugins = {
