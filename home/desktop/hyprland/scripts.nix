@@ -180,7 +180,7 @@ let
     WE_DIR="$HOME/games/SteamLibrary/steamapps/workshop/content/431960"
     WE_ASSETS="$HOME/games/SteamLibrary/steamapps/common/wallpaper_engine/assets"
     NOTIFY="${pkgs.libnotify}/bin/notify-send"
-    SWWW="${pkgs.swww}/bin/swww"
+    SWWW="${pkgs.awww}/bin/awww"
     MPVPAPER="${pkgs.mpvpaper}/bin/mpvpaper"
     WE="${pkgs.linux-wallpaperengine}/bin/linux-wallpaperengine"
     JQ="${pkgs.jq}/bin/jq"

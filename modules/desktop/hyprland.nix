@@ -41,7 +41,7 @@ in {
 
       # Wayland utilities
       kitty
-      swww
+      awww
       waybar
       satty
       slurp
