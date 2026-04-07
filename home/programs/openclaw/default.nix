@@ -34,8 +34,39 @@ let
   # separate AGENTS.md/SOUL.md/TOOLS.md, separate session memory, separate
   # local notes. The agents share the gateway, the model provider, and
   # the auth token, but nothing else.
-  workspaceMain = "${config.home.homeDirectory}/.openclaw/workspace";
-  workspaceArticles = "${config.home.homeDirectory}/.openclaw/workspace-articles";
+  homeDir = config.home.homeDirectory;
+
+  # Centralized mapping from agent id → (workspace path, document source).
+  # The activation script below iterates over this to populate each
+  # workspace with the right AGENTS.md / SOUL.md / TOOLS.md as REGULAR
+  # files (symlinks get rejected by OpenClaw's workspace sandbox).
+  # The agents.list config below uses the same `workspace` values.
+  agentDocuments = {
+    main = {
+      workspace = "${homeDir}/.openclaw/workspace";
+      source    = ./documents;
+    };
+    articles = {
+      workspace = "${homeDir}/.openclaw/workspace-articles";
+      source    = ./documents-articles;
+    };
+    articles-facts = {
+      workspace = "${homeDir}/.openclaw/workspace-articles-facts";
+      source    = ./documents-articles-facts;
+    };
+    articles-code = {
+      workspace = "${homeDir}/.openclaw/workspace-articles-code";
+      source    = ./documents-articles-code;
+    };
+    articles-critic = {
+      workspace = "${homeDir}/.openclaw/workspace-articles-critic";
+      source    = ./documents-articles-critic;
+    };
+    articles-humanizer = {
+      workspace = "${homeDir}/.openclaw/workspace-articles-humanizer";
+      source    = ./documents-articles-humanizer;
+    };
+  };
 in
 {
   imports = [ inputs.nix-openclaw.homeManagerModules.openclaw ];
@@ -139,23 +170,75 @@ in
           # Inherited by all agents in `list` unless overridden per-agent.
           defaults.model.primary = "ollama/${defaultModel}";
 
-          # Multi-agent configuration: a single gateway hosts both
-          # `main` and `articles` simultaneously. Each agent gets its
-          # own workspace tree, agentDir (auth profiles + sessions),
-          # and AGENTS.md/SOUL.md/TOOLS.md. Visible side-by-side in the
-          # Control UI's agent dropdown. The `id` is the routing key.
+          # Multi-agent configuration: a single gateway hosts six
+          # isolated agents simultaneously. Each agent gets its own
+          # workspace tree, agentDir (auth profiles + sessions), and
+          # AGENTS.md/SOUL.md/TOOLS.md that define its role.
+          # Visible side-by-side in the Control UI's agent dropdown.
           # See https://docs.openclaw.ai/concepts/multi-agent
+          #
+          # Pipeline:
+          #   main — general assistant, can delegate to `articles`
+          #   articles — drafts programming articles, can spawn the
+          #     four validators below as subagents during review
+          #   articles-facts — verifies factual claims with primary sources
+          #   articles-code — senior code reviewer for embedded snippets
+          #   articles-critic — editorial critique with argued evidence
+          #   articles-humanizer — detects AI-generated writing patterns
           list = [
             {
               id = "main";
-              workspace = workspaceMain;
-              subagents.allowAgents = [
-                "articles"
-              ];
+              workspace = agentDocuments.main.workspace;
+              subagents.allowAgents = [ "articles" ];
             }
             {
               id = "articles";
-              workspace = workspaceArticles;
+              workspace = agentDocuments.articles.workspace;
+              identity = {
+                name  = "Drafter";
+                emoji = "📝";
+              };
+              # The drafter can spawn the validators as subagents
+              # during a review pass, OR the user can invoke each
+              # validator directly via `openclaw agent --agent <id>`.
+              subagents.allowAgents = [
+                "articles-facts"
+                "articles-code"
+                "articles-critic"
+                "articles-humanizer"
+              ];
+            }
+            {
+              id = "articles-facts";
+              workspace = agentDocuments.articles-facts.workspace;
+              identity = {
+                name  = "Fact Checker";
+                emoji = "🔍";
+              };
+            }
+            {
+              id = "articles-code";
+              workspace = agentDocuments.articles-code.workspace;
+              identity = {
+                name  = "Code Reviewer";
+                emoji = "⚙️";
+              };
+            }
+            {
+              id = "articles-critic";
+              workspace = agentDocuments.articles-critic.workspace;
+              identity = {
+                name  = "Critic";
+                emoji = "🧐";
+              };
+            }
+            {
+              id = "articles-humanizer";
+              workspace = agentDocuments.articles-humanizer.workspace;
+              identity = {
+                name  = "Humanizer";
+                emoji = "🫶";
+              };
             }
           ];
         };
@@ -167,24 +250,30 @@ in
     };
   };
 
-  # Copy AGENTS.md / SOUL.md / TOOLS.md as REGULAR files into BOTH agent
-  # workspaces. nix-openclaw's standard documents mechanism uses symlinks
-  # into /nix/store which OpenClaw's gateway rejects with "Symlink
-  # escapes workspace root". `install` creates a regular file under the
-  # workspace, so the target == the file itself and the sandbox check
-  # passes. Runs after openclawDirs so the workspace dirs already exist.
-  home.activation.openclawCopyDocuments = lib.hm.dag.entryAfter [ "openclawDirs" ] ''
-    for ws in "${workspaceMain}" "${workspaceArticles}"; do
-      run --quiet ${lib.getExe' pkgs.coreutils "mkdir"} -p "$ws"
-      for f in AGENTS.md SOUL.md TOOLS.md; do
-        # install(1) atomically replaces the destination — handles
-        # both "doesn't exist" and "was a symlink from a previous
-        # rebuild" cases without the rm-then-cp dance.
-        run --quiet ${lib.getExe' pkgs.coreutils "install"} -m 644 \
-          "${./documents}/$f" "$ws/$f"
-      done
-    done
-  '';
+  # Copy AGENTS.md / SOUL.md / TOOLS.md as REGULAR files into each
+  # agent's workspace. nix-openclaw's standard documents mechanism
+  # uses symlinks into /nix/store which OpenClaw's gateway rejects
+  # with "Symlink escapes workspace root". `install` creates a regular
+  # file under the workspace, so the target == the file itself and
+  # the sandbox check passes. Runs after openclawDirs so the
+  # nix-openclaw-created workspace directories already exist (though
+  # we mkdir -p as belt-and-suspenders for the new per-validator
+  # workspaces that nix-openclaw doesn't know about yet).
+  home.activation.openclawCopyDocuments = lib.hm.dag.entryAfter [ "openclawDirs" ] (
+    lib.concatStringsSep "\n" (
+      lib.mapAttrsToList (id: spec: ''
+        # ${id}
+        run --quiet ${lib.getExe' pkgs.coreutils "mkdir"} -p "${spec.workspace}"
+        for f in AGENTS.md SOUL.md TOOLS.md; do
+          # install(1) atomically replaces the destination — handles
+          # both "doesn't exist" and "was a symlink from a previous
+          # rebuild" cases without the rm-then-cp dance.
+          run --quiet ${lib.getExe' pkgs.coreutils "install"} -m 644 \
+            "${spec.source}/$f" "${spec.workspace}/$f"
+        done
+      '') agentDocuments
+    )
+  );
 
   # Force home-manager to overwrite the openclaw config file on every
   # activation. nix-openclaw's custom `openclawConfigFiles` activation
