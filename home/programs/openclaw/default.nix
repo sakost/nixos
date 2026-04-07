@@ -1,7 +1,12 @@
 # OpenClaw — personal AI assistant gateway, wired to local Ollama.
 #
+# Single gateway with multiple isolated agents (default + articles),
+# each with its own workspace, agentDir, and session store. See
+# https://docs.openclaw.ai/concepts/multi-agent for the model.
+#
 # Upstream:            https://github.com/openclaw/nix-openclaw
 # Ollama provider:     https://docs.openclaw.ai/providers/ollama
+# Multi-agent docs:    https://docs.openclaw.ai/concepts/multi-agent
 { config, lib, pkgs, inputs, osConfig, ... }:
 
 let
@@ -16,26 +21,14 @@ let
   # osConfig exposes the NixOS-level sops config from inside home-manager.
   openclawEnvFile = osConfig.sops.secrets."openclaw-env".path;
 
-  # Shared per-instance config. Every OpenClaw instance needs its own
-  # copy because the config MUST live under instances.<name>.config,
-  # NOT under programs.openclaw.config — see the long comment below.
-  sharedInstanceConfig = {
-    gateway.mode = "local";
-
-    # Native Ollama /api/chat endpoint. Do NOT add /v1 to baseUrl —
-    # the OpenAI-compat path breaks tool calling upstream.
-    models.providers.ollama = {
-      apiKey  = "ollama-local";
-      baseUrl = "http://127.0.0.1:11434";
-      api     = "ollama";
-    };
-
-    agents.defaults.model.primary = "ollama/${defaultModel}";
-
-    # auth.token is deliberately unset. OpenClaw reads
-    # OPENCLAW_GATEWAY_TOKEN from EnvironmentFile (see
-    # src/infra/dotenv.ts upstream) and that value takes precedence.
-  };
+  # Per-agent workspace directories. OpenClaw's convention for non-default
+  # agents is `~/.openclaw/workspace-<id>`, mirroring how OPENCLAW_PROFILE
+  # would name them. Each workspace is fully isolated from the others —
+  # separate AGENTS.md/SOUL.md/TOOLS.md, separate session memory, separate
+  # local notes. The agents share the gateway, the model provider, and
+  # the auth token, but nothing else.
+  workspaceMain     = "${config.home.homeDirectory}/.openclaw/workspace";
+  workspaceArticles = "${config.home.homeDirectory}/.openclaw/workspace-articles";
 in
 {
   imports = [ inputs.nix-openclaw.homeManagerModules.openclaw ];
@@ -47,10 +40,9 @@ in
     # behavior installs AGENTS.md/SOUL.md/TOOLS.md into the workspace
     # as symlinks into /nix/store, which OpenClaw's gateway rejects
     # with `GatewayRequestError: unsafe workspace file ... Symlink
-    # escapes workspace root`. See the custom activation script below
-    # (openclawCopyDocuments) that installs them as regular files
-    # instead, so they live inside the workspace root and pass the
-    # sandbox check.
+    # escapes workspace root`. The custom activation script below
+    # (openclawCopyDocuments) installs them as regular files instead,
+    # so they live inside the workspace root and pass the sandbox check.
     # documents = null;  (implicit default)
 
     bundledPlugins = {
@@ -84,52 +76,61 @@ in
     #     (recursiveUpdate baseConfig cfg.config)
     #     inst.config)
     # and `inst.config` evaluates to an attrset where every top-level
-    # key is `null` (schema default: `mkOption { type = nullOr (...);
-    # default = null; }`). recursiveUpdate's rule "if either side isn't
-    # an attrset, rhs wins" means the null-valued `inst.config.gateway`
-    # clobbers whatever `cfg.config.gateway` contributed. stripNulls
-    # then deletes the empty shell and you end up with a JSON file
-    # containing *only* `agents.defaults.workspace` (which is grafted
-    # on AFTER stripNulls by the `pinAgentDefaults` logic).
-    #
-    # The fix is to attach config directly to the instance so there is
-    # only one layer that sees real values, not two competing layers.
+    # key is `null` (schema default). recursiveUpdate's "non-attrset
+    # wins" rule means the null-valued inst.config keys clobber whatever
+    # cfg.config contributed. Attach config to instances.<name>.config
+    # instead so there's only one layer that sees real values.
 
-    instances = {
-      # Main always-on assistant: uses the default state dir
-      # (~/.openclaw) and port 18789 (nix-openclaw's default).
-      default = {
-        enable = true;
-        config = sharedInstanceConfig;
-      };
+    instances.default = {
+      enable = true;
+      config = {
+        gateway.mode = "local";
 
-      # Dedicated instance for drafting programming-language articles.
-      # Lives in ~/.openclaw-articles/workspace so its memory, skills,
-      # and git-tracked notes stay isolated from the main assistant.
-      # Runs on port 18790 when started and is NOT auto-started at
-      # login — launch on demand with
-      #   `systemctl --user start openclaw-gateway-articles`
-      # (stopped by nix-openclaw's default `Install = {}` absence).
-      articles = {
-        enable = true;
-        stateDir = "${config.home.homeDirectory}/.openclaw-articles";
-        gatewayPort = 18790;
-        config = sharedInstanceConfig;
+        # Native Ollama /api/chat endpoint. Do NOT add /v1 to baseUrl —
+        # the OpenAI-compat path breaks tool calling upstream.
+        models.providers.ollama = {
+          apiKey  = "ollama-local";
+          baseUrl = "http://127.0.0.1:11434";
+          api     = "ollama";
+        };
+
+        agents = {
+          # Inherited by all agents in `list` unless overridden per-agent.
+          defaults.model.primary = "ollama/${defaultModel}";
+
+          # Multi-agent configuration: a single gateway hosts both
+          # `main` and `articles` simultaneously. Each agent gets its
+          # own workspace tree, agentDir (auth profiles + sessions),
+          # and AGENTS.md/SOUL.md/TOOLS.md. Visible side-by-side in the
+          # Control UI's agent dropdown. The `id` is the routing key.
+          # See https://docs.openclaw.ai/concepts/multi-agent
+          list = [
+            {
+              id = "main";
+              workspace = workspaceMain;
+            }
+            {
+              id = "articles";
+              workspace = workspaceArticles;
+            }
+          ];
+        };
+
+        # auth.token is deliberately unset. OpenClaw reads
+        # OPENCLAW_GATEWAY_TOKEN from EnvironmentFile (see
+        # src/infra/dotenv.ts upstream) and that value takes precedence.
       };
     };
   };
 
-  # Copy AGENTS.md / SOUL.md / TOOLS.md as REGULAR files into both
-  # instance workspaces. This is the workaround for OpenClaw's
-  # workspace sandbox, which rejects any symlink whose target escapes
-  # the workspace root (see docs/install/nix.md + the GatewayRequestError
-  # output from the Control UI). `install` creates a regular file
-  # under the workspace, so the target == the file itself and the
-  # "escapes workspace root" check passes. Runs after openclawDirs
-  # so the target directories already exist.
+  # Copy AGENTS.md / SOUL.md / TOOLS.md as REGULAR files into BOTH agent
+  # workspaces. nix-openclaw's standard documents mechanism uses symlinks
+  # into /nix/store which OpenClaw's gateway rejects with "Symlink
+  # escapes workspace root". `install` creates a regular file under the
+  # workspace, so the target == the file itself and the sandbox check
+  # passes. Runs after openclawDirs so the workspace dirs already exist.
   home.activation.openclawCopyDocuments = lib.hm.dag.entryAfter [ "openclawDirs" ] ''
-    for ws in "${config.home.homeDirectory}/.openclaw/workspace" \
-              "${config.home.homeDirectory}/.openclaw-articles/workspace"; do
+    for ws in "${workspaceMain}" "${workspaceArticles}"; do
       run --quiet ${lib.getExe' pkgs.coreutils "mkdir"} -p "$ws"
       for f in AGENTS.md SOUL.md TOOLS.md; do
         # install(1) atomically replaces the destination — handles
@@ -141,48 +142,29 @@ in
     done
   '';
 
-  # Force home-manager to overwrite both instance config files on
-  # every activation. Two reasons this is necessary despite having
-  # `home-manager.backupFileExtension = "hm-backup"` globally:
-  #
-  # 1. The default instance's file gets clobbered by openclaw's
-  #    runtime rename()-based writes (the file becomes a regular
-  #    file instead of a symlink). backupFileExtension handles this
-  #    case — but having force=true is belt-and-suspenders.
-  #
-  # 2. nix-openclaw's custom `openclawConfigFiles` activation script
-  #    runs `ln -sfn ${configFile} ${configPath}` AFTER home-manager's
-  #    linkGeneration, pointing the symlink at a DIFFERENT store path
-  #    than home-manager's tree (a direct `pkgs.writeText` output).
-  #    On the next rebuild, home-manager sees a symlink pointing at
-  #    an "unexpected" store path and refuses to touch it — the
-  #    `backupFileExtension` path only applies to non-symlink foreign
-  #    files, so symlinks hit the "would be clobbered" error with no
-  #    backup attempt. `force = true` bypasses this by unconditionally
-  #    overwriting the path regardless of type.
+  # Force home-manager to overwrite the openclaw config file on every
+  # activation. nix-openclaw's custom `openclawConfigFiles` activation
+  # script runs `ln -sfn ${configFile} ${configPath}` AFTER home-manager's
+  # linkGeneration, pointing the symlink at a different store path than
+  # home-manager's tree. Without `force = true`, the next rebuild sees a
+  # foreign symlink and either errors or backs it up. force=true
+  # unconditionally overwrites and avoids the dance.
   home.file.".openclaw/openclaw.json".force = true;
-  home.file.".openclaw-articles/openclaw.json".force = true;
 
-  # Inject the sops-decrypted env file into BOTH gateway units. mkAfter
+  # Inject the sops-decrypted env file into the gateway unit. mkAfter
   # preserves whatever EnvironmentFile nix-openclaw may already set.
-  # Both instances share the same OPENCLAW_GATEWAY_TOKEN — the token
-  # authenticates CLI clients to the gateway, not the model provider.
   systemd.user.services.openclaw-gateway.Service.EnvironmentFile =
     lib.mkAfter [ openclawEnvFile ];
-  systemd.user.services.openclaw-gateway-articles.Service.EnvironmentFile =
-    lib.mkAfter [ openclawEnvFile ];
 
-  # Default instance auto-starts on user login. Upstream nix-openclaw
-  # defines Unit + Service but no Install section, so nothing would
-  # wire `systemctl --user enable` to a target. We add it here.
-  # The articles instance deliberately has NO Install section so it
-  # stays stopped by default — start it by hand when you need it.
+  # Auto-start the gateway on user login. Upstream nix-openclaw defines
+  # Unit + Service but no Install section, so nothing would wire
+  # `systemctl --user enable` to a target without this.
   systemd.user.services.openclaw-gateway.Install.WantedBy = [ "default.target" ];
 
   # Tell OpenClaw it's managed by Nix so its interactive self-updater
   # (triggered by `ollama launch openclaw` and similar) doesn't try to
   # `npm install -g openclaw@latest` into ~/.local/share/npm. The
-  # systemd units already set this in their Environment=, but that only
+  # systemd unit already sets this in its Environment=, but that only
   # applies to the daemon, not to shell invocations of the `openclaw`
   # CLI. This puts the var in every login shell's environment.
   home.sessionVariables.OPENCLAW_NIX_MODE = "1";
