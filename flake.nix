@@ -80,6 +80,17 @@
           home-manager = {
             useGlobalPkgs = true;
             useUserPackages = true;
+            # OpenClaw self-mutates its config file via rename() at
+            # runtime (e.g. when `openclaw onboard` or `ollama launch
+            # openclaw` writes the ollama provider block), turning the
+            # home-manager-managed symlink into a regular file. Without
+            # this extension, every subsequent rebuild fails with
+            # "Existing file '~/.openclaw/openclaw.json' would be
+            # clobbered". With it, home-manager renames the clobbered
+            # file to `<path>.hm-backup` and proceeds. Clean up
+            # accumulated backups with `find ~ -name '*.hm-backup' -delete`
+            # when you notice them.
+            backupFileExtension = "hm-backup";
             extraSpecialArgs = { inherit inputs theme; };
             users.sakost = import ./home/sakost.nix;
           };
