@@ -72,4 +72,18 @@ in
   # preserves whatever EnvironmentFile nix-openclaw may already set.
   systemd.user.services.openclaw-gateway.Service.EnvironmentFile =
     lib.mkAfter [ openclawEnvFile ];
+
+  # Upstream nix-openclaw defines the unit's Unit + Service sections but
+  # no Install section, so the service never auto-starts on user login.
+  # Hooking it to default.target makes `systemctl --user enable` actually
+  # do something, and home-manager's activation wires the enable for us.
+  systemd.user.services.openclaw-gateway.Install.WantedBy = [ "default.target" ];
+
+  # Tell OpenClaw it's managed by Nix so its interactive self-updater
+  # (triggered by `ollama launch openclaw` and similar) doesn't try to
+  # `npm install -g openclaw@latest` into ~/.local/share/npm. The
+  # systemd unit already sets this in its Environment=, but that only
+  # applies to the daemon, not to shell invocations of the `openclaw`
+  # CLI. This puts the var in every login shell's environment.
+  home.sessionVariables.OPENCLAW_NIX_MODE = "1";
 }
