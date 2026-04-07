@@ -55,10 +55,24 @@
   ];
 
   # Nix settings
-  nix.settings.experimental-features = [
-    "nix-command"
-    "flakes"
-  ];
+  nix.settings = {
+    experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
+
+    # Binary cache for nix-openclaw (openclaw-gateway, nix-steipete-tools,
+    # and the TypeScript/Go plugin toolchain). Declared in the downstream
+    # flake's nixConfig but ignored by default; mirroring it here at the
+    # system level makes the substituter trusted without needing
+    # trusted-users or --accept-flake-config.
+    extra-substituters = [
+      "https://cache.garnix.io"
+    ];
+    extra-trusted-public-keys = [
+      "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
+    ];
+  };
   nixpkgs.config.allowUnfree = true;
   # Automatic garbage collection
   nix.gc = {
