@@ -1,5 +1,5 @@
 # Home-manager configuration for user sakost
-{ config, pkgs, inputs, ... }:
+{ config, pkgs, inputs, lib, ... }:
 
 {
   imports = [
@@ -63,9 +63,13 @@
       ripgrep
       sqlite
       uv
-      nodejs
       pandoc
       yarn
+      # hiPrio wins bin/node conflict with openclaw (which bundles its own
+      # node runtime at $out/bin/node). nodejs ends up on PATH as priority
+      # 0; openclaw's bundled node is shadowed but openclaw's internal
+      # scripts reference /nix/store/... absolute paths so they're unaffected.
+      (lib.hiPrio nodejs)
       cargo-deny
       btop
       fastfetch
