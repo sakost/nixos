@@ -42,7 +42,16 @@ in
 
   programs.openclaw = {
     enable = true;
-    documents = ./documents;
+
+    # documents is deliberately NOT set here. nix-openclaw's default
+    # behavior installs AGENTS.md/SOUL.md/TOOLS.md into the workspace
+    # as symlinks into /nix/store, which OpenClaw's gateway rejects
+    # with `GatewayRequestError: unsafe workspace file ... Symlink
+    # escapes workspace root`. See the custom activation script below
+    # (openclawCopyDocuments) that installs them as regular files
+    # instead, so they live inside the workspace root and pass the
+    # sandbox check.
+    # documents = null;  (implicit default)
 
     bundledPlugins = {
       summarize.enable = true;
@@ -109,6 +118,28 @@ in
       };
     };
   };
+
+  # Copy AGENTS.md / SOUL.md / TOOLS.md as REGULAR files into both
+  # instance workspaces. This is the workaround for OpenClaw's
+  # workspace sandbox, which rejects any symlink whose target escapes
+  # the workspace root (see docs/install/nix.md + the GatewayRequestError
+  # output from the Control UI). `install` creates a regular file
+  # under the workspace, so the target == the file itself and the
+  # "escapes workspace root" check passes. Runs after openclawDirs
+  # so the target directories already exist.
+  home.activation.openclawCopyDocuments = lib.hm.dag.entryAfter [ "openclawDirs" ] ''
+    for ws in "${config.home.homeDirectory}/.openclaw/workspace" \
+              "${config.home.homeDirectory}/.openclaw-articles/workspace"; do
+      run --quiet ${lib.getExe' pkgs.coreutils "mkdir"} -p "$ws"
+      for f in AGENTS.md SOUL.md TOOLS.md; do
+        # install(1) atomically replaces the destination — handles
+        # both "doesn't exist" and "was a symlink from a previous
+        # rebuild" cases without the rm-then-cp dance.
+        run --quiet ${lib.getExe' pkgs.coreutils "install"} -m 644 \
+          "${./documents}/$f" "$ws/$f"
+      done
+    done
+  '';
 
   # Force home-manager to overwrite both instance config files on
   # every activation. Two reasons this is necessary despite having
