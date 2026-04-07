@@ -110,6 +110,28 @@ in
     };
   };
 
+  # Force home-manager to overwrite both instance config files on
+  # every activation. Two reasons this is necessary despite having
+  # `home-manager.backupFileExtension = "hm-backup"` globally:
+  #
+  # 1. The default instance's file gets clobbered by openclaw's
+  #    runtime rename()-based writes (the file becomes a regular
+  #    file instead of a symlink). backupFileExtension handles this
+  #    case — but having force=true is belt-and-suspenders.
+  #
+  # 2. nix-openclaw's custom `openclawConfigFiles` activation script
+  #    runs `ln -sfn ${configFile} ${configPath}` AFTER home-manager's
+  #    linkGeneration, pointing the symlink at a DIFFERENT store path
+  #    than home-manager's tree (a direct `pkgs.writeText` output).
+  #    On the next rebuild, home-manager sees a symlink pointing at
+  #    an "unexpected" store path and refuses to touch it — the
+  #    `backupFileExtension` path only applies to non-symlink foreign
+  #    files, so symlinks hit the "would be clobbered" error with no
+  #    backup attempt. `force = true` bypasses this by unconditionally
+  #    overwriting the path regardless of type.
+  home.file.".openclaw/openclaw.json".force = true;
+  home.file.".openclaw-articles/openclaw.json".force = true;
+
   # Inject the sops-decrypted env file into BOTH gateway units. mkAfter
   # preserves whatever EnvironmentFile nix-openclaw may already set.
   # Both instances share the same OPENCLAW_GATEWAY_TOKEN — the token
