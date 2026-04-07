@@ -311,6 +311,22 @@
         "type": "github"
       }
     },
+    "openclaw-skill-self-improving-agent": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1774695559,
+        "narHash": "sha256-lOcL3XA0reULlBqCmgQ8+mJtadHamztbH7/D9BWmYc4=",
+        "owner": "peterskoett",
+        "repo": "self-improving-agent",
+        "rev": "8713a3ca1a0c5a00cd729d5a134bc23b04dcd0b0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "peterskoett",
+        "repo": "self-improving-agent",
+        "type": "github"
+      }
+    },
     "pre-commit": {
       "inputs": {
         "flake-compat": "flake-compat",
@@ -343,6 +359,7 @@
         "nix-openclaw": "nix-openclaw",
         "nixpkgs": "nixpkgs_2",
         "nixvim": "nixvim",
+        "openclaw-skill-self-improving-agent": "openclaw-skill-self-improving-agent",
         "sops-nix": "sops-nix",
         "yandex-browser": "yandex-browser"
       }

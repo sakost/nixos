@@ -25,6 +25,27 @@ in
       summarize.enable = true;
     };
 
+    # Community skills installed into each instance's workspace.
+    # `copy` mode puts a hashed snapshot of each source tree in the nix
+    # store, which home-manager then materializes under
+    # ~/.openclaw/workspace/skills/<name>/.
+    skills = [
+      {
+        name = "self-improving-agent";
+        description = "Capture learnings, errors, and corrections for continuous agent improvement";
+        homepage = "https://github.com/peterskoett/self-improving-agent";
+        mode = "copy";
+        source = "${inputs.openclaw-skill-self-improving-agent}";
+      }
+      {
+        name = "ontology";
+        description = "Typed knowledge graph for structured agent memory and composable skills";
+        homepage = "https://clawhub.ai/oswalpalash/ontology";
+        mode = "copy";
+        source = "${./skills/ontology}";
+      }
+    ];
+
     config = {
       gateway = {
         mode = "local";

@@ -45,9 +45,17 @@
       inputs.home-manager.follows = "home-manager";
     };
 
+    # OpenClaw community skill: self-improving-agent
+    # Vendored as a flake input (no Nix in-repo) — referenced as a
+    # source tree by programs.openclaw.skills in home/programs/openclaw.
+    openclaw-skill-self-improving-agent = {
+      url = "github:peterskoett/self-improving-agent";
+      flake = false;
+    };
+
   };
 
-  outputs = { self, nixpkgs, home-manager, nixvim, sops-nix, claude-code, claude-desktop, lanzaboote, yandex-browser, nix-openclaw, ... }@inputs:
+  outputs = { self, nixpkgs, home-manager, nixvim, sops-nix, claude-code, claude-desktop, lanzaboote, yandex-browser, nix-openclaw, openclaw-skill-self-improving-agent, ... }@inputs:
   let
     system = "x86_64-linux";
 
