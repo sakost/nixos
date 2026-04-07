@@ -30,6 +30,7 @@
     ./programs/jupyterlab.nix
     ./programs/gdb.nix
     ./programs/ollama.nix
+    ./programs/openclaw
     ./programs/obs-studio.nix
     ./programs/natscli.nix
     ./programs/openssl.nix

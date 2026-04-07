@@ -39,9 +39,15 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nix-openclaw = {
+      url = "github:openclaw/nix-openclaw";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
+
   };
 
-  outputs = { self, nixpkgs, home-manager, nixvim, sops-nix, claude-code, claude-desktop, lanzaboote, yandex-browser, ... }@inputs:
+  outputs = { self, nixpkgs, home-manager, nixvim, sops-nix, claude-code, claude-desktop, lanzaboote, yandex-browser, nix-openclaw, ... }@inputs:
   let
     system = "x86_64-linux";
 
@@ -59,6 +65,7 @@
         { nixpkgs.overlays = [
             (import ./overlays/argocd-fix.nix)
             (import ./overlays/hyprland-plugins-fix.nix)
+            nix-openclaw.overlays.default
           ];
         }
         {
