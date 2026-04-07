@@ -7,7 +7,14 @@
 # Upstream:            https://github.com/openclaw/nix-openclaw
 # Ollama provider:     https://docs.openclaw.ai/providers/ollama
 # Multi-agent docs:    https://docs.openclaw.ai/concepts/multi-agent
-{ config, lib, pkgs, inputs, osConfig, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  inputs,
+  osConfig,
+  ...
+}:
 
 let
   # Default Ollama model. OpenClaw resolves this as `ollama/<tag>`.
@@ -27,7 +34,7 @@ let
   # separate AGENTS.md/SOUL.md/TOOLS.md, separate session memory, separate
   # local notes. The agents share the gateway, the model provider, and
   # the auth token, but nothing else.
-  workspaceMain     = "${config.home.homeDirectory}/.openclaw/workspace";
+  workspaceMain = "${config.home.homeDirectory}/.openclaw/workspace";
   workspaceArticles = "${config.home.homeDirectory}/.openclaw/workspace-articles";
 in
 {
@@ -89,9 +96,43 @@ in
         # Native Ollama /api/chat endpoint. Do NOT add /v1 to baseUrl —
         # the OpenAI-compat path breaks tool calling upstream.
         models.providers.ollama = {
-          apiKey  = "ollama-local";
+          apiKey = "ollama-local";
           baseUrl = "http://127.0.0.1:11434";
-          api     = "ollama";
+          api = "ollama";
+        };
+
+        # Web tools. web_fetch is enabled by default in OpenClaw; we
+        # declare it explicitly here as a home for future overrides
+        # (maxChars, timeoutSeconds, cacheTtlMinutes, etc.). web_search
+        # is routed through the Tavily plugin below — Tavily is bundled
+        # inside the openclaw binary (extensions/tavily/), not in
+        # nix-openclaw's plugin catalog, so we enable it via the runtime
+        # config instead of `bundledPlugins`.
+        # Docs: https://docs.openclaw.ai/tools/web-fetch
+        #       https://docs.openclaw.ai/tools/tavily
+        tools.web = {
+          fetch = {
+            enabled = true;
+            # Defaults spelled out for discoverability; all match upstream:
+            readability = true;
+            maxChars = 50000;
+            cacheTtlMinutes = 15;
+            timeoutSeconds = 30;
+          };
+          search.provider = "tavily";
+        };
+
+        # Enable the Tavily plugin. The apiKey is intentionally NOT set
+        # here — OpenClaw reads TAVILY_API_KEY from the gateway unit's
+        # EnvironmentFile (already wired to /run/secrets/openclaw-env
+        # via sops). Add the following line to `sops secrets/openclaw-env`
+        # before rebuilding:
+        #   TAVILY_API_KEY=tvly-<your-key-from-tavily.com-dashboard>
+        plugins.entries.tavily = {
+          enabled = true;
+          config.webSearch = {
+            baseUrl = "https://api.tavily.com";
+          };
         };
 
         agents = {
@@ -108,6 +149,9 @@ in
             {
               id = "main";
               workspace = workspaceMain;
+              subagents.allowAgents = [
+                "articles"
+              ];
             }
             {
               id = "articles";
@@ -153,8 +197,7 @@ in
 
   # Inject the sops-decrypted env file into the gateway unit. mkAfter
   # preserves whatever EnvironmentFile nix-openclaw may already set.
-  systemd.user.services.openclaw-gateway.Service.EnvironmentFile =
-    lib.mkAfter [ openclawEnvFile ];
+  systemd.user.services.openclaw-gateway.Service.EnvironmentFile = lib.mkAfter [ openclawEnvFile ];
 
   # Auto-start the gateway on user login. Upstream nix-openclaw defines
   # Unit + Service but no Install section, so nothing would wire
