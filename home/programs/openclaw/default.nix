@@ -7,7 +7,9 @@
 let
   # Default Ollama model. OpenClaw resolves this as `ollama/<tag>`.
   # Swap for any tag you have locally — run `ollama list` to see them.
-  defaultModel = "gemma4:latest";
+  # Gemma 4 variants on ollama.com: e2b (7.2 GB), e4b (~9.6 GB),
+  # 26b (18 GB MoE), 31b (20 GB dense). `:latest` doesn't exist.
+  defaultModel = "gemma4:e4b";
 
   # Path to the sops-decrypted env file. Declared in
   # hosts/sakost-pc/default.nix as sops.secrets."openclaw-env".
