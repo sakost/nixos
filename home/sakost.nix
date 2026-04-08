@@ -58,6 +58,12 @@
       gcc
       pkgsCross.musl64.stdenv.cc
       pkg-config
+      # C/C++ toolchain — CMake + Ninja + clangd (LSP & tidy) + LLDB
+      # (codelldb DAP adapter is referenced directly from nixvim dap.nix)
+      cmake
+      ninja
+      clang-tools
+      lldb
       jq
       just
       ripgrep

@@ -42,6 +42,17 @@
         installRustc = true;
       };
 
+      # C/C++ — clangd. Uses compile_commands.json which cmake-tools.nvim
+      # auto-symlinks to the project root after :CMakeGenerate.
+      clangd = {
+        enable = true;
+        # Disable lsp-format's auto-format for clangd — clang-format runs
+        # via the clangd LSP formatter and we bind it to <leader>f manually.
+        extraOptions.capabilities = {
+          offsetEncoding = [ "utf-16" ];
+        };
+      };
+
       # TypeScript/JavaScript
       ts_ls.enable = true;
 
@@ -103,5 +114,11 @@
   # Format on save
   programs.nixvim.plugins.lsp-format = {
     enable = true;
+  };
+
+  # clangd-extensions: inlay hints, AST viewer, memory usage, symbol info
+  programs.nixvim.plugins.clangd-extensions = {
+    enable = true;
+    enableOffsetEncodingWorkaround = true;
   };
 }

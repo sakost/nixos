@@ -12,6 +12,8 @@
     ./git.nix
     ./plugins.nix
     ./dadbod.nix
+    ./cmake.nix
+    ./dap.nix
   ];
 
   programs.nixvim = {
