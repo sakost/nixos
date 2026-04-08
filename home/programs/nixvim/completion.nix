@@ -20,8 +20,62 @@
           "<C-Space>" = "cmp.mapping.complete()";
           "<C-e>" = "cmp.mapping.abort()";
           "<CR>" = "cmp.mapping.confirm({ select = true })";
-          "<Tab>" = "cmp.mapping(cmp.mapping.select_next_item(), {'i', 's'})";
-          "<S-Tab>" = "cmp.mapping(cmp.mapping.select_prev_item(), {'i', 's'})";
+
+          # Smart Tab: context-aware cycling.
+          #   1. If the cmp popup is visible  → select next completion item
+          #   2. Else if inside an expandable/jumpable snippet → jump to next placeholder
+          #      (this is what moves you between template/function arg stops)
+          #   3. Otherwise → literal tab (fallback)
+          "<Tab>" = ''
+            cmp.mapping(function(fallback)
+              local luasnip = require('luasnip')
+              if cmp.visible() then
+                cmp.select_next_item()
+              elseif luasnip.expand_or_jumpable() then
+                luasnip.expand_or_jump()
+              else
+                fallback()
+              end
+            end, { 'i', 's' })
+          '';
+
+          # Smart Shift-Tab: mirror of the above, backward direction.
+          "<S-Tab>" = ''
+            cmp.mapping(function(fallback)
+              local luasnip = require('luasnip')
+              if cmp.visible() then
+                cmp.select_prev_item()
+              elseif luasnip.jumpable(-1) then
+                luasnip.jump(-1)
+              else
+                fallback()
+              end
+            end, { 'i', 's' })
+          '';
+
+          # Dedicated explicit jumps — useful if Tab is already consumed by
+          # something else (e.g. inside a terminal-in-buffer) or if you want
+          # to jump without closing the completion popup.
+          "<C-l>" = ''
+            cmp.mapping(function(fallback)
+              local luasnip = require('luasnip')
+              if luasnip.expand_or_jumpable() then
+                luasnip.expand_or_jump()
+              else
+                fallback()
+              end
+            end, { 'i', 's' })
+          '';
+          "<C-h>" = ''
+            cmp.mapping(function(fallback)
+              local luasnip = require('luasnip')
+              if luasnip.jumpable(-1) then
+                luasnip.jump(-1)
+              else
+                fallback()
+              end
+            end, { 'i', 's' })
+          '';
         };
 
         sources = [

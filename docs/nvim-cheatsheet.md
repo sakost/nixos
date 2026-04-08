@@ -115,15 +115,44 @@ Format-on-save is enabled.
 
 Sources (by priority): LSP > Snippets > Buffer > Paths
 
+### Smart Tab — popup cycling + snippet jumping
+
+`<Tab>` is context-aware. In order of precedence:
+
+1. **Completion popup visible** → select next item
+2. **Inside an expanded snippet** → jump to next placeholder
+3. **Neither** → literal tab
+
+This is the same key that iterates between **function argument placeholders**
+inserted by clangd / rust-analyzer. When you accept a completion for
+`std::min`, clangd inserts `std::min(${1:a}, ${2:b})` and the cursor lands on
+`a`; press `<Tab>` to jump to `b`, etc. Same for `for`-loop snippets, C++
+template parameter placeholders, and every friendly-snippets expansion.
+
 | Key | Mode | Action |
 |-----|------|--------|
-| `Tab` | i | Next suggestion |
-| `Shift+Tab` | i | Previous suggestion |
-| `Enter` | i | Accept suggestion |
+| `Tab` | i/s | Next completion item **or** next snippet placeholder |
+| `Shift+Tab` | i/s | Previous completion item **or** previous snippet placeholder |
+| `Ctrl+L` | i/s | Explicit jump to next snippet placeholder (Tab-safe alternative) |
+| `Ctrl+H` | i/s | Explicit jump to previous snippet placeholder |
+| `Enter` | i | Accept current suggestion |
 | `Ctrl+Space` | i | Trigger completion |
 | `Ctrl+E` | i | Dismiss completion |
 | `Ctrl+B` | i | Scroll docs up |
 | `Ctrl+F` | i | Scroll docs down |
+
+### Filling function arguments (the "iterate template params" flow)
+
+1. Start typing a function or class name — e.g. `std::vector`
+2. `<Tab>` (or Enter) to accept the completion
+3. clangd inserts placeholders: `std::vector<${1:T}>(${2:count}, ${3:value})`
+4. Cursor is parked on the first placeholder — type your value
+5. `<Tab>` → jumps to the next placeholder
+6. `<Shift+Tab>` → jumps back
+7. When you Tab past the last placeholder, the snippet ends and Tab behaves normally
+
+Same flow works for `for` loops (`for → for (int i = 0; i < N; ++i) {}`),
+Rust function calls, and every snippet from `friendly-snippets`.
 
 ## Git (gitsigns)
 
