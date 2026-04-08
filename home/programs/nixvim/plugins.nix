@@ -201,8 +201,14 @@
     { mode = "n"; key = "<leader>xd"; action = ":Trouble diagnostics toggle filter.buf=0<CR>"; options.desc = "Buffer diagnostics"; }
     { mode = "n"; key = "<leader>mp"; action = ":MarkdownPreview<CR>"; options.desc = "Markdown preview"; }
 
-    # Snacks terminal
-    { mode = "n"; key = "<C-/>"; action.__raw = "function() Snacks.terminal.toggle() end"; options.desc = "Toggle terminal"; }
+    # Snacks terminal — suppressed inside NvimTree so <C-/> in the file
+    # explorer doesn't steal focus or spawn a split under the tree column.
+    { mode = "n"; key = "<C-/>"; action.__raw = ''
+        function()
+          if vim.bo.filetype == "NvimTree" then return end
+          Snacks.terminal.toggle()
+        end
+      ''; options.desc = "Toggle terminal (no-op in NvimTree)"; }
     { mode = "t"; key = "<C-/>"; action.__raw = "function() Snacks.terminal.toggle() end"; options.desc = "Hide terminal"; }
 
     # Claude Code

@@ -80,7 +80,7 @@ Auto-save is enabled (triggers on focus lost, buffer leave, 1s idle).
 
 ## LSP (Code Intelligence)
 
-Servers: Python (pyright), Rust (rust-analyzer), TypeScript (ts_ls), Nix (nil), Go (gopls), Lua, Bash, JSON, YAML, TOML, HTML, CSS, Protobuf (buf_ls)
+Servers: Python (pyright), Rust (rust-analyzer), **C/C++ (clangd + clangd-extensions)**, TypeScript (ts_ls), Nix (nil), Go (gopls), Lua, Bash, JSON, YAML, TOML, HTML, CSS, Protobuf (buf_ls)
 
 ### Navigation
 
@@ -174,6 +174,109 @@ Inline blame is shown at end of lines by default.
 |-----|------|--------|
 | `Space xx` | n | Toggle Trouble |
 | `Space xd` | n | Buffer diagnostics only |
+
+## CMake (cmake-tools.nvim)
+
+Drives CMake projects end-to-end. On `:CMakeGenerate` it writes `build/<BuildType>/`
+and symlinks `compile_commands.json` into the project root so clangd picks it up.
+Errors land in the quickfix list (`:copen`).
+
+| Key | Mode | Action |
+|-----|------|--------|
+| `Space cg` | n | **Generate** (`cmake -B build/<BuildType> -DCMAKE_EXPORT_COMPILE_COMMANDS=1`) |
+| `Space cb` | n | **Build** current target |
+| `Space cr` | n | **Run** launch target in a terminal split |
+| `Space cd` | n | **Debug** launch target under nvim-dap (codelldb) |
+| `Space cv` | n | Select build type (Debug / Release / RelWithDebInfo / MinSizeRel) |
+| `Space ct` | n | Select build target |
+| `Space cl` | n | Select launch target (the executable to run/debug) |
+| `Space ck` | n | Stop running task |
+| `Space cC` | n | Clean build directory |
+| `Space ci` | n | Install |
+
+Auto-regenerate on `CMakeLists.txt` save is enabled — edit and save, and the
+build files update automatically.
+
+### Typical workflow (C++ CMake project)
+
+```
+$ cd my-cmake-project   # directory with CMakeLists.txt
+$ nvim .
+```
+
+Inside nvim:
+1. `<Space>cg` — generate (first time only, or after changing CMake options)
+2. `<Space>cv` — pick `Debug` so you get symbols for debugging
+3. `<Space>ct` — select which target to build (if you have more than one)
+4. `<Space>cl` — select which executable to launch (needed before `cr` / `cd`)
+5. `<Space>cb` — build
+6. `<Space>cr` — run it
+7. `<Space>cd` — debug it (opens dap-ui, drops into the debugger at your breakpoints)
+
+## Debugging (nvim-dap + dap-ui + dap-virtual-text)
+
+Adapter: **codelldb** (same LLDB-based adapter for Rust **and** C/C++). Virtual
+text shows live variable values next to each line. The dap-ui panels (scopes,
+watches, stacks, breakpoints, repl) auto-open when a session starts and
+auto-close when it ends.
+
+### Step control (F-keys)
+
+| Key | Mode | Action |
+|-----|------|--------|
+| `F5` | n | Continue / start session |
+| `F10` | n | Step over |
+| `F11` | n | Step into |
+| `F12` | n | Step out |
+
+### Leader commands (`Space D*` — capital D to avoid dadbod's `Space d*`)
+
+| Key | Mode | Action |
+|-----|------|--------|
+| `Space Db` | n | Toggle breakpoint |
+| `Space DB` | n | Conditional breakpoint (prompts for expression) |
+| `Space Dl` | n | Log point (prints to REPL instead of stopping) |
+| `Space Dc` | n | Continue (same as F5) |
+| `Space Dr` | n | Toggle REPL |
+| `Space DL` | n | Run last configuration |
+| `Space Dt` | n | Terminate session |
+| `Space Du` | n | Toggle dap-ui panels |
+| `Space Dk` | n | Inspect value under cursor (floating hover) |
+| `Space Dp` | n | Preview expression in split |
+
+### Launch configurations
+
+Defined in `home/programs/nixvim/dap.nix`:
+
+- **`cpp` / `c`** — prompts for an executable path, defaulting to `./build/`
+- **`rust`** — prompts for an executable path, defaulting to `target/debug/<crate-name>`
+  (uses the current directory name as the crate name)
+
+All three use codelldb with `sourceLanguages = ["rust"]` on the rust config so
+LLDB formats `Vec<T>`, `String`, `Option<T>`, etc. correctly.
+
+### Typical workflow (Rust binary)
+
+```
+$ cd my-rust-project
+$ cargo build              # produces target/debug/my-rust-project
+$ nvim src/main.rs
+```
+
+Inside nvim:
+1. Click on a line → `<Space>Db` to set a breakpoint
+2. `<F5>` → nvim-dap prompts `Path to executable:` with `target/debug/my-rust-project` pre-filled → hit Enter
+3. dap-ui opens; execution stops at your breakpoint
+4. Use `<F10>` / `<F11>` / `<F12>` to step around
+5. Hover any variable with `<Space>Dk` to inspect its value
+6. `<Space>Dt` to terminate
+
+### Typical workflow (C++ via CMake)
+
+1. Set breakpoints with `<Space>Db`
+2. `<Space>cd` — cmake-tools picks up the selected launch target and hands it
+   to nvim-dap with codelldb — no manual path entry needed
+3. Step/inspect as above
 
 ## Claude Code (claudecode.nvim)
 
