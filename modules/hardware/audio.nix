@@ -52,6 +52,9 @@ in {
               "node.name" = "rnnoise_source";
               "node.passive" = true;
               "audio.rate" = 48000;
+              # Pin capture to the Scarlett hardware node — prevents feedback
+              # loop when the denoised source is set as the default input
+              "target.object" = "alsa_input.usb-Focusrite_Scarlett_Solo_USB_Y7N269R254F94D-00.HiFi__Mic1__source";
             };
             "playback.props" = {
               "node.name" = "rnnoise_sink";
