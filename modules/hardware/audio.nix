@@ -24,21 +24,63 @@ in {
           "default.clock.min-quantum" = 128;
         };
       };
+
+      # RNNoise denoised virtual microphone
+      extraConfig.pipewire."93-rnnoise-denoised-mic" = {
+        "context.modules" = [{
+          name = "libpipewire-module-filter-chain";
+          args = {
+            "node.description" = "Scarlett Solo (Denoised)";
+            "media.name" = "Scarlett Solo (Denoised)";
+            "filter.graph" = {
+              nodes = [{
+                type = "ladspa";
+                name = "rnnoise";
+                plugin = "${pkgs.rnnoise-plugin}/lib/ladspa/librnnoise_ladspa.so";
+                label = "noise_suppressor_mono";
+                control = {
+                  # 0 = always pass, 99 = very aggressive gating (default ~50)
+                  "VAD Threshold (%)" = 50.0;
+                  # Keep audio flowing after speech stops (default 500)
+                  "VAD Grace Period (ms)" = 500;
+                  # Retroactive capture for word-initial transients (default 100)
+                  "Retroactive VAD Grace (ms)" = 100;
+                };
+              }];
+            };
+            "capture.props" = {
+              "node.name" = "rnnoise_source";
+              "node.passive" = true;
+              "audio.rate" = 48000;
+            };
+            "playback.props" = {
+              "node.name" = "rnnoise_sink";
+              "media.class" = "Audio/Source";
+              "audio.rate" = 48000;
+              "priority.session" = 3000;
+              "priority.driver" = 3000;
+            };
+          };
+        }];
+      };
     };
 
-    # Auto-default Focusrite Scarlett Solo 3rd Gen as input source
+    # Scarlett raw capture — labeled "Raw", lower priority so denoised is default
     services.pipewire.wireplumber.extraConfig."51-scarlett-default-source" = {
       "monitor.alsa.rules" = [{
         matches = [{ "node.name" = "~alsa_input.*Scarlett_Solo.*Mic1.*"; }];
         actions.update-props = {
-          "node.description" = "Focusrite Scarlett Solo";
-          "priority.session" = 2500;
-          "priority.driver" = 2500;
+          "node.description" = "Scarlett Solo (Raw)";
+          "priority.session" = 2000;
+          "priority.driver" = 2000;
         };
       }];
     };
 
     # Audio control
-    environment.systemPackages = [ pkgs.pavucontrol ];
+    environment.systemPackages = [
+      pkgs.pavucontrol
+      pkgs.rnnoise-plugin
+    ];
   };
 }
