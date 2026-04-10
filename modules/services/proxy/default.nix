@@ -216,7 +216,7 @@ let
         hostname = parsed.hostname
         port = parsed.port or (443 if parsed.scheme == "https" else 80)
 
-        curl_args = [CURL, "-s", "--max-time", "30", "-A", "SFA"]
+        curl_args = [CURL, "-s", "--compressed", "--max-time", "30", "-A", "SFA"]
         ip = resolve_via_google(hostname)
         if ip:
             curl_args += ["--resolve", f"{hostname}:{port}:{ip}"]
