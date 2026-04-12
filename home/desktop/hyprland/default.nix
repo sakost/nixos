@@ -74,7 +74,7 @@ in
         "col.inactive_border" = hyprRgba c.surface0 "60";
         resize_on_border = true;
         extend_border_grab_area = 30;
-        allow_tearing = false;
+        allow_tearing = true;
         layout = "dwindle";
       };
 

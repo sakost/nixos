@@ -53,6 +53,12 @@
       flake = false;
     };
 
+    # git-ai — tracks AI-generated code attribution via git notes
+    git-ai = {
+      url = "github:git-ai-project/git-ai";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
 
   outputs = { self, nixpkgs, home-manager, nixvim, sops-nix, claude-code, claude-desktop, lanzaboote, yandex-browser, nix-openclaw, openclaw-skill-self-improving-agent, ... }@inputs:

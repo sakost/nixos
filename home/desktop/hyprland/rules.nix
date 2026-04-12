@@ -50,6 +50,13 @@
       "immediate true, match:class ^(steam_app_.*)$"
       "fullscreen on, match:class ^(cs2)$"
 
+      # ── Gamescope — bypass compositor to prevent present timeout ──
+      "immediate true, match:class ^(gamescope)$"
+      "no_blur true, match:class ^(gamescope)$"
+      "no_shadow true, match:class ^(gamescope)$"
+      "no_anim true, match:class ^(gamescope)$"
+
+
       # ── Zoom — reduce rendering overhead to prevent lag ──
       "no_blur true, match:class zoom"
       "no_shadow true, match:class zoom"

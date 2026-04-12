@@ -1,10 +1,18 @@
 # Git configuration
-{ config, pkgs, ... }:
+{ config, pkgs, inputs, ... }:
 
 {
+  imports = [ inputs.git-ai.homeManagerModules.default ];
+
+  # git-ai wraps git and tracks AI-generated code attribution in git notes
+  programs.git-ai = {
+    enable = true;
+    installHooks = true;
+  };
+
   programs.git = {
     enable = true;
-    package = pkgs.gitFull;
+    package = inputs.git-ai.packages.${pkgs.system}.default;
 
     settings = {
       user = {
