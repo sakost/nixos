@@ -82,6 +82,25 @@ else
   base=$(basename "$dir" | tr -c '[:alnum:]_' '_')
 fi
 
+# --- Resurrect vault decrypt (see §3e) ------------------------------
+# If a persistent vault exists but the tmpfs working dir is empty
+# (fresh boot), decrypt the vault's latest snapshot into tmpfs BEFORE
+# tmux starts — so continuum's auto-restore finds plaintext as usual.
+RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/tmux-resurrect"
+VAULT_DIR="$HOME/.local/state/tmux/resurrect-vault"
+mkdir -p "$RUNTIME_DIR" && chmod 700 "$RUNTIME_DIR"
+if [ ! -e "$RUNTIME_DIR/last" ] && [ -L "$VAULT_DIR/latest" ]; then
+  enc=$(readlink -f "$VAULT_DIR/latest" 2>/dev/null || true)
+  if [ -n "$enc" ] && [ -r "$enc" ]; then
+    ts=$(basename "$enc" .age | sed 's/^snapshot-//')
+    out="$RUNTIME_DIR/tmux_resurrect_${ts}.txt"
+    if age -d -i "$HOME/.ssh/id_ed25519" -o "$out" "$enc" 2>/dev/null; then
+      ln -sf "$(basename "$out")" "$RUNTIME_DIR/last"
+    fi
+  fi
+fi
+# --------------------------------------------------------------------
+
 # Ensure base exists (detached, long-lived).
 tmux has-session -t "=$base" 2>/dev/null || tmux new-session -d -s "$base"
 
@@ -89,6 +108,8 @@ tmux has-session -t "=$base" 2>/dev/null || tmux new-session -d -s "$base"
 client="${base}-$$"
 exec tmux new-session -A -s "$client" -t "$base" \; set destroy-unattached on
 ```
+
+**Dependencies for the vault block:** `age` (already packaged in nixpkgs) and your existing SSH key at `~/.ssh/id_ed25519`. The age pubkey is set in tmux.nix (see §3e) from `.sops.yaml`.
 
 **Resulting behavior:**
 
@@ -268,11 +289,16 @@ bind O run-shell "tmux-sessionizer"
 
 **Hyprland binding**: already included in submap above (`SHIFT+o`).
 
-#### 3e. Session persistence (tmux-resurrect + continuum)
+#### 3e. Session persistence (tmux-resurrect + continuum, tmpfs + age vault)
 
-**File changed:** `home/programs/tmux.nix`
+**Goals:** windows, CWDs, processes, and **scrollback** survive reboots. Plaintext never touches persistent disk — resurrect's working dir is a tmpfs (`$XDG_RUNTIME_DIR`), and post-save hooks push age-encrypted copies to a persistent vault. Decryption on next boot happens in `alacritty-tmux` (see §1).
 
-Declarative plugin install via home-manager (no TPM / no bootstrap script):
+**Files changed:**
+- `home/programs/tmux.nix` — plugins + hooks + dir override
+- `home/programs/alacritty.nix` — vault-decrypt pre-launch (see §1)
+- Add `pkgs.age` to the script dependencies.
+
+**Declarative plugin install:**
 
 ```nix
 programs.tmux = {
@@ -292,27 +318,60 @@ programs.tmux = {
     # ... existing tmux config ...
 
     # ── Resurrect / continuum tuning ──────────────────────────────
-    set -g @resurrect-dir "$HOME/.local/state/tmux/resurrect"
+    # Working dir is tmpfs (RAM, per-user, mode 0700, wiped on logout).
+    # Plaintext NEVER hits persistent disk.
+    set -g @resurrect-dir "$XDG_RUNTIME_DIR/tmux-resurrect"
+    set -g @resurrect-capture-pane-contents 'on'
     set -g @resurrect-processes 'ssh btop htop watch tail less lazygit'
-    # Scrollback capture: OFF (see Open Questions). Enabling writes plaintext
-    # pane contents to disk, which can include secrets.
-    # set -g @resurrect-capture-pane-contents 'on'
+
+    # Age pubkey from .sops.yaml — user-level key (derived from SSH host key
+    # via ssh-to-age). The corresponding private key is ~/.ssh/id_ed25519.
+    AGE_PUBKEY='age18vd0kqpadtu3uj8ztha98k4pwfxcgp9z7f5dzeumjkezywzvtgvqzrp6wy'
+
+    # After every save: encrypt latest snapshot to persistent vault, wipe plaintext
+    # metadata file link (plaintext content stays in tmpfs only until logout/reboot).
+    set -g @resurrect-hook-post-save-all "${pkgs.writeShellScript "tmux-resurrect-vault-save" ''
+      set -euo pipefail
+      RDIR="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/tmux-resurrect"
+      VDIR="$HOME/.local/state/tmux/resurrect-vault"
+      mkdir -p "$VDIR" && chmod 700 "$VDIR"
+      latest=$(readlink -f "$RDIR/last" 2>/dev/null || true)
+      [ -z "$latest" ] || [ ! -r "$latest" ] && exit 0
+      ts=$(basename "$latest" .txt | sed 's/^tmux_resurrect_//')
+      out="$VDIR/snapshot-''${ts}.age"
+      ${pkgs.age}/bin/age -r '$AGE_PUBKEY' -o "$out" "$latest"
+      ln -sf "$(basename "$out")" "$VDIR/latest"
+      # Keep only the 5 most recent vault snapshots
+      ls -1t "$VDIR"/snapshot-*.age 2>/dev/null | tail -n +6 | xargs -r rm -f
+    ''}"
 
     # Grouped-session cleanup: after restore, kill any ephemeral client
     # sessions (named `<base>-<digits>`) that were saved — their PIDs are
     # stale; each Alacritty creates a fresh client on next launch.
-    set -g @resurrect-hook-post-restore-all \
-      'tmux list-sessions -F "##{session_name}" 2>/dev/null | grep -E -- "-[0-9]+$" | xargs -rn1 -I{} tmux kill-session -t "{}"'
+    # Also re-encrypt after restore (post-restore re-writes state).
+    set -g @resurrect-hook-post-restore-all "${pkgs.writeShellScript "tmux-resurrect-postrestore" ''
+      tmux list-sessions -F '#{session_name}' 2>/dev/null \
+        | grep -E -- '-[0-9]+$' \
+        | xargs -rn1 -I{} tmux kill-session -t "{}"
+    ''}"
   '';
 };
 ```
 
 **Behavior:**
 
-- Every 15 min, continuum writes a snapshot to `~/.local/state/tmux/resurrect/last`.
-- First Alacritty launch after boot triggers continuum's auto-restore: windows come back with CWDs and the listed processes restart (ssh/btop/htop/watch/tail/less/lazygit).
-- Manual save: `C-a C-s`. Manual restore: `C-a C-r`. (resurrect's default binds.)
-- Post-restore hook purges stale client sessions from the snapshot.
+- First tmux save writes plaintext to `/run/user/$UID/tmux-resurrect/` (tmpfs). Post-save hook encrypts with age → `~/.local/state/tmux/resurrect-vault/snapshot-<ts>.age` + `latest` symlink. Keeps 5 most recent; older purged.
+- Reboot wipes `$XDG_RUNTIME_DIR` entirely. On next Alacritty launch, the pre-tmux block in `alacritty-tmux` (see §1) checks the vault, decrypts `latest` into tmpfs, recreates the `last` symlink — continuum then auto-restores from plaintext as if nothing happened.
+- Logout wipes tmpfs too (vault survives, re-decrypts on next login).
+- `age` decrypt uses `~/.ssh/id_ed25519` — the same SSH key sops-nix already relies on via `ssh-to-age`. No separate key to manage.
+- Manual save/restore: `C-a C-s` / `C-a C-r` (resurrect defaults).
+
+**Security properties:**
+
+- **At rest on disk**: only `snapshot-*.age` — encrypted with user-level age pubkey. Losing the laptop powered off leaks nothing beyond what LUKS already protects.
+- **During session**: plaintext lives in tmpfs (RAM or zram; never disk swap, since disk swap is inside LUKS anyway). Mode 0700 on the runtime dir. Wiped on logout.
+- **Disk-scanning backup tools**: see only `*.age` files in `~/.local/state/tmux/resurrect-vault/`. Zero plaintext for them to pick up.
+- **Recovery from corruption**: if the vault snapshot fails to decrypt (corrupt file, wrong key), `alacritty-tmux` swallows the error and tmux starts fresh. No fail-open hazard.
 
 ## Cheatsheet updates
 
@@ -347,8 +406,8 @@ Add new **"tmux"** section near the top (before eza):
 
 | File | Change |
 |---|---|
-| `home/programs/alacritty.nix` | Add `pkgs` arg, add `alacritty-tmux` script (grouped-session), wire into `shell.program` |
-| `home/programs/tmux.nix` | Add nvim-nav binds, swap yank for wl-copy, add `o` / `O` binds, add `plugins` (resurrect + continuum), resurrect tuning |
+| `home/programs/alacritty.nix` | Add `pkgs` arg, add `alacritty-tmux` script (grouped-session + vault-decrypt), wire into `shell.program`. Depend on `pkgs.age`. |
+| `home/programs/tmux.nix` | Add nvim-nav binds, swap yank for wl-copy, add `o` / `O` binds, add `plugins` (resurrect + continuum), tmpfs dir, vault-encrypt hook, post-restore cleanup hook |
 | `home/programs/nixvim/plugins.nix` | Add `nvim-tmux-navigation` plugin + C-h/j/k/l keymaps |
 | `home/programs/waybar.nix` | Add `custom/submap` module, include it in `commonBar.modules-*` |
 | `home/desktop/hyprland/keybindings.nix` | Add `SUPER+G` submap entry + submap body |
@@ -368,10 +427,13 @@ After `nrs`:
 5. In tmux copy-mode, select text with `v`, press `y`, then `SUPER+V` (walker clipboard) → yanked text is in clipboard history.
 6. `C-a o` → walker shows session list. Pick one → client switches.
 7. `C-a O` (or `SUPER+G SHIFT+o`) → walker shows project dirs. Pick one → session created + attached.
-8. Reboot, then `SUPER + Q` → continuum auto-restores the last snapshot (windows, CWDs, configured processes restart). `tmux ls` shows the restored base session + a new client `main-<new-pid>`. Any stale client sessions from the snapshot are gone (post-restore hook).
-9. `SUPER + F1` → `tmux-cheatsheet.md` is in the list; opens with `mdcat`.
+8. Reboot, then `SUPER + Q` → `alacritty-tmux` decrypts `resurrect-vault/latest` into tmpfs; continuum auto-restores. Windows, CWDs, processes, and **scrollback** come back. `tmux ls` shows the restored base + a new client `main-<new-pid>`; any stale client sessions from the snapshot are gone (post-restore hook).
+9. Verify `ls ~/.local/state/tmux/resurrect-vault/` shows only `snapshot-*.age` files + `latest` symlink (no plaintext).
+10. Verify `ls $XDG_RUNTIME_DIR/tmux-resurrect/` shows plaintext only while logged in; gone after logout.
+11. `SUPER + F1` → `tmux-cheatsheet.md` is in the list; opens with `mdcat`.
 
 ## Open questions
 
-- **Scrollback capture via resurrect** (`@resurrect-capture-pane-contents 'on'`): **not enabled by default**. Rationale: it writes every pane's visible buffer to plaintext files in `~/.local/state/tmux/resurrect/`. Panes commonly contain: kubectl tokens, git credentials echoed by CI, `env` dumps, SSH banners, secret values pasted during debugging, etc. Persisting them in plaintext survives tmux restarts but also survives threat models (backup sweeps, filesystem snapshots, accidental sync to cloud). Weigh against the benefit: seeing yesterday's terminal history after a reboot. **Decision: leave off; user can toggle by uncommenting the line in `tmux.nix` if they decide the UX win beats the secret-leakage surface.**
-- **tmux-resurrect save strategy for nvim sessions**: if you use `:mksession` in nvim, adding `set -g @resurrect-strategy-nvim 'session'` makes restore re-open the same buffers. Not included by default — nothing in the current nixvim config writes session files.
+- **tmux-resurrect save strategy for nvim sessions**: if you ever add `:mksession` to your nvim workflow, setting `@resurrect-strategy-nvim 'session'` makes restore re-open the same buffers. Not included by default — nothing in the current nixvim config writes session files.
+- **`$XDG_RUNTIME_DIR` lifetime across quick reboots**: systemd wipes `/run/user/$UID` when the last login session ends. If you're the only user and you `reboot` from an active graphical session, there IS a brief window where logind tears down sessions before shutdown — tmpfs content might persist momentarily in RAM images if suspended (not shutdown). For hibernation/suspend-to-disk this would be a concern, but the swap partition is inside LUKS so plaintext in RAM images remains encrypted at rest anyway.
+- **Vault snapshot rotation**: keep the last 5 (`tail -n +6 | xargs rm`). If you want fewer or more, tune the magic number in the post-save hook.
