@@ -18,8 +18,7 @@ The two tab mechanisms serve different needs — tmux persists across terminal c
 
 - Replacing Alacritty with a tabbed terminal.
 - Multi-machine tmux session sync.
-- Session persistence across reboots (tmux-resurrect) — deferred; revisit if needed.
-- Making `SUPER+Q` open a unique session per window. Accepted behavior: all `SUPER+Q` launches attach to `main`; the sessionizer (`SUPER+G O`) is the path to project-specific sessions.
+- Restoring scrollback contents across reboots (resurrect's `capture-pane-contents on` option). Layout + CWD + command-lines are enough; scrollback is deferred.
 
 ## Architecture overview
 
@@ -61,26 +60,48 @@ Three independent layers connected through small adapter scripts:
 - Add `alacritty-tmux` as a `pkgs.writeShellScriptBin` inline in `home/programs/alacritty.nix` (single-purpose script specific to Alacritty; no reason to split it into `scripts.nix`).
 - Configure `programs.alacritty.settings.terminal.shell.program = "${alacritty-tmux}/bin/alacritty-tmux";`
 
-**Script behavior:**
+**Script behavior (grouped-session pattern — fixes the mirroring limitation):**
 
 ```sh
 #!/usr/bin/env bash
-# Attach to an existing tmux session or create one.
-# Session name: `main` if launched from $HOME, else basename of CWD.
-# All non-alnum chars in CWD are mapped to `_` (tmux rejects `.`, `:`, space).
+# Attach via a unique *grouped client session* so each Alacritty window has
+# its own active-window pointer while sharing the base session's window list.
+#
+# - `base` is the long-lived session that owns the windows (survives detach).
+# - `client` is a per-Alacritty ephemeral session grouped with `base` (shares
+#   window list via tmux's session-groups feature) but has its own cursor.
+# - `destroy-unattached on` is set on the CLIENT session only — it auto-cleans
+#   when the Alacritty window closes. The base stays alive.
+#
+# Session names: `main` when launched from $HOME, else basename of CWD.
+# All non-alnum chars mapped to `_` (tmux rejects `.`, `:`, space).
 dir="$PWD"
 if [ "$dir" = "$HOME" ]; then
-  session="main"
+  base="main"
 else
-  session=$(basename "$dir" | tr -c '[:alnum:]_' '_')
+  base=$(basename "$dir" | tr -c '[:alnum:]_' '_')
 fi
-exec tmux new-session -A -s "$session"
+
+# Ensure base exists (detached, long-lived).
+tmux has-session -t "=$base" 2>/dev/null || tmux new-session -d -s "$base"
+
+# Attach via a PID-unique client session grouped with base.
+client="${base}-$$"
+exec tmux new-session -A -s "$client" -t "$base" \; set destroy-unattached on
 ```
+
+**Resulting behavior:**
+
+- First Alacritty (PID 1234) from `$HOME` → creates `main` + `main-1234`; attaches to `main-1234`. Sees windows of `main`.
+- Second Alacritty (PID 5678) from `$HOME` → `main` already exists, creates `main-5678`; attaches. Also sees `main`'s windows but has its *own* active-window pointer — can show a different window from #1.
+- Either Alacritty closes → its client session auto-destroys (via `destroy-unattached on`). The base `main` stays, windows stay.
+- `tmux ls` shows `main`, `main-1234`, `main-5678` — client sessions appear with the `<base>-<pid>` naming convention.
 
 **Known quirks** (documented, accepted):
 
-- Two Alacritty windows launched from `$HOME` both attach to `main` and mirror each other's active tmux window. The sessionizer is the escape hatch — use `SUPER+G O` (or `C-a O`) to switch the focused client to a different session.
-- `alacritty -e <cmd>` bypasses the wrapper (the `-e` flag replaces the shell). This is the correct behavior for one-off scripts like `hypr-cheatsheet` — no changes needed there.
+- `tmux ls` shows slightly more sessions than you might expect (one per live Alacritty). They're cheap (just a cursor + group pointer), but visible. Workaround: `tmux ls -f '#{==:#{session_group},}'` lists only base sessions (those not in a group — though grouped sessions also satisfy this; tmux's filter DSL makes a cleaner filter awkward). Accepted.
+- `alacritty -e <cmd>` bypasses the wrapper entirely (the `-e` flag replaces the shell). This is the correct behavior for one-off scripts like `hypr-cheatsheet` — no changes needed there.
+- PID collision (a new Alacritty reuses a recently-closed PID before its client session destroys) is extremely unlikely but the `-A` flag makes it idempotent — the new launch would attach to the surviving client. Accepted.
 
 ### 2. Hyprland `group` submap
 
@@ -125,7 +146,38 @@ submap = reset
 
 **Sticky vs one-shot**: chose sticky (default Hyprland submap behavior). Rationale: Hyprland submaps do not auto-exit after one action; implementing one-shot would require `submap, reset` after every single bind, doubling boilerplate. Sticky also supports multi-action flows (e.g., `n n n p` to cycle). The mental cost is one extra `Escape` per interaction, offset by gaining a visible submap indicator in the status bar.
 
-**Waybar submap indicator** (optional, noted here for future): Hyprland emits `submap >> group` / `submap >>` events on IPC socket `.socket2.sock`. A small waybar `custom/submap` module can subscribe and show an indicator. Deferred — implement only if the submap feels invisible in practice.
+**Waybar submap indicator** (included — visible feedback for sticky submap):
+
+**File changed:** `home/programs/waybar.nix`
+
+Add a new `custom/submap` module following the existing pattern (cf. `custom/notification`, `custom/media` at lines 89 / 101):
+
+```nix
+"custom/submap" = {
+  format = "{}";
+  return-type = "json";
+  exec = pkgs.writeShellScript "waybar-submap" ''
+    sig="$HYPRLAND_INSTANCE_SIGNATURE"
+    socket="$XDG_RUNTIME_DIR/hypr/$sig/.socket2.sock"
+    ${pkgs.socat}/bin/socat -U - UNIX-CONNECT:"$socket" 2>/dev/null \
+      | while IFS= read -r line; do
+          case "$line" in
+            submap\>\>*)
+              name="''${line#submap>>}"
+              if [ -n "$name" ]; then
+                printf '{"text":"⌨ %s","class":"active","tooltip":"submap: %s (Esc to exit)"}\n' "$name" "$name"
+              else
+                printf '{"text":"","class":"","tooltip":""}\n'
+              fi
+              ;;
+          esac
+        done
+  '';
+  tooltip = true;
+};
+```
+
+Insert `"custom/submap"` into `modules-left` (or `modules-right` near notifications) of `commonBar`. Status shows `⌨ group` while in submap, blank otherwise. Event-driven (no polling) — subscribes to Hyprland's socket2 and only emits on submap transitions.
 
 ### 3. Tmux integrations
 
@@ -216,6 +268,52 @@ bind O run-shell "tmux-sessionizer"
 
 **Hyprland binding**: already included in submap above (`SHIFT+o`).
 
+#### 3e. Session persistence (tmux-resurrect + continuum)
+
+**File changed:** `home/programs/tmux.nix`
+
+Declarative plugin install via home-manager (no TPM / no bootstrap script):
+
+```nix
+programs.tmux = {
+  # ... existing config ...
+  plugins = with pkgs.tmuxPlugins; [
+    resurrect
+    {
+      plugin = continuum;
+      extraConfig = ''
+        set -g @continuum-restore 'on'
+        set -g @continuum-save-interval '15'
+      '';
+    }
+  ];
+
+  extraConfig = ''
+    # ... existing tmux config ...
+
+    # ── Resurrect / continuum tuning ──────────────────────────────
+    set -g @resurrect-dir "$HOME/.local/state/tmux/resurrect"
+    set -g @resurrect-processes 'ssh btop htop watch tail less lazygit'
+    # Scrollback capture: OFF (see Open Questions). Enabling writes plaintext
+    # pane contents to disk, which can include secrets.
+    # set -g @resurrect-capture-pane-contents 'on'
+
+    # Grouped-session cleanup: after restore, kill any ephemeral client
+    # sessions (named `<base>-<digits>`) that were saved — their PIDs are
+    # stale; each Alacritty creates a fresh client on next launch.
+    set -g @resurrect-hook-post-restore-all \
+      'tmux list-sessions -F "##{session_name}" 2>/dev/null | grep -E -- "-[0-9]+$" | xargs -rn1 -I{} tmux kill-session -t "{}"'
+  '';
+};
+```
+
+**Behavior:**
+
+- Every 15 min, continuum writes a snapshot to `~/.local/state/tmux/resurrect/last`.
+- First Alacritty launch after boot triggers continuum's auto-restore: windows come back with CWDs and the listed processes restart (ssh/btop/htop/watch/tail/less/lazygit).
+- Manual save: `C-a C-s`. Manual restore: `C-a C-r`. (resurrect's default binds.)
+- Post-restore hook purges stale client sessions from the snapshot.
+
 ## Cheatsheet updates
 
 ### New file: `docs/tmux-cheatsheet.md`
@@ -249,9 +347,10 @@ Add new **"tmux"** section near the top (before eza):
 
 | File | Change |
 |---|---|
-| `home/programs/alacritty.nix` | Add `pkgs` arg, add `alacritty-tmux` script, wire into `shell.program` |
-| `home/programs/tmux.nix` | Add nvim-nav binds, swap yank for wl-copy, add `o` / `O` binds |
+| `home/programs/alacritty.nix` | Add `pkgs` arg, add `alacritty-tmux` script (grouped-session), wire into `shell.program` |
+| `home/programs/tmux.nix` | Add nvim-nav binds, swap yank for wl-copy, add `o` / `O` binds, add `plugins` (resurrect + continuum), resurrect tuning |
 | `home/programs/nixvim/plugins.nix` | Add `nvim-tmux-navigation` plugin + C-h/j/k/l keymaps |
+| `home/programs/waybar.nix` | Add `custom/submap` module, include it in `commonBar.modules-*` |
 | `home/desktop/hyprland/keybindings.nix` | Add `SUPER+G` submap entry + submap body |
 | `home/desktop/hyprland/scripts.nix` | Add `tmux-switch-walker`, `tmux-sessionizer` scripts + include in package list |
 | `docs/tmux-cheatsheet.md` | New file |
@@ -262,16 +361,17 @@ Add new **"tmux"** section near the top (before eza):
 
 After `nrs`:
 
-1. `SUPER + Q` from desktop → Alacritty opens, attached to `main`. Inside: `C-a c` adds a new tmux window.
-2. `SUPER + G` → status bar shows submap indicator (if wired) / or test blindly. Inside submap: `c` spawns new Alacritty; `n`/`p` cycle tabs; `escape` exits.
-3. With two split nvim panes inside a single tmux pane, and another tmux pane beside: `C-h` in nvim moves nvim-left; `C-h` again at leftmost nvim split moves to the left tmux pane.
-4. In tmux copy-mode, select text with `v`, press `y`, then `SUPER+V` (walker clipboard) → yanked text is in clipboard history.
-5. `C-a o` → walker shows session list. Pick one → client switches.
-6. `C-a O` (or `SUPER+G SHIFT+o`) → walker shows project dirs. Pick one → session created + attached.
-7. `SUPER + F1` → `tmux-cheatsheet.md` is in the list; opens with `mdcat`.
+1. `SUPER + Q` from desktop → Alacritty opens, attached to a client session `main-<pid>` grouped with `main`. `C-a c` adds a new tmux window. Close Alacritty: `tmux ls` shows `main` still alive, client session gone.
+2. `SUPER + Q` a second time → new client session `main-<pid2>`. Switch to a different window in window #2 (`C-a 2`): window #1 stays on its original window. Independence confirmed.
+3. `SUPER + G` → waybar shows `⌨ group` indicator. Inside submap: `c` spawns new Alacritty; `n`/`p` cycle tabs; `escape` exits → indicator disappears.
+4. With two split nvim panes inside a single tmux pane, and another tmux pane beside: `C-h` in nvim moves nvim-left; `C-h` again at leftmost nvim split moves to the left tmux pane.
+5. In tmux copy-mode, select text with `v`, press `y`, then `SUPER+V` (walker clipboard) → yanked text is in clipboard history.
+6. `C-a o` → walker shows session list. Pick one → client switches.
+7. `C-a O` (or `SUPER+G SHIFT+o`) → walker shows project dirs. Pick one → session created + attached.
+8. Reboot, then `SUPER + Q` → continuum auto-restores the last snapshot (windows, CWDs, configured processes restart). `tmux ls` shows the restored base session + a new client `main-<new-pid>`. Any stale client sessions from the snapshot are gone (post-restore hook).
+9. `SUPER + F1` → `tmux-cheatsheet.md` is in the list; opens with `mdcat`.
 
 ## Open questions
 
-- **Submap indicator in waybar**: defer — implement only if the submap feels invisible in practice.
-- **Per-Alacritty-window unique sessions**: accepted limitation; sessionizer is the workaround.
-- **tmux-resurrect**: deferred; can be added later via `programs.tmux.plugins` if session loss on reboot becomes painful.
+- **Scrollback capture via resurrect** (`@resurrect-capture-pane-contents 'on'`): **not enabled by default**. Rationale: it writes every pane's visible buffer to plaintext files in `~/.local/state/tmux/resurrect/`. Panes commonly contain: kubectl tokens, git credentials echoed by CI, `env` dumps, SSH banners, secret values pasted during debugging, etc. Persisting them in plaintext survives tmux restarts but also survives threat models (backup sweeps, filesystem snapshots, accidental sync to cloud). Weigh against the benefit: seeing yesterday's terminal history after a reboot. **Decision: leave off; user can toggle by uncommenting the line in `tmux.nix` if they decide the UX win beats the secret-leakage surface.**
+- **tmux-resurrect save strategy for nvim sessions**: if you use `:mksession` in nvim, adding `set -g @resurrect-strategy-nvim 'session'` makes restore re-open the same buffers. Not included by default — nothing in the current nixvim config writes session files.
