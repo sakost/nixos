@@ -77,6 +77,9 @@
       "$mainMod, F1, exec, hypr-cheatsheet"
       "$mainMod, B, exec, hypr-bluetooth"
 
+      # Group submap — tmux-mirror for tab-like window groups
+      "$mainMod, G, submap, group"
+
       # Focus movement
       "$mainMod, left, movefocus, l"
       "$mainMod, right, movefocus, r"
@@ -171,4 +174,42 @@
       ", XF86AudioPrev, exec, playerctl previous"
     ];
   };
+
+  # Window-group submap — tabs at the compositor level, mnemonically mirrors
+  # tmux's `C-a` prefix:
+  #   g       togglegroup (make window a group / collapse back)
+  #   c       new terminal (auto-joins group if auto_group is on)
+  #   n / p   next / prev tab in group
+  #   1-9     jump to tab N
+  #   x       close current tab
+  #   h / l   move window out of / into neighbouring group
+  #   SHIFT+l lock group (prevents auto-absorption)
+  #   o       walker: switch tmux session (runs tmux-switch-walker)
+  #   SHIFT+o walker: project sessionizer (runs tmux-sessionizer)
+  #   Escape / Return  exit submap
+  wayland.windowManager.hyprland.extraConfig = ''
+    submap = group
+    bind = , g, togglegroup
+    bind = , c, exec, $terminal
+    bind = , n, changegroupactive, f
+    bind = , p, changegroupactive, b
+    bind = , 1, changegroupactive, 1
+    bind = , 2, changegroupactive, 2
+    bind = , 3, changegroupactive, 3
+    bind = , 4, changegroupactive, 4
+    bind = , 5, changegroupactive, 5
+    bind = , 6, changegroupactive, 6
+    bind = , 7, changegroupactive, 7
+    bind = , 8, changegroupactive, 8
+    bind = , 9, changegroupactive, 9
+    bind = , x, killactive
+    bind = , h, moveoutofgroup
+    bind = , l, moveintogroup, r
+    bind = SHIFT, l, lockactivegroup, toggle
+    bind = , o, exec, tmux-switch-walker
+    bind = SHIFT, o, exec, tmux-sessionizer
+    bind = , escape, submap, reset
+    bind = , return, submap, reset
+    submap = reset
+  '';
 }
