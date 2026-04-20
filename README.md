@@ -5,15 +5,13 @@ Multi-host NixOS flake configuration with Hyprland, Nvidia, and sing-box proxy.
 ## Hosts
 
 - **sakost-pc**: Main PC with 2x NVMe, LUKS encryption, TPM auto-unlock, Secure Boot
-- **sakost-pc-portable**: Portable/temp disk setup
 
 ## Structure
 
 ```
 ├── flake.nix                 # Flake entry point
 ├── hosts/                    # Per-host configurations
-│   ├── sakost-pc/            # Main PC (LUKS + TPM + Secure Boot)
-│   └── sakost-pc-portable/   # Portable host
+│   └── sakost-pc/            # Main PC (LUKS + TPM + Secure Boot)
 ├── modules/                  # Shared NixOS modules
 │   ├── hardware/             # GPU, CPU, audio, bluetooth, TPM
 │   ├── desktop/              # Hyprland, greetd, XDG portals
@@ -47,13 +45,7 @@ cd nixos-config
 # Add the host's age public key to .sops.yaml
 ```
 
-**sakost-pc-portable** uses a user age key:
-```bash
-mkdir -p ~/.config/sops/age
-age-keygen -o ~/.config/sops/age/keys.txt
-
-# Add your public key to .sops.yaml
-```
+A user-level age key (`~/.config/sops/age/keys.txt`) is also recognized for editing secrets without root access.
 
 Then create and encrypt the sing-box config:
 ```bash
@@ -119,7 +111,7 @@ TokyoNight dark theme defined in `lib/theme.nix` and shared across all component
 
 ## Secrets Management
 
-Uses SOPS with age encryption. Keys are derived from SSH host keys (sakost-pc) or user age keys (portable).
+Uses SOPS with age encryption. Keys are derived from the SSH host key (sakost-pc) plus a user age key for local secret editing.
 
 **Files:**
 - `.sops.yaml` - SOPS configuration with public keys

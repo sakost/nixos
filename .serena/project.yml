@@ -103,7 +103,7 @@ initial_prompt: |-
   This is a multi-host NixOS flake configuration for user sakost.
 
   Structure:
-  - hosts/         — per-host configs (sakost-pc, sakost-pc-portable)
+  - hosts/         — per-host configs (sakost-pc)
   - modules/       — system NixOS modules using custom.* option pattern
   - home/          — home-manager config (programs, desktop)
   - secrets/       — SOPS-encrypted secrets (age)

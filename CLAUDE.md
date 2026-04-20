@@ -4,9 +4,8 @@
 
 Multi-host NixOS flake for user **sakost**. Uses nixpkgs unstable, home-manager, nixvim, sops-nix, lanzaboote (secure boot), claude-code, claude-desktop, and yandex-browser.
 
-Two hosts defined via `mkHost` in `flake.nix`:
+Single host defined via `mkHost` in `flake.nix`:
 - `sakost-pc` — main desktop (Intel CPU, NVIDIA GPU)
-- `sakost-pc-portable` — portable/temp disk setup (outdated, not actively maintained)
 
 ## Directory structure
 

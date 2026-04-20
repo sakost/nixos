@@ -105,10 +105,6 @@
     };
   in {
     nixosConfigurations = {
-      # Current portable/temp disk setup
-      sakost-pc-portable = mkHost "sakost-pc-portable";
-
-      # Future main PC with 2x NVMe (placeholder)
       sakost-pc = mkHost "sakost-pc";
     };
   };
