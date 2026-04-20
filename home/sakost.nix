@@ -18,7 +18,6 @@
     ./programs/cargo-cross.nix
     ./programs/systemctl-tui.nix
     ./programs/steam.nix
-    ./programs/wallpaper-engine.nix
     ./programs/swaync.nix
     ./programs/eww.nix
     ./programs/cava.nix

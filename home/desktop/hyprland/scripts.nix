@@ -177,40 +177,20 @@ let
   # Wallpaper picker — browse ~/Pictures/wallpapers with walker dmenu
   hypr-wallpaper = pkgs.writeShellScriptBin "hypr-wallpaper" ''
     WALLPAPER_DIR="$HOME/Pictures/wallpapers"
-    WE_DIR="$HOME/games/SteamLibrary/steamapps/workshop/content/431960"
-    WE_ASSETS="$HOME/games/SteamLibrary/steamapps/common/wallpaper_engine/assets"
     NOTIFY="${pkgs.libnotify}/bin/notify-send"
     SWWW="${pkgs.awww}/bin/awww"
     MPVPAPER="${pkgs.mpvpaper}/bin/mpvpaper"
-    WE="${pkgs.linux-wallpaperengine}/bin/linux-wallpaperengine"
     JQ="${pkgs.jq}/bin/jq"
 
     [ ! -d "$WALLPAPER_DIR" ] && mkdir -p "$WALLPAPER_DIR"
 
-    # Build picker list: regular files + Wallpaper Engine scenes
-    ENTRIES=""
-
-    # Regular wallpaper files
+    # Build picker list from ~/Pictures/wallpapers (incl. one level of subdirs)
     FILES=$(find "$WALLPAPER_DIR" -maxdepth 2 -type f \( \
       -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.webp' -o -name '*.gif' \
       -o -name '*.mp4' -o -name '*.webm' -o -name '*.mkv' \
     \) 2>/dev/null | sort)
-    if [ -n "$FILES" ]; then
-      ENTRIES=$(echo "$FILES" | sed "s|$WALLPAPER_DIR/||")
-    fi
-
-    # Wallpaper Engine scenes
-    if [ -d "$WE_DIR" ]; then
-      for dir in "$WE_DIR"/*/; do
-        [ ! -d "$dir" ] && continue
-        id=$(basename "$dir")
-        title=$($JQ -r '.title // empty' "$dir/project.json" 2>/dev/null)
-        [ -z "$title" ] && title="WE #$id"
-        ENTRIES=$(printf '%s\n[WE] %s' "$ENTRIES" "$title")
-      done
-    fi
-
-    ENTRIES=$(echo "$ENTRIES" | sed '/^$/d')
+    ENTRIES=""
+    [ -n "$FILES" ] && ENTRIES=$(echo "$FILES" | sed "s|$WALLPAPER_DIR/||")
 
     if [ -z "$ENTRIES" ]; then
       $NOTIFY "Wallpaper Picker" "No wallpapers found"
@@ -231,47 +211,14 @@ let
       TARGET=$(echo "$MONITORS" | head -1)
     fi
 
-    # Kill conflicting wallpaper backends before applying
-    kill_we() { pkill -f linux-wallpaperengine 2>/dev/null; sleep 0.3; }
+    # Kill any running video wallpaper before applying a new one
     kill_mpv() { pkill -f mpvpaper 2>/dev/null; sleep 0.3; }
 
-    if [[ "$SELECTION" == "[WE] "* ]]; then
-      # Wallpaper Engine scene
-      WE_TITLE="''${SELECTION#\[WE\] }"
-      WE_ID=""
-      for dir in "$WE_DIR"/*/; do
-        title=$($JQ -r '.title // empty' "$dir/project.json" 2>/dev/null)
-        if [ "$title" = "$WE_TITLE" ]; then
-          WE_ID=$(basename "$dir")
-          break
-        fi
-      done
-      [ -z "$WE_ID" ] && { $NOTIFY "Wallpaper" "Could not find WE scene"; exit 1; }
-
-      kill_we
-      kill_mpv
-
-      apply_we() {
-        $WE --assets-dir "$WE_ASSETS" --fps=60 --silent --screen-root="$1" --bg "$WE_DIR/$WE_ID" &
-        disown
-      }
-
-      if [ "$TARGET" = "All monitors" ]; then
-        while IFS= read -r MON; do
-          apply_we "$MON"
-        done <<< "$MONITORS"
-        $NOTIFY "Wallpaper" "WE: $WE_TITLE → all monitors"
-      else
-        apply_we "$TARGET"
-        $NOTIFY "Wallpaper" "WE: $WE_TITLE → $TARGET"
-      fi
-
-    elif [[ "$SELECTION" == *.mp4 || "$SELECTION" == *.webm || "$SELECTION" == *.mkv ]]; then
+    if [[ "$SELECTION" == *.mp4 || "$SELECTION" == *.webm || "$SELECTION" == *.mkv ]]; then
       # Video wallpaper
       FULL_PATH="$WALLPAPER_DIR/$SELECTION"
       [ ! -f "$FULL_PATH" ] && exit 1
       kill_mpv
-      kill_we
 
       apply_video() {
         $MPVPAPER -o "no-audio loop" "$1" "$FULL_PATH" &
@@ -292,7 +239,6 @@ let
       # Static images and GIFs — use swww
       FULL_PATH="$WALLPAPER_DIR/$SELECTION"
       [ ! -f "$FULL_PATH" ] && exit 1
-      kill_we
       kill_mpv
 
       if [ "$TARGET" = "All monitors" ]; then

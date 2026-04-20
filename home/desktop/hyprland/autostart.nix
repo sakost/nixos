@@ -2,9 +2,33 @@
 { pkgs, lib, ... }:
 
 let
-  we = "${pkgs.linux-wallpaperengine}/bin/linux-wallpaperengine";
-  weAssets = "$HOME/games/SteamLibrary/steamapps/common/wallpaper_engine/assets";
-  weWorkshop = "$HOME/games/SteamLibrary/steamapps/workshop/content/431960";
+  # Wait for awww-daemon socket, then apply the first image found under
+  # ~/Pictures/wallpapers (sorted) as the default wallpaper.
+  setDefaultWallpaper = pkgs.writeShellScript "set-default-wallpaper" ''
+    set -u
+    WALLPAPERS="$HOME/Pictures/wallpapers"
+    AWWW="${pkgs.awww}/bin/awww"
+
+    # Wait up to ~3s for the daemon to accept queries
+    for _ in $(seq 1 30); do
+      "$AWWW" query >/dev/null 2>&1 && break
+      sleep 0.1
+    done
+
+    [ -d "$WALLPAPERS" ] || exit 0
+
+    # Prefer an explicit default symlink if present, else first file sorted
+    if [ -e "$WALLPAPERS/default" ]; then
+      DEFAULT=$(readlink -f "$WALLPAPERS/default" || true)
+    else
+      DEFAULT=$(find "$WALLPAPERS" -maxdepth 2 -type f \( \
+        -name '*.jpg' -o -name '*.jpeg' -o -name '*.png' -o -name '*.webp' \
+      \) 2>/dev/null | sort | head -1)
+    fi
+
+    [ -n "$DEFAULT" ] && [ -f "$DEFAULT" ] && \
+      "$AWWW" img "$DEFAULT" --transition-type fade --transition-duration 1
+  '';
 in
 
 {
@@ -14,10 +38,9 @@ in
     # (prevents NOTIFY_SOCKET hijacking that can crash Hyprland)
     exec-once = [
       "awww-daemon"
+      "${setDefaultWallpaper}"
       "uwsm app -- eww open dashboard"
       "uwsm app -- spotify"
-      "uwsm app -- ${we} --assets-dir ${weAssets} --fps=60 --silent --screen-root=DP-2 --bg ${weWorkshop}/3470915045"
-      "uwsm app -- ${we} --assets-dir ${weAssets} --fps=60 --silent --screen-root=HDMI-A-1 --bg ${weWorkshop}/3166146804"
     ];
   };
 
