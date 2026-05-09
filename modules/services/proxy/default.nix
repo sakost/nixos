@@ -362,6 +362,7 @@ in
   config = lib.mkIf cfg.enable {
     # Force resolv.conf to use sing-box's local DNS listener
     # This bypasses resolvconf/DHCP overrides entirely
+    networking.resolvconf.enable = false;
     environment.etc."resolv.conf".text = lib.mkForce ''
       nameserver 127.0.0.1
       options ndots:0 timeout:1 edns0
