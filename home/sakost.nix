@@ -29,7 +29,7 @@
     ./programs/jupyterlab.nix
     ./programs/gdb.nix
     ./programs/ollama.nix
-    ./programs/openclaw
+    # ./programs/openclaw  # disabled — gateway/dashboard not in use; re-enable to bring back the systemd service & SUPER+SHIFT+O bind
     ./programs/obs-studio.nix
     ./programs/natscli.nix
     ./programs/openssl.nix
@@ -44,6 +44,7 @@
     ./programs/rtk.nix
 
     ./programs/figma-desktop.nix
+    ./programs/pluely.nix
     ./desktop/hyprland
   ];
 
