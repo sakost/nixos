@@ -576,11 +576,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1774613681,
-        "narHash": "sha256-uY0nPQqVRWLsOknwXgwlzyvhZNIJta0lBxEdlFXKrww=",
+        "lastModified": 1778338234,
+        "narHash": "sha256-sTRNwTd5vyRYpF5EJWh+wPjSRxNBhdtpsP4E0nLpHnY=",
         "owner": "sakost",
         "repo": "nix-yandex-browser",
-        "rev": "e01cd3b4b2cab3cd3ea84087e525d684761f7f6d",
+        "rev": "2a6d6c852aa06ea8cd5b9328428132b398c1b375",
         "type": "github"
       },
       "original": {
