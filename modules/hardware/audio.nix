@@ -29,6 +29,8 @@ in {
       extraConfig.pipewire."93-rnnoise-denoised-mic" = {
         "context.modules" = [{
           name = "libpipewire-module-filter-chain";
+          # Optional denoiser — never let a stale plugin path bring down PipeWire
+          flags = [ "ifexists" "nofail" ];
           args = {
             "node.description" = "Scarlett Solo (Denoised)";
             "media.name" = "Scarlett Solo (Denoised)";
