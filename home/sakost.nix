@@ -45,6 +45,7 @@
 
     ./programs/figma-desktop.nix
     ./programs/pluely.nix
+    ./programs/codex.nix
     ./programs/ffmpeg.nix
     ./desktop/hyprland
   ];
