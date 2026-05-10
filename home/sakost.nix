@@ -32,6 +32,7 @@
     # ./programs/openclaw  # disabled — gateway/dashboard not in use; re-enable to bring back the systemd service & SUPER+SHIFT+O bind
     ./programs/obs-studio.nix
     ./programs/natscli.nix
+    ./programs/aws.nix
     ./programs/openssl.nix
     ./programs/xxd.nix
     ./programs/mpv.nix
