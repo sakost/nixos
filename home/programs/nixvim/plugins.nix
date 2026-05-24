@@ -123,6 +123,14 @@
         browser = "google-chrome";
       };
     };
+
+    # Seamless C-h/j/k/l navigation between Neovim splits and tmux panes
+    tmux-navigator = {
+      enable = true;
+      settings = {
+        disable_when_zoomed = 1;
+      };
+    };
   };
 
   # claudecode.nvim - Claude Code integration (pinned to main for post-v0.3.0 fixes)

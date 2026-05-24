@@ -28,11 +28,15 @@ in
       bind - split-window -v -c "#{pane_current_path}"
       bind c new-window -c "#{pane_current_path}"
 
-      # Pane navigation (vim-style)
-      bind h select-pane -L
-      bind j select-pane -D
-      bind k select-pane -U
-      bind l select-pane -R
+      # Pane navigation (vim-style, seamless with nvim splits)
+      # is_vim heuristic: passes through to nvim if the foreground process is
+      # vim/nvim, otherwise moves tmux panes. Uses -n (no prefix) so C-h/j/k/l
+      # work anywhere, including from nvim's tmux-navigator plugin.
+      is_vim="ps -o state= -o comm= -t '#{pane_tty}' | grep -iqE '^[^TXZ ]+ +(\\S+\\/)?g?(view|n?vim?x?)(diff)?$'"
+      bind -n C-h if-shell "$is_vim" "send-keys C-h" "select-pane -L"
+      bind -n C-j if-shell "$is_vim" "send-keys C-j" "select-pane -D"
+      bind -n C-k if-shell "$is_vim" "send-keys C-k" "select-pane -U"
+      bind -n C-l if-shell "$is_vim" "send-keys C-l" "select-pane -R"
 
       # Pane resize
       bind -r H resize-pane -L 5
