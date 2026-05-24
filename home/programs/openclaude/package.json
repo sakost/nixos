@@ -1,0 +1,8 @@
+{
+  "name": "openclaude-wrapper",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@gitlawb/openclaude": "0.14.0"
+  }
+}
