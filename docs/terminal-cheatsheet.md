@@ -2,6 +2,33 @@
 
 Modern CLI tools configured in `home/programs/`. Theme: TokyoNight dark.
 
+## tmux (terminal multiplexer)
+
+Config: `home/programs/tmux.nix` + `home/programs/alacritty.nix`
+
+Auto-launched inside every Alacritty window via `alacritty-tmux`. Full keybinding reference: [tmux-cheatsheet](tmux-cheatsheet.md).
+
+| Key | Action |
+|-----|--------|
+| `C-a c` | New window (current directory) |
+| `C-a \|` / `C-a -` | Split right / down |
+| `C-h/j/k/l` | Navigate panes (seamless with Neovim) |
+| `C-a o` | Switch session (walker picker) |
+| `C-a O` | Project sessionizer (walker) |
+| `C-a [` | Copy mode (vi keys, yanks → wl-copy) |
+| `C-a d` | Detach (session keeps running) |
+| `C-a ?` | List all keybindings |
+
+### Auto-launch behavior
+
+- From `$HOME`: attaches to `main` session
+- From project dir (e.g. `~/nixos-config`): attaches to `nixos-config` session
+- Multiple Alacritty windows to same dir share window list but have independent active-window pointers
+
+### Session persistence
+
+Sessions auto-save every 15 minutes to tmpfs (`$XDG_RUNTIME_DIR/tmux-resurrect`) and are encrypted to `~/.local/state/tmux/resurrect-vault/` for survival across reboots. See tmux-cheatsheet for details on manual save/restore (`C-a C-s` / `C-a C-r`).
+
 ## eza (ls replacement)
 
 Config: `home/programs/zsh.nix` (programs.eza)

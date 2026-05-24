@@ -6,7 +6,7 @@ Mod key: **Super** (Windows key)
 
 | Key | Action |
 |-----|--------|
-| `Super + Q` | Open terminal (Alacritty) |
+| `Super + Q` | Open terminal (Alacritty with auto tmux) |
 | `Super + Space` | App launcher (Walker) |
 | `Super + E` | File manager (Nautilus) |
 | `Super + D` | Lock screen (hyprlock) |
@@ -16,6 +16,26 @@ Mod key: **Super** (Windows key)
 | `Super + W` | Wallpaper picker (swww) |
 | `Super + B` | Bluetooth manager |
 | `Super + F1` | Open cheatsheet (this file!) |
+
+## Window Groups (tmux-style tabs)
+
+| Key | Action |
+|-----|--------|
+| `Super + G` | Enter group submap |
+| `g` | Toggle group (group/ungroup active window) |
+| `c` | New terminal (auto-joins group) |
+| `n` / `p` | Next / previous tab in group |
+| `1-9` | Jump to tab N |
+| `x` | Close current tab |
+| `h` | Move window out of group |
+| `l` | Move window into group (right) |
+| `Shift + l` | Lock group (prevent auto-absorption) |
+| `o` | Switch tmux session (walker) |
+| `Shift + o` | Project sessionizer (walker) |
+| `Escape` / `Enter` | Exit submap |
+
+> Window groups work at the compositor level — any app, not just terminals.
+> For terminal-internal tabs, see [tmux-cheatsheet](tmux-cheatsheet.md).
 
 ## Windows
 
