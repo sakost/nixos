@@ -24,6 +24,12 @@ let
       base=$(basename "$dir" | tr -c '[:alnum:]_' '_')
     fi
 
+    # Ensure resurrect's tmpfs working dir exists with tight perms
+    # (XDG_RUNTIME_DIR is user-scoped tmpfs, wiped on logout).
+    RUNTIME_DIR="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/tmux-resurrect"
+    ${pkgs.coreutils}/bin/mkdir -p "$RUNTIME_DIR"
+    ${pkgs.coreutils}/bin/chmod 700 "$RUNTIME_DIR"
+
     # Ensure base exists (detached; owns the window list).
     tmux has-session -t "=$base" 2>/dev/null || tmux new-session -d -s "$base"
 

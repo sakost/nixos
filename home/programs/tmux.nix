@@ -93,6 +93,34 @@ in
 
       # Mouse drag yank → wl-copy (captures mouse position for precision)
       bind -T copy-mode-vi MouseDragEnd1Pane send -X copy-pipe-and-cancel "${pkgs.wl-clipboard}/bin/wl-copy"
+
+      # ── Resurrect / continuum ───────────────────────────────────────────────
+      # Working dir is tmpfs ($XDG_RUNTIME_DIR, per-user, mode 0700, wiped on
+      # logout). Plaintext stays in RAM only. Persistent encrypted snapshots
+      # are layered on top in Task 9.
+      set -g @resurrect-dir "$XDG_RUNTIME_DIR/tmux-resurrect"
+      set -g @resurrect-capture-pane-contents 'on'
+      set -g @resurrect-processes 'ssh btop htop watch tail less lazygit'
+
+      # Grouped-session cleanup: after restore, kill any ephemeral client
+      # sessions (named `<base>-<digits>`) that were saved — their PIDs are
+      # stale; each Alacritty creates a fresh client on next launch.
+      set -g @resurrect-hook-post-restore-all "${pkgs.writeShellScript "tmux-resurrect-postrestore" ''
+        ${pkgs.tmux}/bin/tmux list-sessions -F '#{session_name}' 2>/dev/null \
+          | ${pkgs.gnugrep}/bin/grep -E -- '-[0-9]+$' \
+          | ${pkgs.findutils}/bin/xargs -rn1 -I{} ${pkgs.tmux}/bin/tmux kill-session -t "{}"
+      ''}"
     '';
+
+    plugins = with pkgs.tmuxPlugins; [
+      resurrect
+      {
+        plugin = continuum;
+        extraConfig = ''
+          set -g @continuum-restore 'on'
+          set -g @continuum-save-interval '15'
+        '';
+      }
+    ];
   };
 }
