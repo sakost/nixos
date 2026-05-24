@@ -345,6 +345,35 @@ let
     alacritty --class floating-cheatsheet -e ${pkgs.mdcat}/bin/mdcat -p "$FULL_PATH"
   '';
 
+  # Walker-backed tmux session switcher — lists running tmux sessions, on
+  # select: switch the current client (inside tmux) or attach (outside).
+  tmux-switch-walker = pkgs.writeShellScriptBin "tmux-switch-walker" ''
+    set -eu
+    if ! ${pkgs.tmux}/bin/tmux has-session 2>/dev/null; then
+      exit 0
+    fi
+    sel=$(${pkgs.tmux}/bin/tmux list-sessions -F '#S' 2>/dev/null | ${pkgs.walker}/bin/walker -d)
+    [ -z "$sel" ] && exit 0
+    ${pkgs.tmux}/bin/tmux switch-client -t "$sel" 2>/dev/null \
+      || ${pkgs.tmux}/bin/tmux attach -t "$sel"
+  '';
+
+  # Walker-backed project sessionizer — lists project dirs, on select:
+  # create-if-missing + attach a tmux session named after the dir.
+  tmux-sessionizer = pkgs.writeShellScriptBin "tmux-sessionizer" ''
+    set -eu
+    SEARCH_DIRS=("$HOME/dev/projects" "$HOME/nixos-config")
+    sel=$(${pkgs.findutils}/bin/find "''${SEARCH_DIRS[@]}" -mindepth 1 -maxdepth 1 -type d 2>/dev/null \
+      | ${pkgs.walker}/bin/walker -d)
+    [ -z "$sel" ] && exit 0
+    name=$(basename "$sel" | tr -c '[:alnum:]_' '_')
+    if ! ${pkgs.tmux}/bin/tmux has-session -t="$name" 2>/dev/null; then
+      ${pkgs.tmux}/bin/tmux new-session -d -s "$name" -c "$sel"
+    fi
+    ${pkgs.tmux}/bin/tmux switch-client -t "$name" 2>/dev/null \
+      || ${pkgs.tmux}/bin/tmux attach -t "$name"
+  '';
+
   # Daemon that keeps all monitors on the same logical workspace
   # Catches desync from Waybar clicks or any other non-synced source
   hypr-ws-sync-daemon = pkgs.writeShellScriptBin "hypr-ws-sync-daemon" ''
@@ -628,7 +657,7 @@ let
 
 in
 {
-  home.packages = [ hypr-autoname hypr-sync-ws hypr-ws-sync-daemon hypr-monitor-mgr usb-notify hypr-wallpaper hypr-bluetooth hypr-cheatsheet ];
+  home.packages = [ hypr-autoname hypr-sync-ws hypr-ws-sync-daemon hypr-monitor-mgr usb-notify hypr-wallpaper hypr-bluetooth hypr-cheatsheet tmux-switch-walker tmux-sessionizer ];
 
   systemd.user.services.hyprland-autoname-workspaces = {
     Unit = {
