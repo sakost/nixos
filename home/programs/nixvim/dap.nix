@@ -132,6 +132,7 @@ in
   };
 
   # Auto-open/close dap-ui when a session starts and ends.
+  # Also: Python DAP via debugpy, project-pinned through `uv run --dev`.
   programs.nixvim.extraConfigLua = ''
     do
       local ok_dap, dap = pcall(require, "dap")
@@ -146,6 +147,115 @@ in
         dap.listeners.before.event_exited["dapui_config"] = function()
           dapui.close()
         end
+      end
+    end
+
+    -- Python DAP via debugpy.
+    --
+    -- Adapter and debuggee are both launched through `uv run --no-sync --dev`,
+    -- so each project uses its own pinned debugpy + python (no system-wide
+    -- install). Requires `uv add --dev debugpy` once per project.
+    --
+    -- Why this shape:
+    --   * adapter command is `uv ... python -m debugpy.adapter` — debugpy is
+    --     a Python module, not a standalone binary, so we always need a
+    --     python to host it.
+    --   * pythonPath is a function reference (not call), so the uv probe
+    --     re-runs at every <F5> — picks up the right project after :cd.
+    --   * configurations are evaluated lazily; vim.fn.input() prompts only
+    --     when you actually pick that config from dap.continue()'s picker.
+    do
+      local ok_dap, dap = pcall(require, "dap")
+      if ok_dap then
+        local function uv_python()
+          local cwd = vim.fn.getcwd()
+          if vim.fn.filereadable(cwd .. "/pyproject.toml") == 1 then
+            local out = vim.fn.system({
+              "uv", "run", "--no-sync", "--project", cwd,
+              "--dev", "which", "python",
+            })
+            local p = vim.fn.trim(out)
+            if vim.v.shell_error == 0 and p ~= "" and vim.fn.filereadable(p) == 1 then
+              return p
+            end
+          end
+          local venv = os.getenv("VIRTUAL_ENV")
+          if venv and vim.fn.isdirectory(venv) == 1 then
+            return venv .. "/bin/python"
+          end
+          return "python3"
+        end
+
+        dap.adapters.python = function(cb, config)
+          local cwd = config.cwd or vim.fn.getcwd()
+          cb({
+            type = "executable",
+            command = "uv",
+            args = {
+              "run", "--no-sync", "--project", cwd,
+              "--dev", "python", "-m", "debugpy.adapter",
+            },
+            options = { source_filetype = "python" },
+          })
+        end
+
+        dap.configurations.python = {
+          {
+            type = "python",
+            request = "launch",
+            name = "Launch current file",
+            program = "''${file}",
+            cwd = "''${workspaceFolder}",
+            pythonPath = uv_python,
+            console = "integratedTerminal",
+            justMyCode = true,
+          },
+          {
+            type = "python",
+            request = "launch",
+            name = "Launch module",
+            module = function()
+              return vim.fn.input("Module (e.g. mypkg.cli): ")
+            end,
+            cwd = "''${workspaceFolder}",
+            pythonPath = uv_python,
+            console = "integratedTerminal",
+            justMyCode = true,
+          },
+          {
+            type = "python",
+            request = "launch",
+            name = "Launch file with args",
+            program = "''${file}",
+            args = function()
+              return vim.split(vim.fn.input("Args: "), " ", { trimempty = true })
+            end,
+            cwd = "''${workspaceFolder}",
+            pythonPath = uv_python,
+            console = "integratedTerminal",
+            justMyCode = true,
+          },
+          {
+            type = "python",
+            request = "launch",
+            name = "Pytest: current file",
+            module = "pytest",
+            args = function()
+              return { vim.fn.expand("%:p"), "-vv" }
+            end,
+            cwd = "''${workspaceFolder}",
+            pythonPath = uv_python,
+            console = "integratedTerminal",
+            justMyCode = false,
+          },
+          {
+            type = "python",
+            request = "attach",
+            name = "Attach to running debugpy (localhost:5678)",
+            connect = { host = "127.0.0.1", port = 5678 },
+            justMyCode = true,
+          },
+        }
       end
     end
   '';

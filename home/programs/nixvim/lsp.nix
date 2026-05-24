@@ -9,6 +9,9 @@
       # Python — detect venv via uv or VIRTUAL_ENV
       pyright = {
         enable = true;
+        # Cede import-sorting to ruff so the two servers don't compete on
+        # `source.organizeImports` code actions.
+        settings.pyright.disableOrganizeImports = true;
         extraOptions.before_init = {
           __raw = ''
             function(_, config)
@@ -29,6 +32,30 @@
               if venv and vim.fn.isdirectory(venv) == 1 then
                 config.settings.python = config.settings.python or {}
                 config.settings.python.pythonPath = venv .. '/bin/python'
+              end
+            end
+          '';
+        };
+      };
+
+      # Python formatter + linter via project-pinned ruff.
+      # Pyright handles semantics; ruff handles `textDocument/formatting`
+      # (so <leader>f and format-on-save work) plus lint diagnostics.
+      #
+      # We invoke ruff through `uv run --dev` instead of expecting `ruff` on
+      # PATH — the user pins ruff as a per-project dev dependency, so each
+      # project gets its own pinned version. `on_new_config` rewrites the
+      # spawn command before lspconfig launches the server.
+      ruff = {
+        enable = true;
+        extraOptions.on_new_config = {
+          __raw = ''
+            function(new_config, root_dir)
+              if root_dir and vim.fn.filereadable(root_dir .. '/pyproject.toml') == 1 then
+                new_config.cmd = {
+                  'uv', 'run', '--no-sync', '--project', root_dir,
+                  '--dev', 'ruff', 'server'
+                }
               end
             end
           '';
