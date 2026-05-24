@@ -102,6 +102,29 @@ in
       set -g @resurrect-capture-pane-contents 'on'
       set -g @resurrect-processes 'ssh btop htop watch tail less lazygit'
 
+      # Age pubkey from .sops.yaml — user-level key derived from SSH host
+      # key via ssh-to-age. Private counterpart: ~/.ssh/id_ed25519.
+      set -g @resurrect-hook-post-save-all "${pkgs.writeShellScript "tmux-resurrect-vault-save" ''
+        set -euo pipefail
+        RDIR="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/tmux-resurrect"
+        VDIR="$HOME/.local/state/tmux/resurrect-vault"
+        AGE_PUBKEY='age18vd0kqpadtu3uj8ztha98k4pwfxcgp9z7f5dzeumjkezywzvtgvqzrp6wy'
+        ${pkgs.coreutils}/bin/mkdir -p "$VDIR"
+        ${pkgs.coreutils}/bin/chmod 700 "$VDIR"
+        latest=$(${pkgs.coreutils}/bin/readlink -f "$RDIR/last" 2>/dev/null || true)
+        if [ -z "$latest" ] || [ ! -r "$latest" ]; then
+          exit 0
+        fi
+        ts=$(${pkgs.coreutils}/bin/basename "$latest" .txt | ${pkgs.gnused}/bin/sed 's/^tmux_resurrect_//')
+        out="$VDIR/snapshot-''${ts}.age"
+        ${pkgs.age}/bin/age -r "$AGE_PUBKEY" -o "$out" "$latest"
+        ln -sfn "$(${pkgs.coreutils}/bin/basename "$out")" "$VDIR/latest"
+        # Keep only the 5 most recent vault snapshots.
+        ls -1t "$VDIR"/snapshot-*.age 2>/dev/null \
+          | ${pkgs.coreutils}/bin/tail -n +6 \
+          | ${pkgs.findutils}/bin/xargs -r ${pkgs.coreutils}/bin/rm -f
+      ''}"
+
       # Grouped-session cleanup: after restore, kill any ephemeral client
       # sessions (named `<base>-<digits>`) that were saved — their PIDs are
       # stale; each Alacritty creates a fresh client on next launch.

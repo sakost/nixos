@@ -30,6 +30,23 @@ let
     ${pkgs.coreutils}/bin/mkdir -p "$RUNTIME_DIR"
     ${pkgs.coreutils}/bin/chmod 700 "$RUNTIME_DIR"
 
+    # --- Resurrect vault decrypt ----------------------------------
+    # If a persistent vault snapshot exists but the tmpfs working dir
+    # is empty (fresh boot), decrypt the latest snapshot into tmpfs
+    # BEFORE tmux starts — so continuum's auto-restore finds plaintext.
+    VAULT_DIR="$HOME/.local/state/tmux/resurrect-vault"
+    if [ ! -e "$RUNTIME_DIR/last" ] && [ -L "$VAULT_DIR/latest" ]; then
+      enc=$(${pkgs.coreutils}/bin/readlink -f "$VAULT_DIR/latest" 2>/dev/null || true)
+      if [ -n "$enc" ] && [ -r "$enc" ]; then
+        ts=$(${pkgs.coreutils}/bin/basename "$enc" .age | ${pkgs.gnused}/bin/sed 's/^snapshot-//')
+        out="$RUNTIME_DIR/tmux_resurrect_''${ts}.txt"
+        if ${pkgs.age}/bin/age -d -i "$HOME/.ssh/id_ed25519" -o "$out" "$enc" 2>/dev/null; then
+          ln -sfn "$(${pkgs.coreutils}/bin/basename "$out")" "$RUNTIME_DIR/last"
+        fi
+      fi
+    fi
+    # --------------------------------------------------------------
+
     # Ensure base exists (detached; owns the window list).
     tmux has-session -t "=$base" 2>/dev/null || tmux new-session -d -s "$base"
 
