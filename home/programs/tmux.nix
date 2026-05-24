@@ -1,5 +1,5 @@
 # tmux configuration with TokyoNight theme
-{ theme, ... }:
+{ theme, pkgs, ... }:
 
 let
   c = theme.colors;
@@ -86,10 +86,13 @@ in
       set -g message-style       "bg=${c.bg-light},fg=${c.yellow}"
       set -g message-command-style "bg=${c.bg-light},fg=${c.cyan}"
 
-      # Copy mode (vi)
+      # Copy mode (vi) — yanks pipe to wl-copy for system clipboard
       bind -T copy-mode-vi v   send -X begin-selection
-      bind -T copy-mode-vi y   send -X copy-selection-and-cancel
+      bind -T copy-mode-vi y   send -X copy-pipe-and-cancel "${pkgs.wl-clipboard}/bin/wl-copy"
       bind -T copy-mode-vi C-v send -X rectangle-toggle
+
+      # Mouse drag yank → wl-copy (captures mouse position for precision)
+      bind -T copy-mode-vi MouseDragEnd1Pane send -X copy-pipe-and-cancel "${pkgs.wl-clipboard}/bin/wl-copy"
     '';
   };
 }
