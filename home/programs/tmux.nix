@@ -43,6 +43,12 @@ in
       # Reload config
       bind r source-file ~/.config/tmux/tmux.conf \; display "Config reloaded"
 
+      # ── Walker integrations ─────────────────────────────────────────────────
+      # C-a o: pick a session from all live tmux sessions via walker
+      bind o run-shell "tmux-switch-walker"
+      # C-a O: pick a project from ~/dev/projects + ~/nixos-config
+      bind O run-shell "tmux-sessionizer"
+
       # Brief pause after split to let shell initialize
       set-hook -g after-split-window "run-shell 'sleep 0.3'"
 
