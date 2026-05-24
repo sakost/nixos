@@ -14,8 +14,8 @@ in
         onCalendar = "hourly";
         settings = {
           timestamp_format = "long";
-          snapshot_preserve_min = "24h";
-          snapshot_preserve = "7d";
+          snapshot_preserve_min = "12h";
+          snapshot_preserve = "2d";
           volume."/mnt/btrfs-roots/data" = {
             snapshot_dir = "@data-snapshots";
             subvolume."@dev" = {};

@@ -140,6 +140,23 @@ in
       bindkey -M viins '^[[3~' delete-char
       bindkey -M viins '^A'    beginning-of-line
       bindkey -M viins '^E'    end-of-line
+
+      # Per-workspace CARGO_TARGET_DIR under @cache (non-snapshotted subvolume).
+      # Keeps Rust artifacts out of btrbk's @dev hourly snapshots — see
+      # modules/services/snapshots.nix. Worktree-safe: each git toplevel
+      # gets its own dir, so .claude/worktrees/* never collide.
+      chpwd_cargo_target() {
+        local root key
+        if root=$(git rev-parse --show-toplevel 2>/dev/null); then
+          key="''${root#$HOME/}"
+          export CARGO_TARGET_DIR="$HOME/dev/cache/cargo-target/''${key//\//_}"
+        else
+          unset CARGO_TARGET_DIR
+        fi
+      }
+      autoload -Uz add-zsh-hook
+      add-zsh-hook chpwd chpwd_cargo_target
+      chpwd_cargo_target
     '';
 
     history = {
