@@ -107,6 +107,30 @@ in
           on-scroll-up = "playerctl next";
           on-scroll-down = "playerctl previous";
         };
+
+        "custom/submap" = {
+          format = "{}";
+          return-type = "json";
+          exec = pkgs.writeShellScript "waybar-submap" ''
+            sig="$HYPRLAND_INSTANCE_SIGNATURE"
+            socket="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/hypr/$sig/.socket2.sock"
+            printf '{"text":"","class":"","tooltip":""}\n'
+            ${pkgs.socat}/bin/socat -U - UNIX-CONNECT:"$socket" 2>/dev/null \
+              | while IFS= read -r line; do
+                  case "$line" in
+                    submap\>\>*)
+                      name="''${line#submap>>}"
+                      if [ -n "$name" ]; then
+                        printf '{"text":"⌨ %s","class":"active","tooltip":"Hyprland submap: %s (Esc to exit)"}\n' "$name" "$name"
+                      else
+                        printf '{"text":"","class":"","tooltip":""}\n'
+                      fi
+                      ;;
+                  esac
+                done
+          '';
+          tooltip = true;
+        };
       };
 
       commonBar = {
@@ -118,7 +142,7 @@ in
         margin-left = 6;
         margin-right = 6;
 
-        modules-left = [ "hyprland/workspaces" "hyprland/window" ];
+        modules-left = [ "hyprland/workspaces" "hyprland/window" "custom/submap" ];
         modules-center = [ "clock" "custom/media" ];
         modules-right = [
           "hyprland/language"
@@ -198,6 +222,7 @@ in
       #cpu,
       #memory,
       #custom-notification,
+      #custom-submap,
       #tray {
         background: ${rgba c.bg 0.85};
         border: 1px solid ${rgba c.white 0.06};
@@ -311,6 +336,18 @@ in
         color: ${c.muted};
       }
 
+      #custom-submap {
+        color: ${c.bg-dark};
+        background: ${c.accent};
+        font-weight: bold;
+        padding: 2px 14px;
+      }
+
+      #custom-submap.active {
+        background: ${c.accent};
+        color: ${c.bg-dark};
+      }
+
       #tray {
         padding: 2px 8px;
       }
@@ -334,6 +371,7 @@ in
       #cpu:hover,
       #memory:hover,
       #custom-notification:hover,
+      #custom-submap:hover,
       #tray:hover {
         background: ${rgba c.bg-light 0.95};
         border-color: ${rgba c.white 0.1};
