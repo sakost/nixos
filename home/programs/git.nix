@@ -12,7 +12,7 @@
 
   programs.git = {
     enable = true;
-    package = inputs.git-ai.packages.${pkgs.system}.default;
+    package = inputs.git-ai.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
     settings = {
       user = {

@@ -18,6 +18,8 @@
 
   programs.nixvim = {
     enable = true;
+    # Match nixvim's nixpkgs to the one home-manager uses (useGlobalPkgs)
+    nixpkgs.source = pkgs.path;
     defaultEditor = true;
     viAlias = true;
     vimAlias = true;
