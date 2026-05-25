@@ -43,6 +43,7 @@
     ./programs/nvtop.nix
     ./programs/onefetch.nix
     ./programs/rtk.nix
+    ./programs/r2modman.nix
 
     ./programs/figma-desktop.nix
     ./programs/pluely.nix
