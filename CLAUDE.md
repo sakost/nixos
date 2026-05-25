@@ -82,7 +82,7 @@ in { ... }
 - **Logout menu**: wlogout
 - **Dashboard**: eww
 - **Theme**: TokyoNight (centralized in `lib/theme.nix`)
-- **Plugins**: hyprsplit (per-monitor workspaces), hyprwinwrap (window as wallpaper)
+- **Plugins**: hyprsplit (per-monitor workspaces)
 
 ## Secrets management
 

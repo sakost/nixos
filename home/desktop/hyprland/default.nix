@@ -17,6 +17,7 @@ in
 
   wayland.windowManager.hyprland = {
     enable = true;
+    configType = "hyprlang"; # keep legacy hyprlang config (new default is "lua")
     xwayland.enable = true;
     systemd.enable = false; # Managed by UWSM instead
 
@@ -25,7 +26,6 @@ in
       # hyprspace is broken with Hyprland 0.53.3 (LOG -> Log rename)
       # TODO: re-enable once nixpkgs updates hyprspace
       # pkgs.hyprlandPlugins.hyprspace
-      pkgs.hyprlandPlugins.hyprwinwrap
     ];
 
     settings = {
