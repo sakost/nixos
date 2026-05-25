@@ -42,6 +42,7 @@
     ./programs/onefetch.nix
     ./programs/rtk.nix
     ./programs/r2modman.nix
+    ./programs/unreal-engine.nix
 
     ./programs/figma-desktop.nix
     ./programs/pluely.nix
