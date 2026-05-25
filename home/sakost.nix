@@ -28,8 +28,6 @@
     ./programs/onlyoffice.nix
     ./programs/jupyterlab.nix
     ./programs/gdb.nix
-    ./programs/ollama.nix
-    # ./programs/openclaw  # disabled — gateway/dashboard not in use; re-enable to bring back the systemd service & SUPER+SHIFT+O bind
     ./programs/obs-studio.nix
     ./programs/natscli.nix
     ./programs/aws.nix
@@ -76,11 +74,7 @@
       uv
       pandoc
       yarn
-      # hiPrio wins bin/node conflict with openclaw (which bundles its own
-      # node runtime at $out/bin/node). nodejs ends up on PATH as priority
-      # 0; openclaw's bundled node is shadowed but openclaw's internal
-      # scripts reference /nix/store/... absolute paths so they're unaffected.
-      (lib.hiPrio nodejs)
+      nodejs
       cargo-deny
       btop
       fastfetch
