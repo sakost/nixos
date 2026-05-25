@@ -35,7 +35,9 @@
     };
 
     claude-desktop = {
-      url = "github:heytcass/claude-desktop-linux-flake";
+      # Pinned to last-working rev: upstream HEAD's patches fail against
+      # Claude Desktop 1.8555.2 (minified JS restructured). Unpin once fixed.
+      url = "github:heytcass/claude-desktop-linux-flake/7e2abbc77eba594638528d900968da6579959d66";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -78,6 +80,7 @@
         home-manager.nixosModules.home-manager
         { nixpkgs.overlays = [
             (import ./overlays/argocd-fix.nix)
+            (import ./overlays/hyprland-plugins-fix.nix)
             nix-openclaw.overlays.default
           ];
         }

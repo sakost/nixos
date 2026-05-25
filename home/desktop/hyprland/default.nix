@@ -35,10 +35,6 @@ in
         "HDMI-A-1,1920x1080@60,2560x0,1.0"
       ];
 
-      render = {
-        cm_fs_passthrough = true;
-      };
-
       quirks = {
         prefer_hdr = true;
       };
@@ -104,7 +100,6 @@ in
 
       # Layouts
       dwindle = {
-        pseudotile = true;
         preserve_split = true;
       };
 
