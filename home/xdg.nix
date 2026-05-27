@@ -16,15 +16,12 @@ in
     GOPATH = "${config.xdg.dataHome}/go";
     GOMODCACHE = "${cacheBase}/go/mod";
     GOCACHE = "${cacheBase}/go/build";
-    NPM_CONFIG_USERCONFIG = "${config.xdg.configHome}/npm/npmrc";
     PYTHON_HISTORY = "${config.xdg.stateHome}/python/history";
     PYTHONSTARTUP = "${config.xdg.configHome}/python/pythonstartup.py";
     CUDA_CACHE_PATH = "${cacheBase}/cuda";
     DOCKER_CONFIG = "${config.xdg.configHome}/docker";
 
     # Package manager cache directories
-    npm_config_cache = "${cacheBase}/npm";
-    YARN_CACHE_FOLDER = "${cacheBase}/yarn";
     UV_CACHE_DIR = "${cacheBase}/uv";
     PIP_CACHE_DIR = "${cacheBase}/pip";
     CARGO_HOME = "${cacheBase}/cargo";
@@ -59,10 +56,11 @@ in
       runroot = "/run/user/1000/containers"
     '';
 
-    # NPM configuration for XDG compliance
-    configFile."npm/npmrc".text = ''
-      prefix=${config.xdg.dataHome}/npm
-      cache=${cacheBase}/npm
+    # pnpm store/cache on the ~/dev/cache drive — same btrfs device as projects
+    # in ~/dev, so pnpm can reflink into node_modules instead of full-copying.
+    configFile."pnpm/config.yaml".text = ''
+      storeDir: ${cacheBase}/pnpm/store
+      cacheDir: ${cacheBase}/pnpm/cache
     '';
 
     mimeApps = {

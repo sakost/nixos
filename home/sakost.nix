@@ -74,8 +74,8 @@
       sqlite
       uv
       pandoc
-      yarn
-      nodejs
+      nodejs-slim
+      pnpm
       cargo-deny
       btop
       fastfetch
