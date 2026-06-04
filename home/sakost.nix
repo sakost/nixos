@@ -35,6 +35,7 @@
     ./programs/xxd.nix
     ./programs/mpv.nix
     ./programs/lnav.nix
+    ./programs/lftp.nix
     ./programs/tmux.nix
     ./programs/gsimplecal.nix
     ./programs/virt-manager.nix
