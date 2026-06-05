@@ -7,6 +7,7 @@
     ./keymaps.nix
     ./lsp.nix
     ./completion.nix
+    ./ai-completion.nix
     ./ui.nix
     ./telescope.nix
     ./git.nix

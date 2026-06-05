@@ -23,14 +23,23 @@
 
           # Smart Tab: context-aware cycling.
           #   1. If the cmp popup is visible  → select next completion item
-          #   2. Else if inside an expandable/jumpable snippet → jump to next placeholder
+          #   2. Else if AI ghost text (llama.vim) is shown → accept the full suggestion
+          #   3. Else if inside an expandable/jumpable snippet → jump to next placeholder
           #      (this is what moves you between template/function arg stops)
-          #   3. Otherwise → literal tab (fallback)
+          #   4. Otherwise → literal tab (fallback)
           "<Tab>" = ''
             cmp.mapping(function(fallback)
               local luasnip = require('luasnip')
+              -- llama#is_fim_hint_shown() returns a Lua boolean on modern nvim
+              -- (v:true/v:false) but may be integer 0/1 on others — accept both.
+              -- The exists() guard keeps this safe when the plugin isn't loaded.
+              local llama_shown = vim.fn.exists('*llama#is_fim_hint_shown') == 1
+                  and vim.fn['llama#is_fim_hint_shown']()
               if cmp.visible() then
                 cmp.select_next_item()
+              elseif llama_shown == true or llama_shown == 1 then
+                -- AI ghost text is showing and the cmp menu is not — accept it.
+                vim.fn['llama#fim_accept']('full')
               elseif luasnip.expand_or_jumpable() then
                 luasnip.expand_or_jump()
               else

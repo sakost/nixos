@@ -15,6 +15,7 @@
     ./programs/git.nix
     ./programs/gh.nix
     ./programs/nixvim
+    ./programs/llama-completion.nix
     ./programs/cargo-cross.nix
     ./programs/systemctl-tui.nix
     ./programs/steam.nix
