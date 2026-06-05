@@ -25,7 +25,7 @@ Replicate JetBrains' "Full Line Completion" experience in Neovim: a small code m
 | Concern | Choice | Rationale |
 |---|---|---|
 | Inference runtime | **llama.cpp** (`llama-server`, CUDA build, `/infill` FIM endpoint) | Leanest runtime → best tokens/sec per GB VRAM. Native FIM. |
-| Model | **`qwen2.5-coder-7b-instruct` GGUF @ Q5_K_M (~5.4 GB)** | Best open coder model with native FIM. Q5 ≈ near-Q8 quality, fast on a 4080, leaves ~10 GB VRAM free. |
+| Model | **`Qwen2.5-Coder-7B` (base, NOT instruct) GGUF @ Q5_K_M (~5.4 GB)** | Best open coder model with native FIM. The **base** model is required — instruct variants are chat-tuned and degrade at raw fill-in-the-middle (matches llama.vim's reference setup). Q5 ≈ near-Q8 quality, fast on a 4080, leaves ~10 GB VRAM free. |
 | On-demand lifecycle + sharing | **`llama-swap`** proxy | Always-listening tiny proxy (≈0 VRAM idle). Lazy-loads `llama-server` on first request, unloads after idle `ttl`. Single stable endpoint that all nvim clients share. Adds the idle-unload capability `llama-server` lacks natively. |
 | Editor integration | **`llama.vim`** | Purpose-built ghost-text FIM plugin by the llama.cpp author. Smart cross-file "ring buffer" context for free. |
 
@@ -48,7 +48,7 @@ Replicate JetBrains' "Full Line Completion" experience in Neovim: a small code m
 ## Components
 
 ### 1. Model (declarative + offline)
-- `qwen2.5-coder-7b-instruct-q5_k_m.gguf` fetched via a pinned `fetchurl`/`fetchHuggingFace`-style derivation (sha256-locked) so it resides in the Nix store. No runtime download.
+- `Qwen2.5-Coder-7B` **base** GGUF at `Q5_K_M` (e.g. `bartowski/Qwen2.5-Coder-7B-GGUF`, file `Qwen2.5-Coder-7B-Q5_K_M.gguf`) fetched via a pinned `fetchurl` derivation (sha256-locked) so it resides in the Nix store. No runtime download.
 - Q5_K_M default; changing quant = changing the URL + hash in one place. Documented in-file.
 
 ### 2. `llama-swap` systemd **user** service (home-manager)
