@@ -31,6 +31,7 @@ in
 {
   home.packages = with pkgs; [
     telegram-desktop
+    ayugram-desktop
     google-chrome
     claude-desktop
     yandex-browser-with-cryptopro
