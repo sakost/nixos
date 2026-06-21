@@ -30,7 +30,11 @@
     };
 
     lanzaboote = {
-      url = "github:nix-community/lanzaboote/v1.0.0";
+      # Tracks master: the latest tag (v1.0.0) still sets the removed
+      # `boot.bootspec.enable` option, which fails as a hard assertion on
+      # current nixpkgs (bootspec is now always generated). Master dropped it.
+      # Re-pin to a tag once a release newer than v1.0.0 ships.
+      url = "github:nix-community/lanzaboote";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
