@@ -127,6 +127,10 @@
       "networkmanager"
       "kvm"
     ];
+    # SSH access (sshd is key-only); managed here so it survives rebuilds
+    openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIUt+OHsYUMuqF57aAcOKQKUHllO5C7/tjDPU+fxHOSZ Konstantin Sazhenov <23290721+sakost@users.noreply.github.com>"
+    ];
     shell = pkgs.zsh;
   };
 
