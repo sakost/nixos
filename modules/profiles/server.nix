@@ -45,5 +45,17 @@ in {
       openFirewall = true;
     };
     networking.firewall.trustedInterfaces = [ config.services.tailscale.interfaceName ];
+
+    # WiFi power management is the top cause of headless WiFi boxes
+    # silently dropping off the network.
+    networking.networkmanager.wifi.powersave = false;
+
+    # Hardware watchdog: a hard kernel hang triggers a reset instead of the
+    # box staying dead until someone is physically present. TPM2 LUKS
+    # auto-unlock brings it back up unattended.
+    systemd.watchdog = {
+      runtimeTime = "30s";
+      rebootTime = "2min";
+    };
   };
 }
