@@ -94,12 +94,6 @@
       # sakost-pc (desktop) — always pass .#sakost-server explicitly.
       sakost-server = mkHost "sakost-pc" [
         { custom.profiles.server.enable = true; }
-        # Disable xdg.mimeApps in server mode since desktop files are not needed
-        # and would require xdg.portal or pathsToLink configuration.
-        {
-          home-manager.users.sakost.xdg.mimeApps.enable = nixpkgs.lib.mkForce false;
-          environment.pathsToLink = [ "/share/applications" "/share/xdg-desktop-portal" ];
-        }
       ];
     };
   };

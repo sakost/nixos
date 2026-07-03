@@ -21,5 +21,10 @@ in {
       hibernate.enable = false;
       hybrid-sleep.enable = false;
     };
+
+    # The home-manager hyprland module auto-enables its xdg.portal module,
+    # whose assertion requires the (disabled) system portal stack. No
+    # graphical session exists in server mode, so switch it off entirely.
+    home-manager.users.sakost.wayland.windowManager.hyprland.enable = lib.mkForce false;
   };
 }
