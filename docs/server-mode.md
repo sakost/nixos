@@ -23,9 +23,10 @@ sudo nixos-rebuild switch --flake .#sakost-pc       # → desktop mode (works ov
 - Sleep/suspend/hibernate targets disabled.
 - fail2ban on (LAN `192.168.1.0/24` and Tailscale `100.64.0.0/10` exempt),
   `MaxAuthTries 3`.
-- Tailscale on (backup access path, no port-forward needed).
+- Tailscale on (backup access path, no port-forward needed; routed direct
+  past the sing-box TUN — see fix in modules/services/proxy).
 - WiFi powersave off.
-- Hardware watchdog: reboot after 30s kernel hang.
+- Hardware watchdog: reboot after 2min kernel hang.
 - Everything else (NVIDIA/CUDA, podman, proxy, snapshots) unchanged.
 
 ## Checklist before leaving
@@ -46,6 +47,9 @@ sudo nixos-rebuild switch --flake .#sakost-pc       # → desktop mode (works ov
 2. Port-forward: external TCP `<non-standard-port>` → `<PC-LAN-IP>:22`
    (non-standard external port cuts scanner noise; sshd itself stays on 22).
 3. Test from outside (phone hotspot): `ssh -p <port> sakost@<public-ip>`.
+4. Confirm the LAN subnet matches fail2ban's `ignoreIP` (`192.168.1.0/24`
+   in modules/profiles/server.nix) — adjust if the router hands out a
+   different range.
 
 ### BIOS
 - "Restore on AC Power Loss" = On.
@@ -59,6 +63,17 @@ sudo nixos-rebuild switch --flake .#sakost-pc       # → desktop mode (works ov
 - Prefer `nixos-rebuild switch` over `boot` for remote updates: failures
   surface while the old system is still running. Reboot only when needed.
 - Rollback safety: systemd-boot keeps 5 generations (`configurationLimit`).
+- **Dynamic IP**: the port-forward path assumes the home public IP stays
+  put. Set up DDNS or a periodic phone-home (e.g. a cron that publishes
+  the current public IP somewhere you can read) before leaving.
+- **Risky remote updates**: schedule a dead-man's reboot first —
+  `sudo systemd-run --on-active=10m reboot`, then `nixos-rebuild test`
+  (no bootloader change); if the new config kills networking, the
+  scheduled reboot brings back the previous boot default. Cancel the
+  timer (`systemctl stop <unit>`) once access is confirmed. Also use
+  `IdentitiesOnly yes` / an explicit `IdentityFile` in the away client's
+  SSH config — an agent offering 3+ keys exhausts `MaxAuthTries 3` and
+  earns a 10-minute fail2ban ban.
 
 ## Full test list (run while still home)
 
@@ -74,3 +89,7 @@ sudo nixos-rebuild switch --flake .#sakost-pc       # → desktop mode (works ov
    unlocks → WiFi autoconnects → SSH reachable.
 8. `sudo fail2ban-client status sshd` shows the jail active.
 9. Switch back to desktop mode: Hyprland session returns intact.
+10. Degraded-proxy drill: `systemctl stop sing-box-proxy.service` →
+    Tailscale SSH still works; then simulate a broken chain with the unit
+    still running → both Tailscale SSH and the port-forward SSH still
+    work. Restore afterwards.

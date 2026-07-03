@@ -38,7 +38,8 @@ in {
     };
     services.openssh.settings.MaxAuthTries = 3;
 
-    # Tailscale: independent backup access path that needs no router port-forward.
+    # Tailscale: backup access path that needs no router port-forward
+    # (routed direct past the sing-box TUN — see modules/services/proxy).
     # One-time `sudo tailscale up` login required before leaving (docs/server-mode.md).
     services.tailscale = {
       enable = true;
@@ -52,9 +53,13 @@ in {
 
     # Hardware watchdog: a hard kernel hang triggers a reset instead of the
     # box staying dead until someone is physically present. TPM2 LUKS
-    # auto-unlock brings it back up unattended.
+    # auto-unlock brings it back up unattended. Runtime timeout is 2min
+    # (not a more aggressive value) because a shorter one can spuriously
+    # trip under severe memory-pressure thrash (e.g. a runaway remote nix
+    # build stalling PID1); 2min still reboots a truly hung box fast enough
+    # for an unattended absence.
     systemd.settings.Manager = {
-      RuntimeWatchdogSec = "30s";
+      RuntimeWatchdogSec = "2min";
       RebootWatchdogSec = "2min";
     };
   };
