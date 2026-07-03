@@ -72,6 +72,18 @@ let
           action = "hijack-dns";
           protocol = "dns";
         }
+        # Tailscale is server mode's independent backup access path. Without
+        # these, sing-box's TUN (auto_route + strict_route, final: proxy)
+        # would capture tailscaled's control-plane and WireGuard traffic,
+        # blackholing the backup path along with the proxy chain.
+        {
+          process_name = [ "tailscaled" ];
+          outbound = "direct";
+        }
+        {
+          ip_cidr = [ "100.64.0.0/10" ]; # Tailscale CGNAT range
+          outbound = "direct";
+        }
         {
           ip_is_private = true;
           outbound = "direct";
