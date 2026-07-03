@@ -41,8 +41,6 @@
     "z /home/sakost/dev/data - sakost users - -"
     "z /home/sakost/dev/cache - sakost users - -"
     "z /home/sakost/.snapshots - sakost users - -"
-    # Nix build dir: root-owned and not world-writable, swept after 30d.
-    "d /var/tmp/nix-build 0755 root root 30d"
   ];
 
   # Timezone and locale
@@ -62,16 +60,11 @@
       "nix-command"
       "flakes"
     ];
-    # Build large derivations on disk, not in the tmpfs /tmp (see boot.tmp below).
-    # Must be a dedicated, non-world-writable dir: Nix rejects a world-writable
-    # build-dir (e.g. /var/tmp itself, mode 1777) for security. The dir lives on
-    # the 708G root and its contents are swept by systemd-tmpfiles at 30d below.
-    build-dir = "/var/tmp/nix-build";
+    # No build-dir override needed: Nix already builds in /nix/var/nix/builds
+    # (state-dir/builds), which is on the 708G root disk, not the tmpfs /tmp.
+    # Pointing build-dir under /var/tmp is rejected anyway — Nix refuses a
+    # build-dir whose parent is world-writable (/var/tmp is mode 1777).
   };
-  # Legacy fallback for Nix versions that ignore build-dir. TMPDIR is not subject
-  # to the world-writable check (per-build subdirs are created mode 0700).
-  # The dir itself is created via systemd.tmpfiles.rules above.
-  systemd.services.nix-daemon.environment.TMPDIR = "/var/tmp/nix-build";
   nixpkgs.config.allowUnfree = true;
   # Automatic garbage collection
   nix.gc = {
@@ -84,8 +77,8 @@
   boot.loader.systemd-boot.configurationLimit = 5;
 
   # Mount /tmp as tmpfs so it lives in RAM and is wiped on every reboot.
-  # Default size is 50% of RAM (~31G); with 64G that is plenty for app scratch,
-  # and large Nix builds are redirected to /var/tmp on disk (see nix.settings).
+  # Default size is 50% of RAM (~31G); with 64G that is plenty for app scratch.
+  # Nix builds are unaffected — they run in /nix/var/nix/builds on disk, not /tmp.
   boot.tmp.useTmpfs = true;
 
   # Enable hardware features
