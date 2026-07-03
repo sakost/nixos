@@ -17,6 +17,7 @@
     ../../modules/desktop
     ../../modules/programs
     ../../modules/services
+    ../../modules/profiles
   ];
 
   # Host identity
