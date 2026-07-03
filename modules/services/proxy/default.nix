@@ -20,14 +20,16 @@ let
     dns = {
       servers = [
         {
-          type = "https";
+          type = "udp";
           tag = "google";
           server = "8.8.8.8";
+          server_port = 53;
         }
         {
-          type = "https";
+          type = "udp";
           tag = "local";
           server = "77.88.8.8";
+          server_port = 53;
         }
       ];
       rules = [
@@ -61,16 +63,7 @@ let
       }
     ];
 
-    outbounds = [
-      {
-        type = "direct";
-        tag = "direct";
-      }
-      {
-        type = "block";
-        tag = "block";
-      }
-    ];
+    outbounds = [ ];
 
     route = {
       rules = [
@@ -246,9 +239,17 @@ let
 
         tags = [ob["tag"] for ob in proxy_outbounds]
 
-        # Build outbounds.json with selector + urltest + proxy outbounds
+        # Build outbounds.json with direct, block, selector + urltest + proxy outbounds
         outbounds_config = {
             "outbounds": [
+                {
+                    "type": "direct",
+                    "tag": "direct",
+                },
+                {
+                    "type": "block",
+                    "tag": "block",
+                },
                 {
                     "type": "selector",
                     "tag": "proxy",
