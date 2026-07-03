@@ -27,6 +27,17 @@ in {
     # graphical session exists in server mode, so switch it off entirely.
     home-manager.users.sakost.wayland.windowManager.hyprland.enable = lib.mkForce false;
 
+    # The nvidia module enables services.xserver for the driver; with greetd
+    # gone nixpkgs falls back to lightdm, which crash-loops headless. No X
+    # stack is wanted at all — the nvidia driver install is keyed on
+    # services.xserver.videoDrivers, which stays set, so CUDA still works.
+    services.xserver.enable = lib.mkForce false;
+
+    # Home-manager's dconfSettings activation needs the dconf D-Bus service,
+    # which only the desktop stack provides; headless it fails the whole
+    # home-manager-sakost unit ("name is not activatable").
+    home-manager.users.sakost.dconf.enable = lib.mkForce false;
+
     # Brute-force protection for the internet-exposed SSH port.
     # LAN and Tailscale ranges are exempt so the backup path can never be banned.
     services.fail2ban = {
