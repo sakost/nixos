@@ -1,7 +1,8 @@
 # Server Mode
 
 Runs `sakost-pc` as a headless, unattended SSH server (no desktop) while away.
-Design: `docs/superpowers/specs/2026-07-03-server-mode-design.md`.
+Implementation: `modules/profiles/server.nix`, enabled by the `sakost-server`
+flake output.
 
 ## Switching
 
