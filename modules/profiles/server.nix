@@ -53,9 +53,9 @@ in {
     # Hardware watchdog: a hard kernel hang triggers a reset instead of the
     # box staying dead until someone is physically present. TPM2 LUKS
     # auto-unlock brings it back up unattended.
-    systemd.watchdog = {
-      runtimeTime = "30s";
-      rebootTime = "2min";
+    systemd.settings.Manager = {
+      RuntimeWatchdogSec = "30s";
+      RebootWatchdogSec = "2min";
     };
   };
 }
