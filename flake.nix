@@ -60,7 +60,7 @@
     theme = import ./lib/theme.nix;
 
     # Helper function to create a NixOS system configuration
-    mkHost = hostname: nixpkgs.lib.nixosSystem {
+    mkHost = hostname: extraModules: nixpkgs.lib.nixosSystem {
       inherit system;
       specialArgs = { inherit inputs hostname theme; };
       modules = [
@@ -84,11 +84,17 @@
             users.sakost = import ./home/sakost.nix;
           };
         }
-      ];
+      ] ++ extraModules;
     };
   in {
     nixosConfigurations = {
-      sakost-pc = mkHost "sakost-pc";
+      sakost-pc = mkHost "sakost-pc" [ ];
+      # Same machine, headless server mode (see docs/server-mode.md).
+      # NOTE: `nixos-rebuild switch --flake .` matches by hostname and picks
+      # sakost-pc (desktop) — always pass .#sakost-server explicitly.
+      sakost-server = mkHost "sakost-pc" [
+        { custom.profiles.server.enable = true; }
+      ];
     };
   };
 }
