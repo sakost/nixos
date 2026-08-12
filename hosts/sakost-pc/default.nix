@@ -89,6 +89,7 @@
     audio.enable = true;
     bluetooth.enable = true;
     mouse.enable = true;
+    sensors.enable = true;
     tpm.enable = true;
   };
 

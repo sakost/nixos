@@ -9,6 +9,7 @@
     ./audio.nix
     ./bluetooth.nix
     ./mouse.nix
+    ./sensors.nix
     ./tpm.nix
   ];
 }
