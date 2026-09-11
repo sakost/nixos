@@ -14,8 +14,8 @@
   # Enable rootful Podman via socket
   virtualisation.containers.enable = true;
   # Unqualified image names (e.g. testcontainers' bare `postgres:16`) are
-  # refused unless a search registry is configured.
-  virtualisation.containers.registries.search = [ "docker.io" ];
+  # refused unless a search registry is configured (registries.conf v2).
+  virtualisation.containers.registries.settings.unqualified-search-registries = [ "docker.io" ];
   virtualisation.containers.containersConf.settings = {
     engine = {
       compose_warning_logs = false;
