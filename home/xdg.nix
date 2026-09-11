@@ -20,6 +20,9 @@ in
     PYTHONSTARTUP = "${config.xdg.configHome}/python/pythonstartup.py";
     CUDA_CACHE_PATH = "${cacheBase}/cuda";
     DOCKER_CONFIG = "${config.xdg.configHome}/docker";
+    # Point docker clients (incl. testcontainers) at the rootless podman
+    # socket. $XDG_RUNTIME_DIR expands at shell init, so no hardcoded UID.
+    DOCKER_HOST = "unix://$XDG_RUNTIME_DIR/podman/podman.sock";
 
     # Package manager cache directories
     UV_CACHE_DIR = "${cacheBase}/uv";

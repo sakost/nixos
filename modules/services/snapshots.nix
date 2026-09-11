@@ -14,8 +14,10 @@ in
         onCalendar = "hourly";
         settings = {
           timestamp_format = "long";
-          snapshot_preserve_min = "12h";
-          snapshot_preserve = "2d";
+          # @dev churns hard (Rust workspaces, 50+ git worktrees). Keep a short
+          # window only: 2h of everything, then 4 hourly + 1 daily.
+          snapshot_preserve_min = "2h";
+          snapshot_preserve = "4h 1d";
           volume."/mnt/btrfs-roots/data" = {
             snapshot_dir = "@data-snapshots";
             subvolume."@dev" = {};
@@ -27,8 +29,8 @@ in
         onCalendar = "daily";
         settings = {
           timestamp_format = "long";
-          snapshot_preserve_min = "14d";
-          snapshot_preserve = "8w";
+          snapshot_preserve_min = "3d";
+          snapshot_preserve = "7d 4w";
           volume."/mnt/btrfs-roots/system" = {
             snapshot_dir = "@snapshots";
             subvolume."@" = {};
@@ -41,8 +43,8 @@ in
         onCalendar = "weekly";
         settings = {
           timestamp_format = "long";
-          snapshot_preserve_min = "4w";
-          snapshot_preserve = "6m";
+          snapshot_preserve_min = "2w";
+          snapshot_preserve = "4w 3m";
           volume."/mnt/btrfs-roots/data" = {
             snapshot_dir = "@data-snapshots";
             subvolume."@data" = {};

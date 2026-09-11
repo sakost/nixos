@@ -6,10 +6,5 @@
 {
   programs.codex = {
     enable = true;
-
-    settings = {
-      # Match the editor used by other CLIs in this config (gh, git).
-      preferred_editor = "nvim";
-    };
   };
 }

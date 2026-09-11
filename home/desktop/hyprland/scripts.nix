@@ -27,10 +27,10 @@ let
     BATCH=""
     for MON in $(hyprctl -j monitors | ${pkgs.jq}/bin/jq -r '.[].name'); do
       if [[ "$MON" != "$FOCUSED_MON" ]]; then
-        BATCH+="dispatch focusmonitor $MON ; dispatch split:workspace $TARGET ; "
+        BATCH+="dispatch focusmonitor $MON ; dispatch workspace $TARGET ; "
       fi
     done
-    BATCH+="dispatch focusmonitor $FOCUSED_MON ; dispatch split:workspace $TARGET"
+    BATCH+="dispatch focusmonitor $FOCUSED_MON ; dispatch workspace $TARGET"
 
     hyprctl --batch "$BATCH"
   '';
@@ -381,7 +381,7 @@ let
         local batch=""
         for mon in $(echo "$monitors" | ${pkgs.jq}/bin/jq -r '.[].name'); do
           if [[ "$mon" != "$focused_mon" ]]; then
-            batch+="dispatch focusmonitor $mon ; dispatch split:workspace $target ; "
+            batch+="dispatch focusmonitor $mon ; dispatch workspace $target ; "
           fi
         done
         batch+="dispatch focusmonitor $focused_mon"

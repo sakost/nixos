@@ -70,7 +70,6 @@
         home-manager.nixosModules.home-manager
         { nixpkgs.overlays = [
             (import ./overlays/argocd-fix.nix)
-            (import ./overlays/hyprland-plugins-fix.nix)
           ];
         }
         {
