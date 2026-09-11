@@ -1,58 +1,67 @@
 # Home-manager configuration for user sakost
-{ config, pkgs, inputs, lib, ... }:
+{ config, pkgs, inputs, lib, osConfig ? null, ... }:
 
-{
-  imports = [
+let
+  isServer = osConfig.custom.profiles.server.enable or false;
+  tokyonightGtkTheme = pkgs.callPackage ../packages/tokyonight-gtk-theme.nix { };
+
+  commonImports = [
     inputs.nixvim.homeModules.nixvim
     ./xdg.nix
     ./programs/zsh.nix
+    ./programs/git.nix
+    ./programs/gh.nix
+    ./programs/nixvim
+    ./programs/cargo-cross.nix
+    ./programs/rust.nix
+    ./programs/systemctl-tui.nix
+    ./programs/starship.nix
+    ./programs/atuin.nix
+    ./programs/yazi.nix
+    ./programs/jupyterlab.nix
+    ./programs/gdb.nix
+    ./programs/natscli.nix
+    ./programs/aws.nix
+    ./programs/openssl.nix
+    ./programs/xxd.nix
+    ./programs/lnav.nix
+    ./programs/lftp.nix
+    ./programs/tmux.nix
+    ./programs/nvtop.nix
+    ./programs/onefetch.nix
+    ./programs/rtk.nix
+    ./programs/codex.nix
+    ./programs/openclaude.nix
+    ./programs/ffmpeg.nix
+  ];
+
+  desktopImports = [
+    ./programs/llama-completion.nix
     ./programs/alacritty.nix
     ./programs/walker.nix
     ./programs/gui-apps.nix
     ./programs/waybar.nix
     ./programs/wlogout.nix
     ./programs/hyprlock.nix
-    ./programs/git.nix
-    ./programs/gh.nix
-    ./programs/nixvim
-    ./programs/llama-completion.nix
-    ./programs/cargo-cross.nix
-    ./programs/systemctl-tui.nix
     ./programs/steam.nix
     ./programs/swaync.nix
     ./programs/eww.nix
     ./programs/cava.nix
-    ./programs/starship.nix
-    ./programs/atuin.nix
-    ./programs/yazi.nix
     ./programs/zathura.nix
     ./programs/onlyoffice.nix
-    ./programs/jupyterlab.nix
-    ./programs/gdb.nix
     ./programs/obs-studio.nix
-    ./programs/natscli.nix
-    ./programs/aws.nix
-    ./programs/openssl.nix
-    ./programs/xxd.nix
     ./programs/mpv.nix
-    ./programs/lnav.nix
-    ./programs/lftp.nix
-    ./programs/tmux.nix
     ./programs/gsimplecal.nix
     ./programs/virt-manager.nix
-    ./programs/nvtop.nix
-    ./programs/onefetch.nix
-    ./programs/rtk.nix
     ./programs/r2modman.nix
     ./programs/unreal-engine.nix
-
     ./programs/figma-desktop.nix
     ./programs/pluely.nix
-    ./programs/codex.nix
-    ./programs/openclaude.nix
-    ./programs/ffmpeg.nix
     ./desktop/hyprland
   ];
+in
+{
+  imports = commonImports ++ lib.optionals (!isServer) desktopImports;
 
   home = {
     username = "sakost";
@@ -123,10 +132,12 @@
     export RUSTUP_HOME="${config.xdg.dataHome}/rustup"
     export CARGO_HOME="${config.home.homeDirectory}/dev/cache/cargo"
     run ${pkgs.rustup}/bin/rustup default stable
+    run ${pkgs.rustup}/bin/rustup component add rust-analyzer --toolchain stable
   '';
 
   # Cursor theme — consistent across mixed-DPI monitors
-  home.pointerCursor = {
+  home.pointerCursor = lib.mkIf (!isServer) {
+    enable = true;
     name = "Bibata-Modern-Classic";
     package = pkgs.bibata-cursors;
     size = 32;
@@ -134,15 +145,15 @@
   };
 
   # GTK theme — TokyoNight Dark to match the rice
-  gtk = {
+  gtk = lib.mkIf (!isServer) {
     enable = true;
     theme = {
       name = "Tokyonight-Dark";
-      package = pkgs.tokyonight-gtk-theme;
+      package = tokyonightGtkTheme;
     };
     gtk4.theme = {
       name = "Tokyonight-Dark";
-      package = pkgs.tokyonight-gtk-theme;
+      package = tokyonightGtkTheme;
     };
   };
 
@@ -150,10 +161,10 @@
   programs.home-manager.enable = true;
 
   # playerctld — manages MPRIS players for media key control
-  services.playerctld.enable = true;
+  services.playerctld.enable = lib.mkIf (!isServer) true;
 
   # GNOME Keyring — secret-service, SSH agent, PKCS#11
-  services.gnome-keyring = {
+  services.gnome-keyring = lib.mkIf (!isServer) {
     enable = true;
     components = [ "pkcs11" "secrets" "ssh" ];
   };

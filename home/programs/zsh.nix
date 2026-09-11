@@ -15,11 +15,14 @@ in
     enable = true;
     enableZshIntegration = true;
     defaultCommand = "${pkgs.fd}/bin/fd --type f --hidden --follow --exclude .git";
-    changeDirWidgetCommand = "${pkgs.fd}/bin/fd --type d --hidden --follow --exclude .git";
-    changeDirWidgetOptions = [
-      "--preview '${pkgs.eza}/bin/eza --tree --level=2 --icons --color=always {}'"
-    ];
-    fileWidgetOptions = [
+    historyWidget.command = "";
+    changeDirWidget = {
+      command = "${pkgs.fd}/bin/fd --type d --hidden --follow --exclude .git";
+      options = [
+        "--preview '${pkgs.eza}/bin/eza --tree --level=2 --icons --color=always {}'"
+      ];
+    };
+    fileWidget.options = [
       "--preview '${pkgs.bat}/bin/bat --color=always --style=numbers --line-range=:200 {}'"
     ];
     colors = {

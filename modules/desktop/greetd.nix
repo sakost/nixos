@@ -35,7 +35,7 @@ let
     env = XDG_DATA_DIRS,${config.services.displayManager.sessionData.desktops}/share:/run/current-system/sw/share
 
     # Focus main monitor so ReGreet appears there, then launch greeter
-    exec-once = ${pkgs.hyprland}/bin/hyprctl dispatch focusmonitor DP-2 && ${pkgs.dbus}/bin/dbus-run-session ${lib.getExe config.programs.regreet.package}; ${pkgs.hyprland}/bin/hyprctl dispatch exit
+    exec-once = ${pkgs.hyprland}/bin/hyprctl dispatch focusmonitor DP-2 && ${pkgs.dbus}/bin/dbus-run-session ${lib.getExe config.services.displayManager.regreet.package}; ${pkgs.hyprland}/bin/hyprctl dispatch exit
   '';
 in {
   options.custom.desktop.greetd = {
@@ -43,7 +43,7 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    programs.regreet = {
+    services.displayManager.regreet = {
       enable = true;
 
       font = {

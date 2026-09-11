@@ -22,7 +22,9 @@ in
     systemd.enable = false; # Managed by UWSM instead
 
     plugins = [
-      pkgs.hyprlandPlugins.hyprsplit
+      # hyprsplit is broken with Hyprland 0.56.0 (internal API/header moves).
+      # TODO: re-enable once upstream supports Hyprland 0.56.
+      # pkgs.hyprlandPlugins.hyprsplit
       # hyprspace is broken with Hyprland 0.53.3 (LOG -> Log rename)
       # TODO: re-enable once nixpkgs updates hyprspace
       # pkgs.hyprlandPlugins.hyprspace
@@ -134,10 +136,6 @@ in
       # Variables
       "$mainMod" = "SUPER";
 
-      # Plugin configuration
-      "plugin:hyprsplit" = {
-        num_workspaces = 10;
-      };
     };
   };
 }

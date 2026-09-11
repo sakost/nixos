@@ -6,7 +6,7 @@ final: prev: {
     ui = oldAttrs.ui.overrideAttrs (uiAttrs: {
       offlineCache = prev.fetchYarnDeps {
         yarnLock = "${prev.argocd.src}/ui/yarn.lock";
-        hash = "sha256-kqBolkQiwZUBic0f+Ek5HwYsOmro1+FStkDLXAre79o=";
+        hash = "sha256-/B7FviD0a3VDmbbM59Ksmr8apuTRHrRbTtfX4QgO8JM=";
       };
     });
   });

@@ -36,6 +36,7 @@
       # Re-pin to a tag once a release newer than v1.0.0 ships.
       url = "github:nix-community/lanzaboote";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.rust-overlay.follows = "rust-overlay";
     };
 
     claude-desktop = {
@@ -48,6 +49,15 @@
     # git-ai — tracks AI-generated code attribution via git notes
     git-ai = {
       url = "github:git-ai-project/git-ai";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.rust-overlay.follows = "rust-overlay";
+    };
+
+    # Only consumed via the follows on git-ai and lanzaboote above: both pin a
+    # rust-overlay older than 2026-08-13 that still uses deprecated
+    # stdenv.isLinux/isDarwin.
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -70,7 +80,6 @@
         home-manager.nixosModules.home-manager
         { nixpkgs.overlays = [
             (import ./overlays/argocd-fix.nix)
-            (import ./overlays/hyprland-plugins-fix.nix)
           ];
         }
         {

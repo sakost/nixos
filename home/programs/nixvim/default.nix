@@ -1,13 +1,14 @@
 # Nixvim configuration - Full IDE setup
-{ config, pkgs, ... }:
+{ config, pkgs, lib, osConfig ? null, ... }:
 
-{
+let
+  isServer = osConfig.custom.profiles.server.enable or false;
+in {
   imports = [
     ./options.nix
     ./keymaps.nix
     ./lsp.nix
     ./completion.nix
-    ./ai-completion.nix
     ./ui.nix
     ./telescope.nix
     ./git.nix
@@ -15,6 +16,8 @@
     ./dadbod.nix
     ./cmake.nix
     ./dap.nix
+  ] ++ lib.optionals (!isServer) [
+    ./ai-completion.nix
   ];
 
   programs.nixvim = {

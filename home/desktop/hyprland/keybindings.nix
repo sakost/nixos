@@ -20,7 +20,7 @@
     #   SUPER + left-click   — drag to move window
     #   SUPER + right-click  — drag to resize window
     #
-    # Workspaces (synced across all monitors via hyprsplit):
+    # Workspaces:
     #   SUPER + 1-9,0        — switch all monitors to workspace 1-10
     #   SUPER + SHIFT + 1-9,0 — move window to workspace 1-10 (focused monitor)
     #   SUPER + CTRL + Right — next workspace (synced)
@@ -95,17 +95,17 @@
       "$mainMod, 9, exec, hypr-sync-ws 9"
       "$mainMod, 0, exec, hypr-sync-ws 10"
 
-      # Move window to workspace (focused monitor only)
-      "$mainMod SHIFT, 1, split:movetoworkspace, 1"
-      "$mainMod SHIFT, 2, split:movetoworkspace, 2"
-      "$mainMod SHIFT, 3, split:movetoworkspace, 3"
-      "$mainMod SHIFT, 4, split:movetoworkspace, 4"
-      "$mainMod SHIFT, 5, split:movetoworkspace, 5"
-      "$mainMod SHIFT, 6, split:movetoworkspace, 6"
-      "$mainMod SHIFT, 7, split:movetoworkspace, 7"
-      "$mainMod SHIFT, 8, split:movetoworkspace, 8"
-      "$mainMod SHIFT, 9, split:movetoworkspace, 9"
-      "$mainMod SHIFT, 0, split:movetoworkspace, 10"
+      # Move window to workspace
+      "$mainMod SHIFT, 1, movetoworkspace, 1"
+      "$mainMod SHIFT, 2, movetoworkspace, 2"
+      "$mainMod SHIFT, 3, movetoworkspace, 3"
+      "$mainMod SHIFT, 4, movetoworkspace, 4"
+      "$mainMod SHIFT, 5, movetoworkspace, 5"
+      "$mainMod SHIFT, 6, movetoworkspace, 6"
+      "$mainMod SHIFT, 7, movetoworkspace, 7"
+      "$mainMod SHIFT, 8, movetoworkspace, 8"
+      "$mainMod SHIFT, 9, movetoworkspace, 9"
+      "$mainMod SHIFT, 0, movetoworkspace, 10"
 
       # Cycle workspaces synced across all monitors
       "$mainMod CTRL, right, exec, hypr-sync-ws next"
