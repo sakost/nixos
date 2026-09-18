@@ -50,7 +50,8 @@ in {
     home-manager.users.sakost.dconf.enable = lib.mkForce false;
 
     # Brute-force protection for the internet-exposed SSH port.
-    # LAN and Tailscale ranges are exempt so the backup path can never be banned.
+    # LAN and Tailscale ranges are exempt so the backup path can never be banned
+    # (Tailscale itself is always on — see modules/services/tailscale.nix).
     services.fail2ban = {
       enable = true;
       ignoreIP = [
@@ -59,15 +60,6 @@ in {
       ];
     };
     services.openssh.settings.MaxAuthTries = 3;
-
-    # Tailscale: backup access path that needs no router port-forward
-    # (routed direct past the sing-box TUN — see modules/services/proxy).
-    # One-time `sudo tailscale up` login required before leaving (docs/server-mode.md).
-    services.tailscale = {
-      enable = true;
-      openFirewall = true;
-    };
-    networking.firewall.trustedInterfaces = [ config.services.tailscale.interfaceName ];
 
     # WiFi power management is the top cause of headless WiFi boxes
     # silently dropping off the network.

@@ -116,8 +116,8 @@
   custom.services = {
     ssh.enable = true;
     networking.enable = true;
-    proxy.enable = true;
     snapshots.enable = true;
+    tailscale.enable = true;
   };
 
   # User configuration

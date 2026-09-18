@@ -10,6 +10,11 @@ in {
 
   config = lib.mkIf cfg.enable {
     networking.networkmanager.enable = true;
-    networking.networkmanager.dns = "none";
+
+    # systemd-resolved owns /etc/resolv.conf (symlink to its stub resolver).
+    # NetworkManager pushes DHCP nameservers into it per link, and Tailscale
+    # pushes MagicDNS the same way — nothing rewrites the file by hand.
+    # (Enabling resolved also sets networkmanager.dns = "systemd-resolved".)
+    services.resolved.enable = true;
   };
 }

@@ -1,6 +1,6 @@
 # NixOS Configuration
 
-Multi-host NixOS flake configuration with Hyprland, Nvidia, and sing-box proxy.
+Multi-host NixOS flake configuration with Hyprland, Nvidia, and Tailscale.
 
 ## Hosts
 
@@ -16,7 +16,7 @@ Multi-host NixOS flake configuration with Hyprland, Nvidia, and sing-box proxy.
 │   ├── hardware/             # GPU, CPU, audio, bluetooth, TPM
 │   ├── desktop/              # Hyprland, greetd, XDG portals
 │   ├── programs/             # zsh, fonts, git, nix-ld
-│   └── services/             # SSH, networking, proxy
+│   └── services/             # SSH, networking, tailscale
 ├── lib/                      # Shared Nix libraries
 │   └── theme.nix             # Centralized theme (colors, fonts, opacity)
 ├── home/                     # Home-manager configuration
@@ -46,12 +46,6 @@ cd nixos-config
 ```
 
 A user-level age key (`~/.config/sops/age/keys.txt`) is also recognized for editing secrets without root access.
-
-Then create and encrypt the sing-box config:
-```bash
-nvim secrets/sing-box.json   # Create with your credentials
-sops -e -i secrets/sing-box.json
-```
 
 ### 3. Build and Switch
 
@@ -102,8 +96,8 @@ TokyoNight dark theme defined in `lib/theme.nix` and shared across all component
 
 ### Services
 - OpenSSH (key-only auth)
-- sing-box proxy with VLESS Reality (TUN mode)
-- NetworkManager
+- NetworkManager + systemd-resolved
+- Tailscale (MagicDNS: reachable as `sakost-pc` from any tailnet device)
 
 ### XDG & Cache
 - Full XDG Base Directory compliance
@@ -115,13 +109,13 @@ Uses SOPS with age encryption. Keys are derived from the SSH host key (sakost-pc
 
 **Files:**
 - `.sops.yaml` - SOPS configuration with public keys
-- `secrets/sing-box.json` - Encrypted sing-box config
+- `secrets/openclaw-env` - Encrypted OpenClaw API keys/tokens
 
 ### Editing Secrets
 
 ```bash
-sops secrets/sing-box.json        # Auto-decrypt/encrypt
-sops -d secrets/sing-box.json     # Decrypt to view
+sops secrets/openclaw-env        # Auto-decrypt/encrypt
+sops -d secrets/openclaw-env     # Decrypt to view
 ```
 
 ## Adding a New Host

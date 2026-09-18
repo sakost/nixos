@@ -24,11 +24,11 @@ sudo nixos-rebuild switch --flake .#sakost-pc       # → desktop mode (works ov
 - Sleep/suspend/hibernate targets disabled.
 - fail2ban on (LAN `192.168.1.0/24` and Tailscale `100.64.0.0/10` exempt),
   `MaxAuthTries 3`.
-- Tailscale on (backup access path, no port-forward needed; routed direct
-  past the sing-box TUN — see fix in modules/services/proxy).
 - WiFi powersave off.
 - Hardware watchdog: reboot after 2min kernel hang.
-- Everything else (NVIDIA/CUDA, podman, proxy, snapshots) unchanged.
+- Everything else (NVIDIA/CUDA, podman, Tailscale, snapshots) unchanged.
+  Tailscale is always on (modules/services/tailscale.nix), so the box is
+  reachable as `sakost-pc` over MagicDNS in either mode.
 
 ## Checklist before leaving
 
@@ -40,7 +40,8 @@ sudo nixos-rebuild switch --flake .#sakost-pc       # → desktop mode (works ov
    SSID with autoconnect `yes`, and it survives `sudo systemctl restart NetworkManager`
    with no user logged in.
 2. `sudo tailscale up` — log in once; verify the box appears in the tailnet
-   and `ssh sakost@<tailscale-ip>` works from another device.
+   and `ssh sakost@sakost-pc` works from another device. Disable key expiry
+   for this node in the admin console so it never drops off unattended.
 3. Switch to server mode and run the full test list below.
 
 ### Router
@@ -82,15 +83,10 @@ sudo nixos-rebuild switch --flake .#sakost-pc       # → desktop mode (works ov
    `nix build .#nixosConfigurations.sakost-{pc,server}.config.system.build.toplevel --no-link`
 2. Switch to server mode: monitor shows console/no greeter.
 3. SSH from LAN works; `nvidia-smi` works over SSH; podman containers run.
-4. SSH from phone hotspot via public IP + forwarded port works
-   (verifies the proxy's sing-box TUN doesn't hijack inbound return traffic).
-5. `ssh sakost@<tailscale-ip>` works from the hotspot too.
+4. SSH from phone hotspot via public IP + forwarded port works.
+5. `ssh sakost@sakost-pc` (Tailscale/MagicDNS) works from the hotspot too.
 6. Unplug ethernet: box stays reachable over WiFi.
 7. Cold-boot test with no keyboard/monitor: power off, power on → TPM
    unlocks → WiFi autoconnects → SSH reachable.
 8. `sudo fail2ban-client status sshd` shows the jail active.
 9. Switch back to desktop mode: Hyprland session returns intact.
-10. Degraded-proxy drill: `systemctl stop sing-box-proxy.service` →
-    Tailscale SSH still works; then simulate a broken chain with the unit
-    still running → both Tailscale SSH and the port-forward SSH still
-    work. Restore afterwards.
