@@ -4,6 +4,26 @@ let
   cfg = config.custom.services.orca;
   orcaPackage = pkgs.callPackage ../../packages/orca.nix { };
   userHome = config.users.users.${cfg.user}.home;
+
+  # `orca serve` registers ~/.local/bin/orca-ide as a symlink to its launcher
+  # and refuses to replace a symlink whose target it does not recognise; a
+  # /nix/store path never is. Store paths change on every update, so drop a
+  # link left behind by a previous Orca install and let the current one
+  # register itself. Foreign files and symlinks are left alone.
+  pruneStaleCli = pkgs.writeShellScript "orca-serve-prune-stale-cli" ''
+    set -eu
+    link=${userHome}/.local/bin/orca-ide
+    [ -L "$link" ] || exit 0
+    current=$(readlink -f ${cfg.package}/bin/orca-ide)
+    target=$(readlink -f "$link" 2>/dev/null || readlink "$link")
+    case "$target" in
+      "$current") ;;
+      /nix/store/*-orca-*-extracted/resources/bin/orca-ide)
+        echo "removing stale Orca CLI link $link -> $target"
+        rm -f "$link"
+        ;;
+    esac
+  '';
 in
 {
   options.custom.services.orca = {
@@ -63,6 +83,7 @@ in
         Type = "simple";
         User = cfg.user;
         WorkingDirectory = userHome;
+        ExecStartPre = pruneStaleCli;
         ExecStart = "${lib.getExe cfg.package} serve --port ${toString cfg.port} --pairing-address ${cfg.pairingAddress} --json";
         StandardOutput = "journal";
         StandardError = "journal";
