@@ -36,7 +36,6 @@ let
   ];
 
   desktopImports = [
-    ./programs/llama-completion.nix
     ./programs/alacritty.nix
     ./programs/walker.nix
     ./programs/gui-apps.nix

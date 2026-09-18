@@ -1,9 +1,7 @@
 # Nixvim configuration - Full IDE setup
-{ config, pkgs, lib, osConfig ? null, ... }:
+{ pkgs, ... }:
 
-let
-  isServer = osConfig.custom.profiles.server.enable or false;
-in {
+{
   imports = [
     ./options.nix
     ./keymaps.nix
@@ -16,8 +14,6 @@ in {
     ./dadbod.nix
     ./cmake.nix
     ./dap.nix
-  ] ++ lib.optionals (!isServer) [
-    ./ai-completion.nix
   ];
 
   programs.nixvim = {
