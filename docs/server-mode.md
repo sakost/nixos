@@ -22,8 +22,8 @@ sudo nixos-rebuild switch --flake .#sakost-pc       # → desktop mode (works ov
 - Home-manager's hyprland module force-disabled too (it would otherwise
   drag in its xdg.portal assertion with no system portal stack present).
 - Sleep/suspend/hibernate targets disabled.
-- fail2ban on (LAN `192.168.1.0/24` and Tailscale `100.64.0.0/10` exempt),
-  `MaxAuthTries 3`.
+- fail2ban on (LANs `192.168.1.0/24`, `192.168.5.0/26` and Tailscale
+  `100.64.0.0/10` exempt), `MaxAuthTries 3`.
 - WiFi powersave off.
 - Hardware watchdog: reboot after 2min kernel hang.
 - Everything else (NVIDIA/CUDA, podman, Tailscale, snapshots) unchanged.
@@ -49,9 +49,8 @@ sudo nixos-rebuild switch --flake .#sakost-pc       # → desktop mode (works ov
 2. Port-forward: external TCP `<non-standard-port>` → `<PC-LAN-IP>:22`
    (non-standard external port cuts scanner noise; sshd itself stays on 22).
 3. Test from outside (phone hotspot): `ssh -p <port> sakost@<public-ip>`.
-4. Confirm the LAN subnet matches fail2ban's `ignoreIP` (`192.168.1.0/24`
-   in modules/profiles/server.nix) — adjust if the router hands out a
-   different range.
+4. Confirm the LAN subnet is in fail2ban's `ignoreIP` (list in
+   modules/profiles/server.nix) — add it if the router hands out a new range.
 
 ### BIOS
 - "Restore on AC Power Loss" = On.

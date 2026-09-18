@@ -55,7 +55,8 @@ in {
     services.fail2ban = {
       enable = true;
       ignoreIP = [
-        "192.168.1.0/24" # home LAN
+        "192.168.1.0/24" # home LAN (RU)
+        "192.168.5.0/26" # apartment LAN (NEAPOLIS)
         "100.64.0.0/10" # Tailscale CGNAT range
       ];
     };
