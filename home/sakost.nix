@@ -66,6 +66,9 @@ in
     username = "sakost";
     homeDirectory = "/home/sakost";
     stateVersion = "25.11";
+    # Codex's terminal probe does not tolerate the missing entries in NixOS's
+    # generated search path. Restrict it to the concrete ncurses terminfo DB.
+    sessionVariables.TERMINFO_DIRS = "${pkgs.ncurses}/share/terminfo";
     packages = with pkgs; [
       inputs.claude-code.packages.x86_64-linux.default
       rustup
