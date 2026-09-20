@@ -24,6 +24,21 @@ let
         ;;
     esac
   '';
+
+  # Orca runs inside a bubblewrap FHS env, and bwrap sets no_new_privs on
+  # everything it spawns -- Orca's terminals and agents included. Under
+  # no_new_privs, newuidmap/newgidmap cannot gain CAP_SETUID/CAP_SETGID
+  # (setuid bits and file capabilities are both ignored), so a rootless
+  # `podman`/`docker` started from an Orca terminal builds a single-uid user
+  # namespace and caches it in the shared pause process, which then breaks
+  # podman for every other session ("insufficient UIDs or GIDs available").
+  # CONTAINER_HOST switches the CLI into remote mode: the real work happens in
+  # podman.service under the user's systemd instance, outside the sandbox.
+  # The uid is resolved at runtime because the user has no static uid.
+  serve = pkgs.writeShellScript "orca-serve" ''
+    export CONTAINER_HOST="unix:///run/user/$(${pkgs.coreutils}/bin/id -u)/podman/podman.sock"
+    exec ${lib.getExe cfg.package} serve --port ${toString cfg.port} --pairing-address ${cfg.pairingAddress} --json
+  '';
 in
 {
   options.custom.services.orca = {
@@ -84,7 +99,7 @@ in
         User = cfg.user;
         WorkingDirectory = userHome;
         ExecStartPre = pruneStaleCli;
-        ExecStart = "${lib.getExe cfg.package} serve --port ${toString cfg.port} --pairing-address ${cfg.pairingAddress} --json";
+        ExecStart = serve;
         StandardOutput = "journal";
         StandardError = "journal";
         KillMode = "mixed";
