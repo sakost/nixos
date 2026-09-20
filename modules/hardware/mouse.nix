@@ -11,7 +11,7 @@ in {
   config = lib.mkIf cfg.enable {
     # Solaar for wireless Logitech devices (Lightspeed/Unifying receiver)
     hardware.logitech.wireless.enable = true;
-    hardware.logitech.wireless.enableGraphical = true;
+    programs.solaar.enable = true;
 
     # ratbagd daemon for DPI, button mapping, RGB, profile management
     services.ratbagd.enable = true;

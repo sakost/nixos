@@ -5,8 +5,9 @@
   imports = [
     ./ssh.nix
     ./networking.nix
-    ./proxy
+    ./orca.nix
     ./podman.nix
     ./snapshots.nix
+    ./tailscale.nix
   ];
 }

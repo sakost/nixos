@@ -16,7 +16,7 @@ modules/                — System-level NixOS modules with custom.* options
   hardware/             — nvidia, intel-cpu, amd-cpu, audio, bluetooth, mouse, tpm
   desktop/              — hyprland, greetd, xdg-portals
   programs/             — fonts, git, zsh, nix-ld, android, steam, gnome-keyring
-  services/             — ssh, networking, proxy, podman, snapshots
+  services/             — ssh, networking, tailscale, orca, podman, snapshots
 home/                   — Home-manager config (imported from home/sakost.nix)
   programs/             — Per-program configs (waybar, alacritty, zsh, walker, nixvim, mako, eww, wlogout, etc.)
   desktop/              — User-level hyprland config

@@ -89,6 +89,7 @@
     audio.enable = true;
     bluetooth.enable = true;
     mouse.enable = true;
+    sensors.enable = true;
     tpm.enable = true;
   };
 
@@ -115,8 +116,8 @@
   custom.services = {
     ssh.enable = true;
     networking.enable = true;
-    proxy.enable = true;
     snapshots.enable = true;
+    tailscale.enable = true;
   };
 
   # User configuration
@@ -127,6 +128,11 @@
       "networkmanager"
       "kvm"
     ];
+    # Rootless podman needs a subuid/subgid range to map container users
+    autoSubUidGidRange = true;
+    # Keep the user systemd instance (podman.socket, orca) alive without a
+    # login session; previously enabled imperatively via loginctl
+    linger = true;
     # SSH access (sshd is key-only); managed here so it survives rebuilds
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIUt+OHsYUMuqF57aAcOKQKUHllO5C7/tjDPU+fxHOSZ Konstantin Sazhenov <23290721+sakost@users.noreply.github.com>"
