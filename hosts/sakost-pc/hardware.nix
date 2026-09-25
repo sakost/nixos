@@ -46,6 +46,10 @@
     device = "/swap/swapfile";
   }];
 
+  # With a disk swapfile the kernel OOM killer fires only after the box has
+  # thrashed into a hard freeze; oomd kills the heaviest user cgroup first.
+  systemd.oomd.enableUserSlices = true;
+
   # Platform
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 
