@@ -56,7 +56,6 @@ let
         obsidian) echo $'\uf5d2' ;;
         android-studio|jetbrains-*) echo $'\ue70e' ;;
         claude) echo $'\uf544' ;;
-        yandex*) echo $'\uf268' ;;
         *) echo $'\uf4ae' ;;
       esac
     }

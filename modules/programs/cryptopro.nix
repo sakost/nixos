@@ -534,7 +534,6 @@ in {
     environment.etc = lib.mkIf cfg.enableBrowserPlugin {
       "opt/chrome/native-messaging-hosts/ru.cryptopro.nmcades.json".text = nmcadesJson;
       "chromium/native-messaging-hosts/ru.cryptopro.nmcades.json".text = nmcadesJson;
-      "opt/yandex/browser/native-messaging-hosts/ru.cryptopro.nmcades.json".text = nmcadesJson;
     };
   };
 }

@@ -270,8 +270,7 @@
         "nixpkgs": "nixpkgs",
         "nixvim": "nixvim",
         "rust-overlay": "rust-overlay",
-        "sops-nix": "sops-nix",
-        "yandex-browser": "yandex-browser"
+        "sops-nix": "sops-nix"
       }
     },
     "rust-overlay": {
@@ -373,26 +372,6 @@
         "owner": "nix-systems",
         "ref": "future-26.11",
         "repo": "default",
-        "type": "github"
-      }
-    },
-    "yandex-browser": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1789769473,
-        "narHash": "sha256-nbN0t2R463IsE/Jigv5+1RpcKWsFUklVc0R/vMkNxxc=",
-        "owner": "sakost",
-        "repo": "nix-yandex-browser",
-        "rev": "3785b36637b2a6b256e3e4b4b677eb071c41a92f",
-        "type": "github"
-      },
-      "original": {
-        "owner": "sakost",
-        "repo": "nix-yandex-browser",
         "type": "github"
       }
     }

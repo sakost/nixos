@@ -24,11 +24,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    yandex-browser = {
-      url = "github:sakost/nix-yandex-browser";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     lanzaboote = {
       # Tracks master: the latest tag (v1.0.0) still sets the removed
       # `boot.bootspec.enable` option, which fails as a hard assertion on
@@ -63,7 +58,7 @@
 
   };
 
-  outputs = { self, nixpkgs, home-manager, nixvim, sops-nix, claude-code, claude-desktop, lanzaboote, yandex-browser, ... }@inputs:
+  outputs = { self, nixpkgs, home-manager, nixvim, sops-nix, claude-code, claude-desktop, lanzaboote, ... }@inputs:
   let
     system = "x86_64-linux";
 
