@@ -9,11 +9,11 @@
 
 let
   pname = "orca";
-  version = "1.4.200";
+  version = "1.4.230";
 
   src = fetchurl {
     url = "https://github.com/stablyai/orca/releases/download/v${version}/orca-linux.AppImage";
-    hash = "sha256-yC2d31MkMeDaUexdGJmg4xWqu453/ORezOf61HM/yWo=";
+    hash = "sha256-1QOwMWtb/aeyhx2E9m6ZvekYybuvnR9ggcKT+UYVCKs=";
   };
 
   # Exported inside every FHS sandbox built here, so the patched launcher can
