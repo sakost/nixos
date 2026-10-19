@@ -1,21 +1,9 @@
-# OpenAI Codex — lightweight coding agent that runs in the terminal.
-# Auth is interactive: run `codex login` once; the session is stored under
-# CODEX_HOME (~/.codex by default since home.preferXdgDirectories is unset).
-{ pkgs, ... }:
-
-let
-  codexPackage = pkgs.callPackage ../../packages/codex.nix {
-    upstreamCodex = pkgs.codex;
-  };
-in
+# Codex is installed and updated by the official standalone installer:
+#   curl -fsSL https://chatgpt.com/codex/install.sh | sh
+# Remote control requires ~/.codex/packages/standalone/current/codex.
+# Leave ~/.local/bin/codex owned by the installer, not Home Manager.
+# ~/.local/bin is already on PATH via home/xdg.nix.
+{ ... }:
 {
-  # The integrated NixOS user profile is only replaced by a system switch.
-  # Keep the selected Home Manager package immediately reachable on the
-  # existing user-local PATH as well.
-  home.file.".local/bin/codex".source = "${codexPackage}/bin/codex";
-
-  programs.codex = {
-    enable = true;
-    package = codexPackage;
-  };
+  programs.codex.enable = false;
 }
