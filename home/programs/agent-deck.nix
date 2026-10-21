@@ -58,12 +58,37 @@ in
       ExecStart = "${bridgePython}/bin/python %h/.local/share/agent-deck/conductor/bridge.py";
       WorkingDirectory = "%h";
       Environment = [ "PATH=${config.home.profileDirectory}/bin:/run/current-system/sw/bin" ];
+      # TELEGRAM_BOT_TOKEN etc.; config.toml references them as $VAR so no
+      # secret sits in it. Hand-managed, mode 600, never in the store.
+      EnvironmentFile = "%h/.agent-deck/secrets.env";
       StandardOutput = "append:%h/.local/share/agent-deck/conductor/bridge.log";
       StandardError = "append:%h/.local/share/agent-deck/conductor/bridge.log";
       Restart = "always";
       RestartSec = 5;
     };
     Install.WantedBy = [ "default.target" ];
+  };
+
+  # Periodic check-in message to the `work` conductor. heartbeat.sh is written
+  # by `agent-deck conductor setup`, which also emits a unit hardcoding
+  # /bin/bash (absent on NixOS, status 203/EXEC); this replaces it.
+  systemd.user.services.agent-deck-conductor-heartbeat-work = {
+    Unit.Description = "Agent Deck Conductor Heartbeat (work)";
+    Service = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.bash}/bin/bash %h/.local/share/agent-deck/conductor/work/heartbeat.sh";
+      WorkingDirectory = "%h";
+      Environment = [ "PATH=${config.home.profileDirectory}/bin:/run/current-system/sw/bin" ];
+    };
+  };
+
+  systemd.user.timers.agent-deck-conductor-heartbeat-work = {
+    Unit.Description = "Agent Deck Conductor Heartbeat Timer (work)";
+    Timer = {
+      OnBootSec = "900s";
+      OnUnitActiveSec = "900s";
+    };
+    Install.WantedBy = [ "timers.target" ];
   };
 
   systemd.user.services.agent-deck-web = {
