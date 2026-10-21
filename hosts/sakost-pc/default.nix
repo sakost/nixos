@@ -130,7 +130,7 @@
     ];
     # Rootless podman needs a subuid/subgid range to map container users
     autoSubUidGidRange = true;
-    # Keep the user systemd instance (podman.socket, orca) alive without a
+    # Keep the user systemd instance (podman.socket, agent-deck-web) alive without a
     # login session; previously enabled imperatively via loginctl
     linger = true;
     # SSH access (sshd is key-only); managed here so it survives rebuilds

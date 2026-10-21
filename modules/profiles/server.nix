@@ -10,10 +10,6 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    # Headless Orca is reached through an SSH local-forward; no public
-    # firewall opening is needed for its WebSocket listener.
-    custom.services.orca.enable = true;
-
     # Force the desktop off regardless of what the host config enables.
     custom.desktop.hyprland.enable = lib.mkForce false;
     custom.desktop.greetd.enable = lib.mkForce false;
