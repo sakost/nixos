@@ -71,6 +71,7 @@ in
     sessionVariables.TERMINFO_DIRS = "${pkgs.ncurses}/share/terminfo";
     packages = with pkgs; [
       inputs.claude-code.packages.x86_64-linux.default
+      (callPackage ../packages/agent-deck.nix { })
       rustup
       gcc
       pkgsCross.musl64.stdenv.cc
