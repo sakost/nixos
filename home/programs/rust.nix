@@ -9,6 +9,7 @@
 # target/ in-tree — which is how ~370 GiB of build output ended up on @dev and
 # got pinned into 16 hourly snapshots.
 #
+# (A `--target-dir` flag still overrides the env var and bypasses the shim.)
 # This shim closes that gap: ~/.local/bin is first on PATH (see home/xdg.nix
 # home.sessionPath), so it intercepts every cargo invocation in every shell.
 { config, pkgs, ... }:
@@ -21,14 +22,25 @@ in
     executable = true;
     text = ''
       #!${pkgs.runtimeShell}
-      # Respect an explicit CARGO_TARGET_DIR (zsh hook, CI, --target-dir callers).
-      if [ -z "''${CARGO_TARGET_DIR:-}" ]; then
-        root=$(${pkgs.git}/bin/git rev-parse --show-toplevel 2>/dev/null || true)
-        if [ -n "$root" ]; then
-          key=''${root#"$HOME"/}
+      # An explicit CARGO_TARGET_DIR is respected unless it points under $HOME
+      # but outside the cache: agents export per-run dirs like ~/dev/vt/rr926,
+      # which land on snapshotted @dev (50+ GiB each). Those are remapped into
+      # the cache; /tmp and other off-home paths are left alone.
+      dir=''${CARGO_TARGET_DIR:-}
+      case "$dir" in
+        "${cacheBase}"/*) ;;
+        "$HOME"/*)
+          key=''${dir#"$HOME"/}
           export CARGO_TARGET_DIR="${cacheBase}/cargo-target/''${key//\//_}"
-        fi
-      fi
+          ;;
+        "")
+          root=$(${pkgs.git}/bin/git rev-parse --show-toplevel 2>/dev/null || true)
+          if [ -n "$root" ]; then
+            key=''${root#"$HOME"/}
+            export CARGO_TARGET_DIR="${cacheBase}/cargo-target/''${key//\//_}"
+          fi
+          ;;
+      esac
       exec ${pkgs.rustup}/bin/cargo "$@"
     '';
   };

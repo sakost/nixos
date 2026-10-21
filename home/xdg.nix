@@ -8,6 +8,8 @@ in
   # Extra PATH entries
   home.sessionPath = [
     "${config.home.homeDirectory}/.local/bin"
+    # `cargo install` output: CARGO_HOME lives in the cache, so ~/.cargo/bin doesn't exist.
+    "${cacheBase}/cargo/bin"
   ];
 
   # Environment variables for XDG compliance
