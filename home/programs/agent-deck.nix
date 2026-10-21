@@ -11,6 +11,7 @@
 let
   agentDeck = pkgs.callPackage ../../packages/agent-deck.nix { };
   toml = pkgs.formats.toml { };
+  accountDir = "~/.agent-deck/me_at_sakost_dev";
 
   # Rendered into the (read-only) store, so nothing with a secret goes here:
   # keyed MCPs (tavily, context7, memory) stay in Claude/Codex's own configs.
@@ -32,11 +33,19 @@ let
       options.history-limit = "50000";
     };
 
-    # Accounts. The default profile uses ~/.claude and ~/.codex. Add another
-    # account as [profiles.<name>.claude].config_dir (+ `CLAUDE_CONFIG_DIR=… claude`
-    # to log in), then `agent-deck -p <name>`.
-    claude.allow_dangerous_mode = true;
-    codex.yolo_mode = false;
+    # Account me@sakost.dev: a config-only copy of ~/.claude and ~/.codex (no
+    # transcripts) under ~/.agent-deck/me_at_sakost_dev/{claude,codex}. Add
+    # another account the same way as [profiles.<name>.claude].config_dir, then
+    # `agent-deck -p <name>`. Codex has no per-profile key, hence the command.
+    claude = {
+      config_dir = accountDir + "/claude";
+      allow_dangerous_mode = true;
+    };
+    profiles.me_at_sakost_dev.claude.config_dir = accountDir + "/claude";
+    codex = {
+      command = "CODEX_HOME=${accountDir}/codex codex";
+      yolo_mode = false;
+    };
 
     # The binary is a read-only store path: updates come from the flake.
     updates = {
