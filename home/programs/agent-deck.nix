@@ -20,6 +20,15 @@ let
   # only: add slack-bolt / discord-py if a Slack/Discord bridge is enabled.
   bridgePython = pkgs.python3.withPackages (ps: with ps; [ toml aiogram ]);
 
+  # Rendered at build time into fpath (a `source <(...)` would cost every shell start).
+  zshCompletion = pkgs.runCommand "agent-deck-zsh-completion" { } ''
+    mkdir -p $out/share/zsh/site-functions
+    ${agentDeck}/bin/agent-deck completion zsh > $out/share/zsh/site-functions/_agent_deck
+  '';
+
+  # The account's conductor and sessions live in this profile, not `default`.
+  profile = "me_at_sakost_dev";
+
   tokenFile = "%S/agent-deck/web-token";
 
   ensureToken = pkgs.writeShellScript "agent-deck-web-token" ''
@@ -31,7 +40,9 @@ let
   '';
 in
 {
-  home.packages = [ agentDeck ];
+  home.packages = [ agentDeck zshCompletion ];
+
+  home.sessionVariables.AGENTDECK_PROFILE = profile;
 
   # Telegram/Slack/Discord bridge to the conductor sessions. bridge.py is
   # installed (and updated) by `agent-deck conductor setup`; bot tokens live in
@@ -61,6 +72,7 @@ in
     Service = {
       Type = "simple";
       StateDirectory = "agent-deck";
+      Environment = [ "AGENTDECK_PROFILE=${profile}" ];
       ExecStartPre = ensureToken;
       ExecStart = builtins.concatStringsSep " " [
         "${agentDeck}/bin/agent-deck web --no-tui"
