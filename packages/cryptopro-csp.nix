@@ -6,6 +6,8 @@
   lib,
   stdenv,
   requireFile,
+  fetchurl,
+  patchelf,
   autoPatchelfHook,
   dpkg,
   glib,
@@ -23,6 +25,18 @@
 }:
 
 let
+  # patchelf >= 0.18 aborts on libades-core.so ("section content is not
+  # naturally aligned"); the 0.15.2 that nixpkgs shipped until 2026-10 handles
+  # it. Only the fixup of this package uses it. Drop once upstream copes.
+  patchelfLegacy = patchelf.overrideAttrs (_: {
+    version = "0.15.2";
+    src = fetchurl {
+      url = "https://github.com/NixOS/patchelf/releases/download/0.15.2/patchelf-0.15.2.tar.bz2";
+      hash = "sha256-F3RfVkFZyOIo/EEtplogSLhGxLa0Igt3y/IkFuAvLXw=";
+    };
+    patches = [ ];
+  });
+
   # Optional separate CAdES browser plugin archive (newer versions ship independently)
   cadesArchive = if cadesArchiveHash != null then requireFile {
     name = "cades-linux-amd64.tar.gz";
@@ -152,6 +166,7 @@ stdenv.mkDerivation {
 
   # Help autoPatchelfHook find CryptoPro's own internal libraries
   preFixup = ''
+    export PATH=${patchelfLegacy}/bin:$PATH
     addAutoPatchelfSearchPath $out/opt/cprocsp/lib/amd64
   '';
 

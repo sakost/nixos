@@ -11,7 +11,10 @@
 {
   home.packages = with pkgs; [
     awscli2
-    aws-sam-cli
+    # Tests fail on the current nixpkgs click (27 option-formatting/ParameterSource
+    # failures, all in CLI option introspection); the tool itself is unaffected.
+    # Drop the override once nixpkgs' aws-sam-cli passes its own checks again.
+    (aws-sam-cli.overridePythonAttrs { doCheck = false; })
   ];
 
   # AWS CLI v2 ships `aws_completer` (single binary that prints completions on
