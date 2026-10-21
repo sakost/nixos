@@ -10,10 +10,15 @@
 # Open http://sakost-pc:8420 (MagicDNS) and paste the token printed by
 #   cat ~/.local/state/agent-deck/web-token
 # The token is generated on first start and kept out of argv via -token-file.
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 let
   agentDeck = pkgs.callPackage ../../packages/agent-deck.nix { };
+
+  # `agent-deck conductor setup` wants `pip install toml aiogram`, which does
+  # not work on NixOS; run its bridge.py with these libs instead. Telegram
+  # only: add slack-bolt / discord-py if a Slack/Discord bridge is enabled.
+  bridgePython = pkgs.python3.withPackages (ps: with ps; [ toml aiogram ]);
 
   tokenFile = "%S/agent-deck/web-token";
 
@@ -27,6 +32,28 @@ let
 in
 {
   home.packages = [ agentDeck ];
+
+  # Telegram/Slack/Discord bridge to the conductor sessions. bridge.py is
+  # installed (and updated) by `agent-deck conductor setup`; bot tokens live in
+  # ~/.config/agent-deck/config.toml, never in the store.
+  systemd.user.services.agent-deck-conductor-bridge = {
+    Unit = {
+      Description = "agent-deck conductor bridge";
+      After = [ "network-online.target" ];
+      ConditionPathExists = "%h/.local/share/agent-deck/conductor/bridge.py";
+    };
+    Service = {
+      Type = "simple";
+      ExecStart = "${bridgePython}/bin/python %h/.local/share/agent-deck/conductor/bridge.py";
+      WorkingDirectory = "%h";
+      Environment = [ "PATH=${config.home.profileDirectory}/bin:/run/current-system/sw/bin" ];
+      StandardOutput = "append:%h/.local/share/agent-deck/conductor/bridge.log";
+      StandardError = "append:%h/.local/share/agent-deck/conductor/bridge.log";
+      Restart = "always";
+      RestartSec = 5;
+    };
+    Install.WantedBy = [ "default.target" ];
+  };
 
   systemd.user.services.agent-deck-web = {
     Unit.Description = "agent-deck web UI (tailnet)";
