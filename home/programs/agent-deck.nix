@@ -1,6 +1,10 @@
 # agent-deck — session manager for AI coding agents, plus its web UI as a
 # systemd user service reachable over the tailnet.
 #
+# Its config is a plain, hand-editable ~/.config/agent-deck/config.toml (not
+# Nix-managed, so the TUI settings panel can save to it). Accounts live under
+# ~/.agent-deck/<account>/{claude,codex}.
+#
 # The UI listens on :8420 on all interfaces, but the firewall only admits
 # tailscale0 (modules/services/tailscale.nix trusts it), so it is tailnet-only.
 # Open http://sakost-pc:8420 (MagicDNS) and paste the token printed by
@@ -10,103 +14,6 @@
 
 let
   agentDeck = pkgs.callPackage ../../packages/agent-deck.nix { };
-  toml = pkgs.formats.toml { };
-  accountDir = "~/.agent-deck/me_at_sakost_dev";
-
-  # Rendered into the (read-only) store, so nothing with a secret goes here:
-  # keyed MCPs (tavily, context7, memory) stay in Claude/Codex's own configs.
-  # TUI Settings-panel (`S`) edits cannot persist; change this file instead.
-  config = {
-    default_tool = "claude";
-    # Don't let agents rename sessions behind your back.
-    sync_title = false;
-
-    # Sessions are spawned by a systemd user unit with a bare environment;
-    # run them through an interactive shell so PATH (~/.local/bin for codex,
-    # cargo bin, nix profile) and the sessionVariables are present.
-    shell.launch_shell = true;
-
-    # Own tmux server: agent-deck's global options/bindings don't leak into
-    # the personal tmux (home/programs/tmux.nix).
-    tmux = {
-      socket_name = "agent-deck";
-      options.history-limit = "50000";
-    };
-
-    # Account me@sakost.dev: a config-only copy of ~/.claude and ~/.codex (no
-    # transcripts) under ~/.agent-deck/me_at_sakost_dev/{claude,codex}. Add
-    # another account the same way as [profiles.<name>.claude].config_dir, then
-    # `agent-deck -p <name>`. Codex has no per-profile key, hence the command.
-    claude = {
-      config_dir = accountDir + "/claude";
-      allow_dangerous_mode = true;
-    };
-    profiles.me_at_sakost_dev.claude.config_dir = accountDir + "/claude";
-    codex = {
-      command = "CODEX_HOME=${accountDir}/codex codex";
-      yolo_mode = false;
-    };
-
-    # The binary is a read-only store path: updates come from the flake.
-    updates = {
-      auto_update = false;
-      auto_install = false;
-      auto_restart = false;
-      check_enabled = false;
-      manage_timer = false;
-      auto_update_remotes = false;
-    };
-
-    # Search across Claude and Codex transcripts.
-    recall.enabled = true;
-
-    web.mutations_enabled = true;
-    worktree.run_repo_scripts = "prompt";
-
-    mcp_pool = {
-      enabled = true;
-      pool_all = true;
-      # cwd- or browser-bound: one instance per session.
-      exclude_mcps = [ "serena" "playwright" "chrome-devtools" ];
-    };
-
-    mcps = {
-      gitmcp = {
-        url = "https://gitmcp.io/docs";
-        transport = "http";
-        description = "Docs/code of any GitHub repo (GitMCP)";
-      };
-      sequential-thinking = {
-        command = "pnpm";
-        args = [ "dlx" "@modelcontextprotocol/server-sequential-thinking" ];
-        description = "Step-by-step reasoning";
-      };
-      serena = {
-        command = "uvx";
-        args = [
-          "--from" "git+https://github.com/oraios/serena" "serena" "start-mcp-server"
-          "--context" "ide-assistant" "--enable-web-dashboard" "false"
-          "--enable-gui-log-window" "false" "--project" "."
-        ];
-        description = "Symbolic code navigation";
-      };
-      playwright = {
-        command = "pnpm";
-        args = [ "dlx" "@playwright/mcp@latest" ];
-        description = "Browser automation";
-      };
-      chrome-devtools = {
-        command = "pnpm";
-        args = [ "dlx" "chrome-devtools-mcp@latest" ];
-        description = "Chrome DevTools";
-      };
-      glab = {
-        command = "glab";
-        args = [ "mcp" "serve" ];
-        description = "GitLab CLI";
-      };
-    };
-  };
 
   tokenFile = "%S/agent-deck/web-token";
 
@@ -120,8 +27,6 @@ let
 in
 {
   home.packages = [ agentDeck ];
-
-  xdg.configFile."agent-deck/config.toml".source = toml.generate "agent-deck-config.toml" config;
 
   systemd.user.services.agent-deck-web = {
     Unit.Description = "agent-deck web UI (tailnet)";
