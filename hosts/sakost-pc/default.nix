@@ -85,7 +85,12 @@
   # Enable hardware features
   custom.hardware = {
     nvidia.enable = true;
-    intel-cpu.enable = true;
+    intel-cpu = {
+      enable = true;
+      # Favored cores 16/20 (CPUs 8-11) SIGSEGV at their 6.0 GHz bin; cap them
+      # to what every other P-core runs at.
+      freqCap.cpus = [ 8 9 10 11 ];
+    };
     audio.enable = true;
     bluetooth.enable = true;
     mouse.enable = true;
