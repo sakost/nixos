@@ -80,6 +80,22 @@ in
     Install.WantedBy = [ "timers.target" ];
   };
 
+  # The tmux server (and so every session) dies on reboot, and nothing else
+  # revives the conductor until a chat message reaches the bridge. Start it at
+  # login/boot; heartbeats and notifications only reach a running conductor.
+  systemd.user.services.agent-deck-conductor-autostart = {
+    Unit = {
+      Description = "Start the agent-deck work conductor";
+      After = [ "agent-deck-conductor-bridge.service" ];
+    };
+    Service = {
+      Type = "oneshot";
+      ExecStart = "-${agentDeck}/bin/agent-deck -p ${profile} session start conductor-work";
+      Environment = [ "PATH=${config.home.profileDirectory}/bin:/run/current-system/sw/bin" ];
+    };
+    Install.WantedBy = [ "default.target" ];
+  };
+
   systemd.user.services.agent-deck-web = {
     Unit = {
       Description = "agent-deck web UI (tailnet)";
