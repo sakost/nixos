@@ -5,11 +5,10 @@
 # Nix-managed, so the TUI settings panel can save to it). Accounts live under
 # ~/.agent-deck/<account>/{claude,codex}.
 #
-# The UI listens on :8420 on all interfaces, but the firewall only admits
-# tailscale0 (modules/services/tailscale.nix trusts it), so it is tailnet-only.
-# Open http://sakost-pc:8420 (MagicDNS) and paste the token printed by
-#   cat ~/.local/state/agent-deck/web-token
-# The token is generated on first start and kept out of argv via -token-file.
+# The UI binds the tailnet address only (not 0.0.0.0) and has NO token: any
+# device on the tailnet gets full control of the sessions, so tailscale ACLs
+# are the only gate. Open http://sakost-pc:8420 (MagicDNS). The Host-header
+# allowlist below still blocks DNS-rebinding from a browser.
 { config, pkgs, ... }:
 
 let
@@ -28,16 +27,6 @@ let
 
   # The account's conductor and sessions live in this profile, not `default`.
   profile = "me_at_sakost_dev";
-
-  tokenFile = "%S/agent-deck/web-token";
-
-  ensureToken = pkgs.writeShellScript "agent-deck-web-token" ''
-    f="$STATE_DIRECTORY/web-token"
-    if [ ! -s "$f" ]; then
-      umask 077
-      ${pkgs.openssl}/bin/openssl rand -hex 32 > "$f"
-    fi
-  '';
 in
 {
   home.packages = [ agentDeck zshCompletion ];
@@ -92,17 +81,20 @@ in
   };
 
   systemd.user.services.agent-deck-web = {
-    Unit.Description = "agent-deck web UI (tailnet)";
+    Unit = {
+      Description = "agent-deck web UI (tailnet)";
+      # The bind address only exists once tailscale0 is up; keep retrying
+      # instead of tripping the default start-rate limit at boot.
+      StartLimitIntervalSec = 0;
+    };
 
     Service = {
       Type = "simple";
-      StateDirectory = "agent-deck";
       Environment = [ "AGENTDECK_PROFILE=${profile}" ];
-      ExecStartPre = ensureToken;
       ExecStart = builtins.concatStringsSep " " [
         "${agentDeck}/bin/agent-deck web --no-tui"
-        "--listen 0.0.0.0:8420"
-        "--token-file ${tokenFile}"
+        "--listen 100.110.59.31:8420"
+        "--insecure-bind" # no token: tailnet-only bind, see header
         # Host header checks: MagicDNS short and full names, tailnet IP.
         "--allowed-host sakost-pc"
         "--allowed-host sakost-pc.tail4c14c7.ts.net"
